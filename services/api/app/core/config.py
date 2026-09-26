@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3:4b"
 
+    # Crossref public REST API. No API key is required. CROSSREF_MAILTO is
+    # optional but recommended so Crossref can identify/contact API clients.
+    crossref_base_url: str = "https://api.crossref.org"
+    crossref_mailto: str | None = None
+    crossref_timeout_seconds: float = 8.0
+
     # Zero-cost SaaS mode is opt-in locally and must be enabled in public
     # deployments. When enabled, the API verifies Supabase Auth sessions and
     # enforces scan credits server-side through the database RPC.
