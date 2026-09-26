@@ -1,6 +1,38 @@
-# Averis
+<div align="center">
 
-Averis is an open-source, evidence-first academic integrity platform inspired by the workflow of commercial similarity-checking systems, without pretending an LLM can prove plagiarism or AI authorship.
+# 🔎 Averis
+
+### Evidence-first academic integrity and similarity analysis
+
+![Next.js](https://img.shields.io/badge/Next.js-Web-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20RLS-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Python](https://img.shields.io/badge/Python-Similarity%20Engine-3776AB?style=for-the-badge&logo=python&logoColor=white)
+
+**An open-source, zero-cost-first student SaaS foundation for document similarity evidence — without pretending an LLM can prove plagiarism or AI authorship.**
+
+[Roadmap](docs/ROADMAP.md) · [Zero-cost SaaS design](docs/ZERO_COST_SAAS.md) · [CI](https://github.com/teldigi5-wq/averis-ai/actions)
+
+</div>
+
+---
+
+## Product snapshot
+
+Averis is inspired by the workflow of commercial similarity-checking platforms while keeping the core analysis transparent, evidence based and reviewable.
+
+The current beta combines deterministic text matching, document ingestion and secure student SaaS foundations. AI is optional and advisory; the system keeps similarity evidence separate from claims of academic misconduct.
+
+| Area | Current direction |
+|---|---|
+| **Document ingestion** | TXT, PDF and DOCX extraction |
+| **Similarity evidence** | Word shingles, Jaccard similarity and sentence matching |
+| **Student SaaS** | Supabase Auth/RLS, scan credits and private scan history |
+| **Infrastructure** | PostgreSQL/pgvector, Redis and MinIO foundations |
+| **AI strategy** | Local-first provider abstraction; optional cloud providers later |
+| **Integrity boundary** | Similarity and AI-writing indicators are review aids, not automatic proof |
+
+---
 
 ## Project goals
 
