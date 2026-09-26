@@ -42,7 +42,7 @@
 - [ ] benchmark/calibrate semantic thresholds before student-facing scoring
 
 ## M3 — Evidence report (current)
-- [ ] side-by-side highlighted document viewer
+- [x] side-by-side highlighted document viewer
 - [ ] per-source contribution calculation
 - [x] quote exclusion
 - [x] bibliography exclusion
