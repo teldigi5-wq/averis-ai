@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import ai, documents, health, similarity, sources
+from app.api.routes import ai, documents, health, references, similarity, sources
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -24,4 +24,5 @@ app.include_router(health.router)
 app.include_router(documents.router, prefix="/api/v1")
 app.include_router(similarity.router, prefix="/api/v1")
 app.include_router(sources.router, prefix="/api/v1")
+app.include_router(references.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")

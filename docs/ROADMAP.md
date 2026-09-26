@@ -56,9 +56,11 @@
 - [x] live Crossref bibliographic search using the public no-key API
 - [x] live Crossref DOI resolution
 - [ ] live OpenAlex lookup — intentionally disabled in zero-cost beta while its API is metered
-- [ ] reference parser
-- [ ] citation-to-source consistency analysis
-- [ ] nonexistent/mismatched reference warnings
+- [x] bibliography/reference parser foundation
+- [x] common author-year citation-to-reference consistency audit
+- [ ] numeric citation style parsing (IEEE/Vancouver)
+- [ ] Crossref-backed per-reference verification
+- [ ] nonexistent/mismatched reference warnings with external evidence
 
 ## M5 — Educator/institution workflows
 - [ ] educator and admin roles
