@@ -9,6 +9,11 @@ def test_identical_text_produces_strong_similarity() -> None:
     report = compare_texts(text, text, "same")
     assert report.similarity_percent >= 95
     assert report.matched_passages
+    assert report.document_hash == report.source_hash
+    assert report.minhash_candidate_score == 100.0
+    assert report.vector_candidate_score == 100.0
+    assert report.candidate_provider == "hashing-lexical-v1"
+    assert report.evidence_version == "m2-candidate-foundation-v1"
 
 
 def test_unrelated_text_remains_low() -> None:
@@ -16,3 +21,7 @@ def test_unrelated_text_remains_low() -> None:
     right = "Photosynthesis converts light energy into chemical energy inside plants."
     report = compare_texts(left, right, "different")
     assert report.similarity_percent < 30
+    assert report.minhash_candidate_score is not None
+    assert report.minhash_candidate_score < 30
+    assert report.vector_candidate_score is not None
+    assert report.vector_candidate_score < 50
