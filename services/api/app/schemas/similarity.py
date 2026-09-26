@@ -23,3 +23,12 @@ class SimilarityReport(BaseModel):
     evidence_note: str
     scan_id: str | None = None
     credits_remaining: int | None = None
+
+    # M2 candidate-retrieval foundation. These signals are intentionally kept
+    # separate from similarity_percent until a real semantic model is certified.
+    document_hash: str | None = None
+    source_hash: str | None = None
+    minhash_candidate_score: float | None = None
+    vector_candidate_score: float | None = None
+    candidate_provider: str | None = None
+    evidence_version: str = "m1-evidence-v1"

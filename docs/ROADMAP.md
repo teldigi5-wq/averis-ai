@@ -11,7 +11,7 @@
 - [x] Tests and CI
 - [x] Docker infrastructure definition
 
-## M1.5 — Zero-cost student SaaS foundation (current)
+## M1.5 — Zero-cost student SaaS foundation
 - [x] Supabase Auth-ready web client
 - [x] student sign-up/sign-in UI
 - [x] RLS-protected profile and scan-history schema
@@ -21,19 +21,25 @@
 - [x] private student scan history
 - [x] student history deletion
 - [x] no original-document persistence in beta flow
-- [ ] provision live Supabase Free project
-- [ ] apply production migration and configure environment
-- [ ] deploy public zero-cost beta
+- [x] provision live Supabase Free project
+- [x] apply production migration and configure environment
+- [x] deploy public zero-cost beta
+- [ ] certify first end-to-end production scan after Vercel Hobby cooldown
 - [ ] add account/request rate limiting
 
-## M2 — Corpus + semantic similarity
-- [ ] PostgreSQL schema for document/source corpus
-- [ ] pgvector extension bootstrap
+## M2 — Corpus + semantic similarity (current)
+- [x] PostgreSQL schema for source/fingerprint corpus
+- [x] pgvector extension bootstrap
+- [x] normalization-stable SHA-256 document identity
+- [x] overlapping stable chunk IDs
+- [x] deterministic MinHash candidate fingerprints
+- [x] embedding-provider abstraction with deterministic CI fallback
+- [x] candidate signals separated from the primary evidence score
 - [ ] BGE-M3 embedding worker
-- [ ] chunk-level vector index
-- [ ] MinHash/LSH candidate retrieval
-- [ ] semantic reranking
-- [ ] stored source versioning
+- [ ] chunk-level vector index after corpus sizing/benchmarks
+- [ ] true semantic reranking
+- [ ] stored source versioning and ingestion jobs
+- [ ] benchmark/calibrate semantic thresholds before student-facing scoring
 
 ## M3 — Evidence report
 - [ ] side-by-side highlighted document viewer
@@ -44,8 +50,11 @@
 - [ ] downloadable PDF integrity report
 
 ## M4 — Scholarly verification
-- [ ] Crossref DOI lookup
-- [ ] OpenAlex work/source lookup
+- [x] DOI normalization foundation
+- [x] Crossref metadata normalization
+- [x] OpenAlex metadata normalization
+- [ ] live Crossref DOI lookup
+- [ ] live OpenAlex work/source lookup
 - [ ] reference parser
 - [ ] citation-to-source consistency analysis
 - [ ] nonexistent/mismatched reference warnings
@@ -74,6 +83,7 @@
 - [ ] algorithmic structure comparison
 
 ## M8 — Production hardening
+- [x] Vercel project-root ignored-build protection
 - [ ] distributed rate limiting
 - [ ] malware-safe upload pipeline
 - [ ] object-storage lifecycle policy
