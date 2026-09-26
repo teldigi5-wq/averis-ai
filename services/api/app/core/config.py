@@ -23,6 +23,25 @@ class Settings(BaseSettings):
     def supabase_public_key(self) -> str | None:
         return self.supabase_publishable_key or self.supabase_anon_key
 
+    @property
+    def cors_allowed_origins(self) -> list[str]:
+        """Return normalized browser origins allowed to call the API.
+
+        WEB_ORIGIN is the deployment-controlled source of truth. The canonical
+        Averis production domain is also retained in beta/production so a
+        harmless trailing slash or Vercel alias mismatch cannot break uploads.
+        """
+        candidates = [self.web_origin]
+        if self.app_env.lower() in {"beta", "production"}:
+            candidates.append("https://averis-web.vercel.app")
+
+        normalized: list[str] = []
+        for origin in candidates:
+            value = origin.strip().rstrip("/")
+            if value and value not in normalized:
+                normalized.append(value)
+        return normalized
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
