@@ -48,7 +48,8 @@
 - [x] bibliography exclusion
 - [x] configurable small-match threshold
 - [x] student-facing evidence controls and exclusion audit metadata
-- [ ] downloadable PDF integrity report
+- [x] server-side downloadable PDF integrity report engine
+- [ ] student Download Report control and end-to-end production certification
 
 ## M4 — Scholarly verification
 - [x] DOI normalization foundation

@@ -29,6 +29,7 @@ SOURCE_RESOLVE = RateLimitPolicy("source_resolve", 30)
 REFERENCE_PARSE = RateLimitPolicy("reference_parse", 60)
 REFERENCE_AUDIT = RateLimitPolicy("reference_audit", 30)
 REFERENCE_VERIFY = RateLimitPolicy("reference_verify", 12)
+REPORT_EXPORT = RateLimitPolicy("report_export", 12)
 
 
 def _receipt(payload: object) -> RateLimitReceipt:
