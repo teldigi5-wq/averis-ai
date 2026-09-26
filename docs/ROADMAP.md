@@ -53,8 +53,9 @@
 - [x] DOI normalization foundation
 - [x] Crossref metadata normalization
 - [x] OpenAlex metadata normalization
-- [ ] live Crossref DOI lookup
-- [ ] live OpenAlex work/source lookup
+- [x] live Crossref bibliographic search using the public no-key API
+- [x] live Crossref DOI resolution
+- [ ] live OpenAlex lookup — intentionally disabled in zero-cost beta while its API is metered
 - [ ] reference parser
 - [ ] citation-to-source consistency analysis
 - [ ] nonexistent/mismatched reference warnings
@@ -84,6 +85,7 @@
 
 ## M8 — Production hardening
 - [x] Vercel project-root ignored-build protection
+- [ ] verify ignored-build behavior after Hobby cooldown
 - [ ] distributed rate limiting
 - [ ] malware-safe upload pipeline
 - [ ] object-storage lifecycle policy

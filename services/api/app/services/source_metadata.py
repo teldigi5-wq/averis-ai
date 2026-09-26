@@ -92,7 +92,11 @@ def source_from_crossref(message: dict[str, Any]) -> SourceMetadata:
         url=str(message.get("URL") or "").strip() or None,
         published_year=_crossref_year(message),
         authors=tuple(authors),
-        metadata={"type": message.get("type"), "publisher": message.get("publisher")},
+        metadata={
+            "type": message.get("type"),
+            "publisher": message.get("publisher"),
+            "score": message.get("score"),
+        },
     )
 
 
