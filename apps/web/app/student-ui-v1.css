@@ -1,0 +1,9 @@
+/* Student Intelligence UI v1 reference numbering guard.
+   The API reference index is one-based. Use visual counters so presentation
+   remains one-based even if a future JSX refactor changes the raw label. */
+.parsedList { counter-reset: averis-reference; }
+.parsedRow { counter-increment: averis-reference; }
+.refNumber { font-size: 0; }
+.refNumber::before { content: counter(averis-reference, decimal-leading-zero); font-size: 8px; }
+.auditColumns > div:nth-child(2) .finding strong { font-size: 0; }
+.auditColumns > div:nth-child(2) .finding strong::before { content: "Bibliography entry"; font-size: 10px; }
