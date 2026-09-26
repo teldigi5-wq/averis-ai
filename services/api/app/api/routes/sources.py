@@ -4,6 +4,7 @@ from app.core.config import get_settings
 from app.schemas.source import SourceResolveResponse, SourceSearchResponse, source_result_from_metadata
 from app.services.auth import AuthContext, require_user
 from app.services.crossref import CrossrefClient, CrossrefLookupError
+from app.services.rate_limit import SOURCE_RESOLVE, SOURCE_SEARCH, enforce_rate_limit
 from app.services.source_metadata import normalize_doi
 
 
@@ -35,8 +36,10 @@ def _translate_error(exc: CrossrefLookupError) -> HTTPException:
 async def search_sources(
     q: str = Query(min_length=3, max_length=300),
     limit: int = Query(default=5, ge=1, le=5),
-    _auth: AuthContext = Depends(require_user),
+    auth: AuthContext = Depends(require_user),
 ) -> SourceSearchResponse:
+    await enforce_rate_limit(auth, SOURCE_SEARCH)
+
     try:
         results = await _client().search(q, limit=limit)
     except CrossrefLookupError as exc:
@@ -51,8 +54,10 @@ async def search_sources(
 @router.get("/resolve", response_model=SourceResolveResponse)
 async def resolve_source(
     doi: str = Query(min_length=6, max_length=250),
-    _auth: AuthContext = Depends(require_user),
+    auth: AuthContext = Depends(require_user),
 ) -> SourceResolveResponse:
+    await enforce_rate_limit(auth, SOURCE_RESOLVE)
+
     normalized = normalize_doi(doi)
     if normalized is None:
         raise HTTPException(

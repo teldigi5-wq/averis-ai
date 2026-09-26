@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from app.schemas.similarity import SimilarityCompareRequest, SimilarityReport
 from app.services.auth import AuthContext, require_user
+from app.services.rate_limit import SIMILARITY_COMPARE, enforce_rate_limit
 from app.services.similarity import compare_texts
 from app.services.usage import record_scan_usage
 
@@ -13,6 +14,8 @@ async def compare(
     payload: SimilarityCompareRequest,
     auth: AuthContext = Depends(require_user),
 ) -> SimilarityReport:
+    await enforce_rate_limit(auth, SIMILARITY_COMPARE)
+
     report = compare_texts(
         document_text=payload.document_text,
         source_text=payload.source_text,
