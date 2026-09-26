@@ -7,3 +7,122 @@
 .refNumber::before { content: counter(averis-reference, decimal-leading-zero); font-size: 8px; }
 .auditColumns > div:nth-child(2) .finding strong { font-size: 0; }
 .auditColumns > div:nth-child(2) .finding strong::before { content: "Bibliography entry"; font-size: 10px; }
+
+/* M3 evidence controls. Keep the controls visually prominent but explicitly
+   separate from the score so users can see what changed before rescanning. */
+.evidenceControlsPanel { margin-top: 18px; }
+.controlGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.controlCard {
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .025);
+}
+.controlCard small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.controlTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.controlTitle b { font-size: 13px; }
+.controlTitle strong {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 13px;
+}
+.controlToggle,
+.controlCard input[type="checkbox"] {
+  flex: 0 0 auto;
+}
+.controlCard input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  border-radius: 5px;
+  accent-color: var(--accent);
+  box-shadow: none;
+}
+.thresholdRange {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  accent-color: var(--accent);
+}
+.thresholdRange:focus { box-shadow: none; }
+.controlBoundary { margin: 14px 0 0; }
+.analysisTrace {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--line);
+}
+.analysisTrace > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 14px;
+  background: rgba(8, 21, 33, .9);
+}
+.analysisTrace span {
+  color: var(--muted-2);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.analysisTrace strong { font-size: 18px; }
+.analysisTrace small { color: var(--muted); font-size: 10px; }
+.appliedControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.controlBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .025);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: capitalize;
+}
+.activeBadge {
+  color: #cffff3;
+  border-color: rgba(87, 230, 213, .28);
+  background: rgba(87, 230, 213, .07);
+}
+.neutralBadge { color: var(--muted); }
+
+@media (max-width: 900px) {
+  .controlGrid { grid-template-columns: 1fr; }
+  .analysisTrace { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 560px) {
+  .analysisTrace { grid-template-columns: 1fr; }
+  .controlCard { min-height: auto; }
+}
