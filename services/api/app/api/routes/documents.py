@@ -1,6 +1,7 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.schemas.document import ExtractedDocument
+from app.services.auth import AuthContext, require_user
 from app.services.document_parser import UnsupportedDocumentError, extract_text
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -9,7 +10,10 @@ MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
 
 @router.post("/extract", response_model=ExtractedDocument)
-async def extract_document(file: UploadFile = File(...)) -> ExtractedDocument:
+async def extract_document(
+    file: UploadFile = File(...),
+    _auth: AuthContext = Depends(require_user),
+) -> ExtractedDocument:
     filename = file.filename or "upload"
     content = await file.read(MAX_UPLOAD_BYTES + 1)
     if len(content) > MAX_UPLOAD_BYTES:

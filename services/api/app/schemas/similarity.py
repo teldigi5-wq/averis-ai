@@ -5,6 +5,7 @@ class SimilarityCompareRequest(BaseModel):
     document_text: str = Field(min_length=1)
     source_text: str = Field(min_length=1)
     source_name: str = "reference"
+    document_name: str = "submission"
 
 
 class PassageMatch(BaseModel):
@@ -20,3 +21,5 @@ class SimilarityReport(BaseModel):
     sentence_match_score: float
     matched_passages: list[PassageMatch]
     evidence_note: str
+    scan_id: str | None = None
+    credits_remaining: int | None = None

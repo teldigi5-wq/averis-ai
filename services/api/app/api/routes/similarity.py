@@ -1,15 +1,34 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.schemas.similarity import SimilarityCompareRequest, SimilarityReport
+from app.services.auth import AuthContext, require_user
 from app.services.similarity import compare_texts
+from app.services.usage import record_scan_usage
 
 router = APIRouter(prefix="/similarity", tags=["similarity"])
 
 
 @router.post("/compare", response_model=SimilarityReport)
-def compare(payload: SimilarityCompareRequest) -> SimilarityReport:
-    return compare_texts(
+async def compare(
+    payload: SimilarityCompareRequest,
+    auth: AuthContext = Depends(require_user),
+) -> SimilarityReport:
+    report = compare_texts(
         document_text=payload.document_text,
         source_text=payload.source_text,
         source_name=payload.source_name,
+    )
+
+    receipt = await record_scan_usage(
+        auth,
+        document_name=payload.document_name,
+        source_name=payload.source_name,
+        similarity_percent=report.similarity_percent,
+    )
+
+    return report.model_copy(
+        update={
+            "scan_id": receipt.scan_id,
+            "credits_remaining": receipt.credits_remaining,
+        }
     )
