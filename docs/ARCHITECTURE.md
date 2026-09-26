@@ -18,6 +18,23 @@ Document
 
 An LLM never invents the primary similarity score.
 
+## Student SaaS request boundary
+
+```text
+Student browser
+   -> Supabase Auth session
+   -> Averis API (Bearer token)
+       -> verify session with Supabase Auth
+       -> deterministic similarity engine
+       -> consume_scan_credit RPC
+           -> profiles (credit balance)
+           -> scans (private history metadata)
+```
+
+With `SAAS_MODE=true`, scan accounting is a server-side requirement. The UI is not the trust boundary. Supabase RLS isolates each student's profile and history.
+
+The zero-cost beta does not persist original uploaded documents. The API parses them in memory and the database stores only scan metadata.
+
 ## Planned services
 
 1. **Web** — student/lecturer/admin UI.

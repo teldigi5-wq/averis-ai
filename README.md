@@ -29,7 +29,7 @@ averis-ai/
 └── .env.example
 ```
 
-## Milestone 1 implemented
+## Implemented
 
 - FastAPI service with health endpoint
 - TXT/PDF/DOCX upload parsing
@@ -40,6 +40,9 @@ averis-ai/
 - Docker-ready PostgreSQL/pgvector, Redis, and MinIO services
 - Provider abstraction for local/open AI
 - Automated backend tests and frontend build CI
+- Zero-cost student SaaS foundation with Supabase Auth/RLS
+- Server-enforced free beta scan credits and private scan history
+- Original files are not persisted by the current beta scan flow
 
 ## Quick start
 
@@ -93,6 +96,12 @@ This starts PostgreSQL + pgvector, Redis and MinIO for later milestones.
 `POST /api/v1/documents/extract` as multipart form-data using the `file` field.
 
 Supported in Milestone 1: `.txt`, `.pdf`, `.docx`.
+
+## Zero-cost student beta
+
+Averis is being built so the pre-revenue beta can operate without a recurring paid dependency. The current SaaS foundation supports Supabase Auth, per-student RLS, five starting scan credits, server-side credit consumption, scan history, and student-controlled history deletion.
+
+See [`docs/ZERO_COST_SAAS.md`](docs/ZERO_COST_SAAS.md) for setup and security boundaries.
 
 ## Free-first AI strategy
 
