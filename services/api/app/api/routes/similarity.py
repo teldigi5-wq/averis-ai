@@ -20,6 +20,9 @@ async def compare(
         document_text=payload.document_text,
         source_text=payload.source_text,
         source_name=payload.source_name,
+        exclude_quotes=payload.exclude_quotes,
+        exclude_bibliography=payload.exclude_bibliography,
+        min_match_words=payload.min_match_words,
     )
 
     receipt = await record_scan_usage(

@@ -27,7 +27,7 @@
 - [x] add account/request rate limiting
 - [ ] certify first end-to-end production scan after Vercel Hobby cooldown
 
-## M2 — Corpus + semantic similarity (current)
+## M2 — Corpus + semantic similarity
 - [x] PostgreSQL schema for source/fingerprint corpus
 - [x] pgvector extension bootstrap
 - [x] normalization-stable SHA-256 document identity
@@ -41,12 +41,12 @@
 - [ ] stored source versioning and ingestion jobs
 - [ ] benchmark/calibrate semantic thresholds before student-facing scoring
 
-## M3 — Evidence report
+## M3 — Evidence report (current)
 - [ ] side-by-side highlighted document viewer
 - [ ] per-source contribution calculation
-- [ ] quote exclusion
-- [ ] bibliography exclusion
-- [ ] configurable small-match threshold
+- [x] quote exclusion
+- [x] bibliography exclusion
+- [x] configurable small-match threshold
 - [ ] downloadable PDF integrity report
 
 ## M4 — Scholarly verification

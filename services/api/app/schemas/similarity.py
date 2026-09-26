@@ -6,6 +6,9 @@ class SimilarityCompareRequest(BaseModel):
     source_text: str = Field(min_length=1)
     source_name: str = "reference"
     document_name: str = "submission"
+    exclude_quotes: bool = False
+    exclude_bibliography: bool = False
+    min_match_words: int = Field(default=3, ge=3, le=50)
 
 
 class PassageMatch(BaseModel):
@@ -23,6 +26,13 @@ class SimilarityReport(BaseModel):
     evidence_note: str
     scan_id: str | None = None
     credits_remaining: int | None = None
+
+    # M3 evidence controls are transparent metadata, not hidden score changes.
+    exclusions_applied: list[str] = Field(default_factory=list)
+    min_match_words: int = 3
+    document_words_original: int | None = None
+    document_words_analyzed: int | None = None
+    document_words_excluded: int | None = None
 
     # M2 candidate-retrieval foundation. These signals are intentionally kept
     # separate from similarity_percent until a real semantic model is certified.
