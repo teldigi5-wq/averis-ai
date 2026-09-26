@@ -24,8 +24,8 @@
 - [x] provision live Supabase Free project
 - [x] apply production migration and configure environment
 - [x] deploy public zero-cost beta
+- [x] add account/request rate limiting
 - [ ] certify first end-to-end production scan after Vercel Hobby cooldown
-- [ ] add account/request rate limiting
 
 ## M2 — Corpus + semantic similarity (current)
 - [x] PostgreSQL schema for source/fingerprint corpus
@@ -59,6 +59,7 @@
 - [x] bibliography/reference parser foundation
 - [x] common author-year citation-to-reference consistency audit
 - [x] bounded Crossref-backed per-reference verification
+- [x] Student Intelligence UI v1 for scan/source/reference/history workflows
 - [ ] numeric citation style parsing (IEEE/Vancouver)
 - [ ] richer title/author metadata comparison and citation-style diagnostics
 - [ ] downloadable reference verification evidence in the integrity report
@@ -88,8 +89,8 @@
 
 ## M8 — Production hardening
 - [x] Vercel project-root ignored-build protection
+- [x] Supabase-backed distributed per-user rate limiting
 - [ ] verify ignored-build behavior after Hobby cooldown
-- [ ] distributed rate limiting
 - [ ] malware-safe upload pipeline
 - [ ] object-storage lifecycle policy
 - [ ] encryption and secrets management
