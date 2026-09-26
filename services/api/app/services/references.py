@@ -26,6 +26,11 @@ _NARRATIVE_RE = re.compile(
     r"(?:\s+et\s+al\.?)?\s*\(\s*(?P<year>(?:18|19|20)\d{2}[a-z]?)\s*\)",
     re.UNICODE,
 )
+_NUMERIC_CITATION_RE = re.compile(
+    r"\[(?P<body>\d{1,3}(?:\s*[-–—]\s*\d{1,3})?"
+    r"(?:\s*[,;]\s*\d{1,3}(?:\s*[-–—]\s*\d{1,3})?)*)\]"
+)
+_NUMERIC_SEGMENT_RE = re.compile(r"^(?P<start>\d{1,3})(?:\s*[-–—]\s*(?P<end>\d{1,3}))?$")
 
 
 @dataclass(frozen=True)
@@ -47,12 +52,30 @@ class CitationMention:
 
 
 @dataclass(frozen=True)
+class NumericCitationMention:
+    raw: str
+    numbers: tuple[int, ...]
+    start: int
+
+
+@dataclass(frozen=True)
+class NumericCitationFinding:
+    citation: NumericCitationMention
+    missing_reference_numbers: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class CitationAudit:
     references: tuple[ParsedReference, ...]
     citations: tuple[CitationMention, ...]
     unmatched_citations: tuple[CitationMention, ...]
     uncited_references: tuple[ParsedReference, ...]
     matched_citation_count: int
+    numeric_citations: tuple[NumericCitationMention, ...] = ()
+    unmatched_numeric_citations: tuple[NumericCitationFinding, ...] = ()
+    matched_author_year_citation_count: int = 0
+    matched_numeric_citation_count: int = 0
+    citation_styles_detected: tuple[str, ...] = ()
 
 
 def _compact(value: str) -> str:
@@ -193,9 +216,57 @@ def extract_author_year_citations(document_text: str, *, max_mentions: int = 200
     return sorted(mentions, key=lambda item: item.start)[:max_mentions]
 
 
+def _expand_numeric_citation_body(body: str, *, max_numbers: int = 50) -> tuple[int, ...]:
+    numbers: list[int] = []
+    for raw_segment in re.split(r"[,;]", body):
+        segment = raw_segment.strip()
+        match = _NUMERIC_SEGMENT_RE.fullmatch(segment)
+        if not match:
+            return ()
+
+        start = int(match.group("start"))
+        end_raw = match.group("end")
+        end = int(end_raw) if end_raw is not None else start
+        if start < 1 or end < start or (end - start + 1) > max_numbers:
+            return ()
+
+        for number in range(start, end + 1):
+            if number not in numbers:
+                numbers.append(number)
+                if len(numbers) > max_numbers:
+                    return ()
+    return tuple(numbers)
+
+
+def extract_numeric_citations(document_text: str, *, max_mentions: int = 200) -> list[NumericCitationMention]:
+    """Extract conservative square-bracket numeric citation candidates.
+
+    Supported examples include [1], [2, 4], [3-5] and [1; 3-4]. Four-digit
+    bracketed values such as [2024] are intentionally outside the pattern to
+    reduce accidental year/label detection. Parenthesized numbers are not
+    treated as citations because they are too ambiguous for this review aid.
+    """
+    mentions: list[NumericCitationMention] = []
+    for match in _NUMERIC_CITATION_RE.finditer(document_text):
+        numbers = _expand_numeric_citation_body(match.group("body"))
+        if not numbers:
+            continue
+        mentions.append(
+            NumericCitationMention(
+                raw=match.group(0),
+                numbers=numbers,
+                start=match.start(),
+            )
+        )
+        if len(mentions) >= max_mentions:
+            break
+    return mentions
+
+
 def audit_citation_consistency(document_text: str, reference_text: str) -> CitationAudit:
     references = parse_reference_block(reference_text)
     citations = extract_author_year_citations(document_text)
+    numeric_citations = extract_numeric_citations(document_text)
 
     reference_keys = {
         (reference.author_key, reference.year)
@@ -209,17 +280,70 @@ def audit_citation_consistency(document_text: str, reference_text: str) -> Citat
         for citation in citations
         if (citation.author_key, citation.year) not in reference_keys
     )
-    uncited = tuple(
-        reference
+    matched_author_year_count = len(citations) - len(unmatched)
+
+    author_cited_reference_indices = {
+        reference.index
         for reference in references
         if reference.author_key
         and reference.year
-        and (reference.author_key, reference.year) not in citation_keys
-    )
+        and (reference.author_key, reference.year) in citation_keys
+    }
+
+    valid_reference_indices = {reference.index for reference in references}
+    numeric_findings: list[NumericCitationFinding] = []
+    numeric_cited_reference_indices: set[int] = set()
+    matched_numeric_count = 0
+
+    for citation in numeric_citations:
+        missing = tuple(number for number in citation.numbers if number not in valid_reference_indices)
+        numeric_cited_reference_indices.update(
+            number for number in citation.numbers if number in valid_reference_indices
+        )
+        if missing:
+            numeric_findings.append(
+                NumericCitationFinding(
+                    citation=citation,
+                    missing_reference_numbers=missing,
+                )
+            )
+        else:
+            matched_numeric_count += 1
+
+    cited_reference_indices = author_cited_reference_indices | numeric_cited_reference_indices
+    if numeric_citations:
+        uncited = tuple(
+            reference
+            for reference in references
+            if reference.index not in cited_reference_indices
+        )
+    else:
+        # Preserve the earlier author-year behavior when no numeric citation
+        # candidates are present: only references with parseable author/year
+        # metadata can safely be classified as uncited.
+        uncited = tuple(
+            reference
+            for reference in references
+            if reference.author_key
+            and reference.year
+            and reference.index not in cited_reference_indices
+        )
+
+    styles: list[str] = []
+    if citations:
+        styles.append("author-year")
+    if numeric_citations:
+        styles.append("numeric-bracket")
+
     return CitationAudit(
         references=tuple(references),
         citations=tuple(citations),
         unmatched_citations=unmatched,
         uncited_references=uncited,
-        matched_citation_count=len(citations) - len(unmatched),
+        matched_citation_count=matched_author_year_count + matched_numeric_count,
+        numeric_citations=tuple(numeric_citations),
+        unmatched_numeric_citations=tuple(numeric_findings),
+        matched_author_year_citation_count=matched_author_year_count,
+        matched_numeric_citation_count=matched_numeric_count,
+        citation_styles_detected=tuple(styles),
     )

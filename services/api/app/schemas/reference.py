@@ -2,7 +2,13 @@ from pydantic import BaseModel, Field
 
 from app.schemas.source import SourceResult, source_result_from_metadata
 from app.services.reference_verification import ReferenceVerification
-from app.services.references import CitationAudit, CitationMention, ParsedReference
+from app.services.references import (
+    CitationAudit,
+    CitationMention,
+    NumericCitationFinding,
+    NumericCitationMention,
+    ParsedReference,
+)
 
 
 class ReferenceParseRequest(BaseModel):
@@ -35,6 +41,13 @@ class CitationMentionResult(BaseModel):
     start: int
 
 
+class NumericCitationMentionResult(BaseModel):
+    raw: str
+    numbers: list[int] = Field(default_factory=list)
+    start: int
+    missing_reference_numbers: list[int] = Field(default_factory=list)
+
+
 class ReferenceVerificationResult(BaseModel):
     reference: ParsedReferenceResult
     status: str
@@ -54,8 +67,13 @@ class CitationAuditResponse(BaseModel):
     references: list[ParsedReferenceResult]
     citations: list[CitationMentionResult]
     unmatched_citations: list[CitationMentionResult]
+    numeric_citations: list[NumericCitationMentionResult] = Field(default_factory=list)
+    unmatched_numeric_citations: list[NumericCitationMentionResult] = Field(default_factory=list)
     uncited_references: list[ParsedReferenceResult]
     matched_citation_count: int
+    matched_author_year_citation_count: int = 0
+    matched_numeric_citation_count: int = 0
+    citation_styles_detected: list[str] = Field(default_factory=list)
     scope_note: str
 
 
@@ -87,13 +105,33 @@ def _citation(citation: CitationMention) -> CitationMentionResult:
     )
 
 
+def _numeric_citation(
+    citation: NumericCitationMention,
+    *,
+    missing_reference_numbers: tuple[int, ...] = (),
+) -> NumericCitationMentionResult:
+    return NumericCitationMentionResult(
+        raw=citation.raw,
+        numbers=list(citation.numbers),
+        start=citation.start,
+        missing_reference_numbers=list(missing_reference_numbers),
+    )
+
+
+def _numeric_finding(finding: NumericCitationFinding) -> NumericCitationMentionResult:
+    return _numeric_citation(
+        finding.citation,
+        missing_reference_numbers=finding.missing_reference_numbers,
+    )
+
+
 def parse_response(references: list[ParsedReference]) -> ReferenceParseResponse:
     return ReferenceParseResponse(
         references=[_reference(reference) for reference in references],
         count=len(references),
         scope_note=(
-            "Heuristic bibliography parsing for review. DOI/year/author detection can be incomplete, "
-            "especially for numeric citation styles or unusual formatting."
+            "Heuristic bibliography parsing for review. DOI/year/author detection can be incomplete. "
+            "Numeric citation auditing relies on bibliography order rather than detected author/year fields."
         ),
     )
 
@@ -103,11 +141,20 @@ def audit_response(audit: CitationAudit) -> CitationAuditResponse:
         references=[_reference(reference) for reference in audit.references],
         citations=[_citation(citation) for citation in audit.citations],
         unmatched_citations=[_citation(citation) for citation in audit.unmatched_citations],
+        numeric_citations=[_numeric_citation(citation) for citation in audit.numeric_citations],
+        unmatched_numeric_citations=[
+            _numeric_finding(finding)
+            for finding in audit.unmatched_numeric_citations
+        ],
         uncited_references=[_reference(reference) for reference in audit.uncited_references],
         matched_citation_count=audit.matched_citation_count,
+        matched_author_year_citation_count=audit.matched_author_year_citation_count,
+        matched_numeric_citation_count=audit.matched_numeric_citation_count,
+        citation_styles_detected=list(audit.citation_styles_detected),
         scope_note=(
-            "Current consistency checks cover common author-year citations only. Findings are review aids, "
-            "not proof that a citation or reference is invalid."
+            "Consistency checks cover common author-year citations and conservative square-bracket numeric "
+            "citation candidates such as [1], [2, 4], and [3-5]. Bracketed numbers can also be labels rather "
+            "than citations, so every finding remains a review aid, not proof that a citation or reference is invalid."
         ),
     )
 
