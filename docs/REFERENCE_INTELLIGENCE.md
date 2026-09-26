@@ -17,20 +17,44 @@ The parser currently extracts:
 
 The input is bounded to 25,000 characters and the parser caps the number of references it processes.
 
-## Author-year consistency audit
+For numeric citation styles, the bibliography order is also treated as the reference number: the first parsed entry is reference 1, the second is reference 2, and so on. Explicit prefixes such as `[1]` or `1.` are stripped for metadata parsing but preserve that order.
 
-Averis can compare common author-year citations in a document against the supplied reference list:
+## Citation consistency audit
+
+Averis can compare common in-text citation forms against the supplied reference list:
 
 - `POST /api/v1/references/audit`
 
-The audit reports:
+### Author-year citations
 
-- detected in-text citation mentions
-- citation mentions that do not have a matching author/year reference
-- bibliography entries that are not cited by a detected author/year citation
-- the number of matched citation mentions
+Common APA/Harvard-style forms remain supported, including parenthetical and narrative mentions. The audit reports:
 
-This check runs locally in the Averis API and does not call Crossref or another external provider.
+- detected author-year citation mentions
+- author-year mentions without a matching parsed author/year reference
+- matched author-year citation count
+
+### Square-bracket numeric citations
+
+Averis also detects conservative IEEE and bracketed Vancouver-style candidates such as:
+
+- `[1]`
+- `[2, 4]`
+- `[3-5]`
+- `[1; 3-4]`
+
+Bounded ranges are expanded and checked against bibliography order. The audit returns:
+
+- each detected numeric citation and its expanded reference numbers
+- numeric citation mentions containing numbers that do not exist in the supplied bibliography
+- the exact missing reference numbers
+- matched numeric citation count
+- detected citation styles
+
+Four-digit bracket values such as `[2024]` are intentionally not treated as numeric citations. Parenthesized numbers such as `(1)` are also excluded because they are too ambiguous in ordinary prose. Descending or excessively large ranges are ignored rather than guessed.
+
+When numeric citations are present, uncited-reference checks can use bibliography position even when author/year metadata is unavailable. Mixed documents can use both author-year and numeric evidence when deciding whether a parsed reference appears to be cited.
+
+All local parse/audit checks run inside the Averis API and do not call Crossref or another external provider.
 
 ## Crossref-backed verification
 
@@ -56,9 +80,9 @@ None of these states means “fake reference.” Crossref coverage is broad but 
 
 ## Scope boundary
 
-The current local audit is designed for common APA/Harvard-style author-year citations. Numeric styles such as IEEE/Vancouver require a separate parser and are not judged by this check.
+Numeric bracket detection is deliberately conservative but still cannot prove that every bracketed number is a citation; numbered equations, requirements, list labels, and other document conventions may look similar. Likewise, unmatched author-year citations can result from formatting variations, organization authors, unusual surnames, missing years, or parser limits.
 
-An unmatched citation is **not automatically a fake citation**. Formatting variations, organization authors, unusual surnames, missing years, unsupported styles, or provider coverage gaps can produce incomplete matches. The API therefore keeps the raw detected evidence and source candidate visible for human review.
+An unmatched citation or missing numeric reference is **not automatically a fake citation**. The API keeps the raw detected evidence visible for human review.
 
 ## Privacy and cost
 

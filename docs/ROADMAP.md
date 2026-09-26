@@ -41,16 +41,16 @@
 - [ ] stored source versioning and ingestion jobs
 - [ ] benchmark/calibrate semantic thresholds before student-facing scoring
 
-## M3 — Evidence report (current)
+## M3 — Evidence report
 - [x] side-by-side highlighted document viewer
-- [ ] per-source contribution calculation
+- [ ] per-source contribution calculation — defer until multi-source matching exists
 - [x] quote exclusion
 - [x] bibliography exclusion
 - [x] configurable small-match threshold
 - [x] student-facing evidence controls and exclusion audit metadata
 - [x] browser-native downloadable/printable PDF integrity report
 
-## M4 — Scholarly verification
+## M4 — Scholarly verification (current)
 - [x] DOI normalization foundation
 - [x] Crossref metadata normalization
 - [x] OpenAlex metadata normalization
@@ -61,7 +61,7 @@
 - [x] common author-year citation-to-reference consistency audit
 - [x] bounded Crossref-backed per-reference verification
 - [x] Student Intelligence UI v1 for scan/source/reference/history workflows
-- [ ] numeric citation style parsing (IEEE/Vancouver)
+- [x] conservative square-bracket numeric citation parsing and consistency audit (IEEE/bracketed Vancouver)
 - [ ] richer title/author metadata comparison and citation-style diagnostics
 - [ ] downloadable reference verification evidence in the integrity report
 
