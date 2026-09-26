@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 
 type ToolTab = "integrity" | "sources" | "references" | "history";
+type EvidenceView = "passages" | "documents";
 
 type ExtractedDocument = {
   filename: string;
@@ -160,11 +161,21 @@ function scoreClass(score: number | null | undefined) {
   return "confidence weak";
 }
 
+function viewerSentences(text: string) {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return [];
+  return compact
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter((sentence) => sentence.split(/\s+/).length >= 3);
+}
+
 export default function Home() {
   const [activeTool, setActiveTool] = useState<ToolTab>("integrity");
   const [document, setDocument] = useState<ExtractedDocument | null>(null);
   const [reference, setReference] = useState("");
   const [report, setReport] = useState<SimilarityReport | null>(null);
+  const [evidenceView, setEvidenceView] = useState<EvidenceView>("passages");
   const [excludeQuotes, setExcludeQuotes] = useState(false);
   const [excludeBibliography, setExcludeBibliography] = useState(false);
   const [minMatchWords, setMinMatchWords] = useState(3);
@@ -198,6 +209,14 @@ export default function Home() {
     if (report.similarity_percent >= 20) return "score score-medium";
     return "score score-low";
   }, [report]);
+  const documentMatchedSentences = useMemo(
+    () => new Set(report?.matched_passages.map((match) => match.document_sentence) ?? []),
+    [report],
+  );
+  const sourceMatchedSentences = useMemo(
+    () => new Set(report?.matched_passages.map((match) => match.source_sentence) ?? []),
+    [report],
+  );
 
   const canScan = !supabaseConfigured || Boolean(user && (profile?.credits_remaining ?? 0) > 0);
 
@@ -225,6 +244,7 @@ export default function Home() {
         setScans([]);
         setDocument(null);
         setReport(null);
+        setEvidenceView("passages");
         setActiveTool("integrity");
       }
     });
@@ -285,6 +305,7 @@ export default function Home() {
 
   function invalidateReport() {
     setReport(null);
+    setEvidenceView("passages");
     setError("");
     setNotice("");
   }
@@ -329,6 +350,7 @@ export default function Home() {
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setReport(null);
+    setEvidenceView("passages");
 
     if (supabaseConfigured && !user) {
       setError("Sign in before uploading a submission.");
@@ -385,6 +407,7 @@ export default function Home() {
         }),
       });
       setReport(payload);
+      setEvidenceView("passages");
       if (payload.credits_remaining !== null && profile) {
         setProfile({ ...profile, credits_remaining: payload.credits_remaining });
       }
@@ -737,9 +760,17 @@ export default function Home() {
                 </section>
 
                 <section className="panel evidencePanel">
-                  <div className="panelHead">
-                    <div><span className="step">04</span><div><small>EVIDENCE VIEW</small><h3>Matched passages</h3></div></div>
-                    {report && <span className="chip">{report.source_name}</span>}
+                  <div className="panelHead evidencePanelHead">
+                    <div><span className="step">04</span><div><small>EVIDENCE VIEW</small><h3>{evidenceView === "passages" ? "Matched passages" : "Side-by-side documents"}</h3></div></div>
+                    {report && (
+                      <div className="evidenceHeadActions">
+                        <div className="viewSwitch" role="group" aria-label="Evidence view">
+                          <button className={evidenceView === "passages" ? "active" : ""} onClick={() => setEvidenceView("passages")}>Passages</button>
+                          <button className={evidenceView === "documents" ? "active" : ""} onClick={() => setEvidenceView("documents")}>Documents</button>
+                        </div>
+                        <span className="chip">{report.source_name}</span>
+                      </div>
+                    )}
                   </div>
                   {!report ? (
                     <div className="emptyState"><span>◎</span><h4>No evidence yet</h4><p>Upload a draft, choose your analysis controls, and compare it with source text to see matched passages here.</p></div>
@@ -754,12 +785,40 @@ export default function Home() {
                         ))}
                       </div>
                       <p className="scopeNote">{report.evidence_note}</p>
-                      {report.matched_passages.length === 0 ? <p className="empty">No strong sentence-level matches found after the selected controls.</p> : report.matched_passages.map((match, index) => (
-                        <div className="match" key={`${match.document_sentence}-${index}`}>
-                          <div className="matchScore">{Math.round(match.score)}<small>%</small></div>
-                          <div><small>SUBMISSION</small><p>{match.document_sentence}</p><small>SOURCE</small><p>{match.source_sentence}</p></div>
-                        </div>
-                      ))}
+                      {report.matched_passages.length === 0 ? (
+                        <p className="empty">No strong sentence-level matches found after the selected controls.</p>
+                      ) : evidenceView === "passages" ? (
+                        report.matched_passages.map((match, index) => (
+                          <div className="match" key={`${match.document_sentence}-${index}`}>
+                            <div className="matchScore">{Math.round(match.score)}<small>%</small></div>
+                            <div><small>SUBMISSION</small><p>{match.document_sentence}</p><small>SOURCE</small><p>{match.source_sentence}</p></div>
+                          </div>
+                        ))
+                      ) : (
+                        <>
+                          <p className="viewerLegend"><span className="legendSwatch" />Highlighted sentences are the sentence-level passage evidence returned by this scan. Unhighlighted text is context only.</p>
+                          <div className="documentViewer">
+                            <article className="documentPane">
+                              <div className="documentPaneHead"><span>SUBMISSION</span><strong>{document?.filename ?? "Submission"}</strong><small>{report.document_words_analyzed ?? "—"} analyzed words</small></div>
+                              <div className="documentText">
+                                {viewerSentences(document?.text ?? "").map((sentence, index) => {
+                                  const matched = documentMatchedSentences.has(sentence);
+                                  return <p className={matched ? "viewerSentence matched" : "viewerSentence"} key={`doc-${index}-${sentence.slice(0, 20)}`}>{matched ? <mark>{sentence}</mark> : sentence}</p>;
+                                })}
+                              </div>
+                            </article>
+                            <article className="documentPane">
+                              <div className="documentPaneHead"><span>SOURCE</span><strong>{report.source_name}</strong><small>{reference.trim() ? `${reference.trim().split(/\s+/).length} source words` : "Source text"}</small></div>
+                              <div className="documentText">
+                                {viewerSentences(reference).map((sentence, index) => {
+                                  const matched = sourceMatchedSentences.has(sentence);
+                                  return <p className={matched ? "viewerSentence matched" : "viewerSentence"} key={`source-${index}-${sentence.slice(0, 20)}`}>{matched ? <mark>{sentence}</mark> : sentence}</p>;
+                                })}
+                              </div>
+                            </article>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </section>

@@ -117,12 +117,144 @@
 }
 .neutralBadge { color: var(--muted); }
 
+/* M3 side-by-side full-text evidence viewer. Highlighting is presentation-only:
+   a sentence is marked only when it exactly matches a passage-evidence sentence
+   already returned by the backend. */
+.evidenceHeadActions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.viewSwitch {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, .16);
+}
+.viewSwitch button {
+  width: auto;
+  min-width: 78px;
+  margin: 0;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--muted);
+  background: transparent;
+  box-shadow: none;
+  font-size: 10px;
+  letter-spacing: .02em;
+}
+.viewSwitch button.active {
+  color: #082019;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+}
+.viewerLegend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.legendSwatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  border: 1px solid rgba(87, 230, 213, .36);
+  background: rgba(87, 230, 213, .16);
+}
+.documentViewer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.documentPane {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(5, 16, 26, .58);
+}
+.documentPaneHead {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .025);
+}
+.documentPaneHead span {
+  grid-column: 1 / -1;
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+.documentPaneHead strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.documentPaneHead small {
+  color: var(--muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.documentText {
+  max-height: 560px;
+  overflow: auto;
+  padding: 10px 16px 18px;
+  scroll-behavior: smooth;
+}
+.viewerSentence {
+  margin: 0;
+  padding: 9px 0;
+  color: #c9d9e5;
+  border-bottom: 1px solid rgba(132, 182, 216, .07);
+  font-size: 12px;
+  line-height: 1.72;
+}
+.viewerSentence:last-child { border-bottom: 0; }
+.viewerSentence mark {
+  display: inline;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 5px;
+  color: #dcfff7;
+  background: rgba(87, 230, 213, .14);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  outline: 1px solid rgba(87, 230, 213, .24);
+}
+.viewerSentence.matched {
+  color: var(--text);
+}
+
 @media (max-width: 900px) {
   .controlGrid { grid-template-columns: 1fr; }
   .analysisTrace { grid-template-columns: 1fr 1fr; }
+  .documentViewer { grid-template-columns: 1fr; }
+  .documentText { max-height: 420px; }
+}
+
+@media (max-width: 650px) {
+  .evidencePanelHead { align-items: flex-start; flex-direction: column; }
+  .evidenceHeadActions { width: 100%; align-items: stretch; flex-direction: column; }
+  .viewSwitch { width: 100%; }
+  .viewSwitch button { flex: 1; }
 }
 
 @media (max-width: 560px) {
   .analysisTrace { grid-template-columns: 1fr; }
   .controlCard { min-height: auto; }
+  .documentPaneHead { grid-template-columns: 1fr; }
+  .documentPaneHead span { grid-column: auto; }
+  .documentPaneHead small { white-space: normal; }
 }
