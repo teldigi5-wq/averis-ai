@@ -47,6 +47,7 @@
 - [x] quote exclusion
 - [x] bibliography exclusion
 - [x] configurable small-match threshold
+- [x] student-facing evidence controls and exclusion audit metadata
 - [ ] downloadable PDF integrity report
 
 ## M4 — Scholarly verification

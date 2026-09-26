@@ -30,6 +30,11 @@ type SimilarityReport = {
   evidence_note: string;
   scan_id: string | null;
   credits_remaining: number | null;
+  exclusions_applied: string[];
+  min_match_words: number;
+  document_words_original: number | null;
+  document_words_analyzed: number | null;
+  document_words_excluded: number | null;
 };
 
 type Profile = {
@@ -160,6 +165,9 @@ export default function Home() {
   const [document, setDocument] = useState<ExtractedDocument | null>(null);
   const [reference, setReference] = useState("");
   const [report, setReport] = useState<SimilarityReport | null>(null);
+  const [excludeQuotes, setExcludeQuotes] = useState(false);
+  const [excludeBibliography, setExcludeBibliography] = useState(false);
+  const [minMatchWords, setMinMatchWords] = useState(3);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -275,6 +283,12 @@ export default function Home() {
     setBusyAction(null);
   }
 
+  function invalidateReport() {
+    setReport(null);
+    setError("");
+    setNotice("");
+  }
+
   async function submitAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
@@ -365,6 +379,9 @@ export default function Home() {
           source_text: reference,
           source_name: "Manual reference",
           document_name: document.filename,
+          exclude_quotes: excludeQuotes,
+          exclude_bibliography: excludeBibliography,
+          min_match_words: minMatchWords,
         }),
       });
       setReport(payload);
@@ -372,7 +389,7 @@ export default function Home() {
         setProfile({ ...profile, credits_remaining: payload.credits_remaining });
       }
       if (user) await loadAccount(user.id);
-      setNotice("Integrity scan complete. Review the evidence rather than treating the percentage as a verdict.");
+      setNotice("Integrity scan complete. Review the evidence and applied controls rather than treating the percentage as a verdict.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analysis failed.");
     } finally {
@@ -673,12 +690,43 @@ export default function Home() {
                       <div><span className="step">02</span><div><small>COMPARISON SOURCE</small><h3>Paste source text</h3></div></div>
                       <span className="chip">MANUAL EVIDENCE</span>
                     </div>
-                    <textarea value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Paste the source text you want to compare with your submission…" />
+                    <textarea value={reference} onChange={(event) => { setReference(event.target.value); invalidateReport(); }} placeholder="Paste the source text you want to compare with your submission…" />
                     <div className="actionHint"><span>Exact/fuzzy evidence only</span><span>{reference.trim() ? `${reference.trim().split(/\s+/).length} source words` : "Waiting for source"}</span></div>
                     <button className="primary" onClick={compare} disabled={busy || !document || !canScan}>
                       {busyAction === "compare" ? "Analyzing evidence…" : canScan ? "Run integrity analysis · 1 credit" : "No credits remaining"}
                     </button>
                   </article>
+                </section>
+
+                <section className="panel evidenceControlsPanel">
+                  <div className="panelHead">
+                    <div><span className="step">03</span><div><small>ANALYSIS CONTROLS</small><h3>Choose what counts as primary evidence</h3></div></div>
+                    <span className="chip">TRANSPARENT FILTERS</span>
+                  </div>
+                  <div className="controlGrid">
+                    <label className="controlCard">
+                      <span className="controlTitle"><input type="checkbox" checked={excludeQuotes} onChange={(event) => { setExcludeQuotes(event.target.checked); invalidateReport(); }} /><b>Exclude quotations</b></span>
+                      <small>Ignore explicit straight or curly double-quoted spans when primary evidence is calculated.</small>
+                    </label>
+                    <label className="controlCard">
+                      <span className="controlTitle"><input type="checkbox" checked={excludeBibliography} onChange={(event) => { setExcludeBibliography(event.target.checked); invalidateReport(); }} /><b>Exclude bibliography</b></span>
+                      <small>Ignore text after a standalone References, Bibliography, Works Cited, or Reference List heading.</small>
+                    </label>
+                    <label className="controlCard thresholdCard">
+                      <span className="controlTitle"><b>Minimum match size</b><strong>{minMatchWords} words</strong></span>
+                      <input className="thresholdRange" type="range" min="3" max="50" step="1" value={minMatchWords} onChange={(event) => { setMinMatchWords(Number(event.target.value)); invalidateReport(); }} />
+                      <small>Require at least this many words for exact-overlap windows and fuzzy passage evidence.</small>
+                    </label>
+                  </div>
+                  <p className="helperText controlBoundary">These controls filter comparison evidence only. They do not decide whether a quotation is cited correctly, whether a bibliography entry is valid, or whether misconduct occurred.</p>
+                  {report && (
+                    <div className="analysisTrace">
+                      <div><span>ORIGINAL</span><strong>{report.document_words_original ?? "—"}</strong><small>submission words</small></div>
+                      <div><span>ANALYZED</span><strong>{report.document_words_analyzed ?? "—"}</strong><small>words compared</small></div>
+                      <div><span>EXCLUDED</span><strong>{report.document_words_excluded ?? "—"}</strong><small>words filtered</small></div>
+                      <div><span>MINIMUM</span><strong>{report.min_match_words}</strong><small>match words</small></div>
+                    </div>
+                  )}
                 </section>
 
                 <section className="metricGrid">
@@ -690,15 +738,23 @@ export default function Home() {
 
                 <section className="panel evidencePanel">
                   <div className="panelHead">
-                    <div><span className="step">03</span><div><small>EVIDENCE VIEW</small><h3>Matched passages</h3></div></div>
+                    <div><span className="step">04</span><div><small>EVIDENCE VIEW</small><h3>Matched passages</h3></div></div>
                     {report && <span className="chip">{report.source_name}</span>}
                   </div>
                   {!report ? (
-                    <div className="emptyState"><span>◎</span><h4>No evidence yet</h4><p>Upload a draft and compare it with source text to see matched passages here.</p></div>
+                    <div className="emptyState"><span>◎</span><h4>No evidence yet</h4><p>Upload a draft, choose your analysis controls, and compare it with source text to see matched passages here.</p></div>
                   ) : (
                     <>
+                      <div className="appliedControls" aria-label="Applied analysis controls">
+                        <span className="controlBadge">Minimum {report.min_match_words} words</span>
+                        {report.exclusions_applied.length === 0 ? (
+                          <span className="controlBadge neutralBadge">No text exclusions matched</span>
+                        ) : report.exclusions_applied.map((exclusion) => (
+                          <span className="controlBadge activeBadge" key={exclusion}>{statusLabel(exclusion)} excluded</span>
+                        ))}
+                      </div>
                       <p className="scopeNote">{report.evidence_note}</p>
-                      {report.matched_passages.length === 0 ? <p className="empty">No strong sentence-level matches found.</p> : report.matched_passages.map((match, index) => (
+                      {report.matched_passages.length === 0 ? <p className="empty">No strong sentence-level matches found after the selected controls.</p> : report.matched_passages.map((match, index) => (
                         <div className="match" key={`${match.document_sentence}-${index}`}>
                           <div className="matchScore">{Math.round(match.score)}<small>%</small></div>
                           <div><small>SUBMISSION</small><p>{match.document_sentence}</p><small>SOURCE</small><p>{match.source_sentence}</p></div>
@@ -780,7 +836,7 @@ export default function Home() {
                     <p className="scopeNote">{citationAudit.scope_note}</p>
                     <div className="auditColumns">
                       <div><h4>Unmatched in-text citations</h4>{citationAudit.unmatched_citations.length === 0 ? <p className="empty">No unmatched author-year citations detected.</p> : citationAudit.unmatched_citations.map((citation) => <div className="finding" key={`${citation.start}-${citation.raw}`}><span className="findingDot review" /><div><strong>{citation.raw}</strong><small>No matching parsed bibliography entry was detected.</small></div></div>)}</div>
-                      <div><h4>Bibliography entries not cited</h4>{citationAudit.uncited_references.length === 0 ? <p className="empty">No uncited parsed references detected.</p> : citationAudit.uncited_references.map((item) => <div className="finding" key={`uncited-${item.index}`}><span className="findingDot neutral" /><div><strong>Reference {item.index + 1}</strong><small>{item.raw}</small></div></div>)}</div>
+                      <div><h4>Bibliography entries not cited</h4>{citationAudit.uncited_references.length === 0 ? <p className="empty">No uncited parsed references detected.</p> : citationAudit.uncited_references.map((item) => <div className="finding" key={`uncited-${item.index}`}><span className="findingDot neutral" /><div><strong>Reference {item.index}</strong><small>{item.raw}</small></div></div>)}</div>
                     </div>
                   </section>
                 )}
@@ -814,7 +870,7 @@ export default function Home() {
                       <p className="scopeNote">{parsedReferences.scope_note}</p>
                       <div className="parsedList">{parsedReferences.references.map((item) => (
                         <div className="parsedRow" key={`ref-${item.index}`}>
-                          <span className="refNumber">{String(item.index + 1).padStart(2, "0")}</span>
+                          <span className="refNumber">{String(item.index).padStart(2, "0")}</span>
                           <div><p>{item.raw}</p><div className="referenceMeta"><span>AUTHOR <b>{item.author_key ?? "—"}</b></span><span>YEAR <b>{item.year ?? "—"}</b></span><span>DOI <b>{item.doi ?? "—"}</b></span></div>{item.warnings.length > 0 && <div className="issueList">{item.warnings.map((warning) => <span key={warning}>{warning}</span>)}</div>}</div>
                         </div>
                       ))}</div>
