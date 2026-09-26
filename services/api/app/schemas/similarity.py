@@ -42,3 +42,45 @@ class SimilarityReport(BaseModel):
     vector_candidate_score: float | None = None
     candidate_provider: str | None = None
     evidence_version: str = "m1-evidence-v1"
+
+
+class ContributionSourceInput(BaseModel):
+    source_name: str = Field(min_length=1, max_length=250)
+    source_text: str = Field(min_length=1, max_length=40_000)
+
+
+class SourceContributionRequest(BaseModel):
+    document_text: str = Field(min_length=1, max_length=80_000)
+    sources: list[ContributionSourceInput] = Field(min_length=1, max_length=5)
+    exclude_quotes: bool = False
+    exclude_bibliography: bool = False
+    min_match_words: int = Field(default=3, ge=3, le=50)
+
+
+class SourceContributionPassage(BaseModel):
+    document_sentence: str
+    source_sentence: str
+    score: float
+    matched_words: int
+
+
+class SourceContribution(BaseModel):
+    source_name: str
+    matched_sentence_count: int
+    matched_word_count: int
+    document_coverage_percent: float
+    average_passage_score: float
+    passages: list[SourceContributionPassage] = Field(default_factory=list)
+
+
+class SourceContributionReport(BaseModel):
+    contributions: list[SourceContribution]
+    document_words_original: int
+    document_words_analyzed: int
+    document_words_excluded: int
+    total_matched_words: int
+    matched_document_coverage_percent: float
+    exclusions_applied: list[str] = Field(default_factory=list)
+    min_match_words: int
+    evidence_note: str
+    evidence_version: str = "m3-source-contributions-v1"

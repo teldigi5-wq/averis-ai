@@ -43,7 +43,8 @@
 
 ## M3 — Evidence report
 - [x] side-by-side highlighted document viewer
-- [ ] per-source contribution calculation — defer until multi-source matching exists
+- [x] per-source unique document-coverage calculation API
+- [ ] student multi-source contribution UI
 - [x] quote exclusion
 - [x] bibliography exclusion
 - [x] configurable small-match threshold
