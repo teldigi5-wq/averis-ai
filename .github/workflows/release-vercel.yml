@@ -1,0 +1,92 @@
+name: Release to Vercel
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: averis-production-release
+  cancel-in-progress: false
+
+jobs:
+  deploy-api:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      vars.VERCEL_RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_API_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@59.19.1
+      - name: Pull API production environment
+        working-directory: services/api
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build API deployment
+        working-directory: services/api
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy API to production
+        id: deploy
+        working-directory: services/api
+        run: |
+          url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Verify API readiness
+        run: |
+          payload="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${{ steps.deploy.outputs.url }}/readiness")"
+          jq -e '.status == "ready" and .saas_mode == true and .supabase_configured == true' <<<"$payload" >/dev/null
+      - name: Remove old API production deployments
+        run: bash .github/scripts/cleanup-vercel-production.sh "${{ steps.deploy.outputs.url }}" "$VERCEL_PROJECT_ID"
+
+  deploy-web:
+    needs: deploy-api
+    if: >-
+      needs.deploy-api.result == 'success' &&
+      vars.VERCEL_RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@59.19.1
+      - name: Pull web production environment
+        working-directory: apps/web
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - name: Build web deployment
+        working-directory: apps/web
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+      - name: Deploy web to production
+        id: deploy
+        working-directory: apps/web
+        run: |
+          url="$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Smoke-test public web
+        run: |
+          html="$(curl --fail --silent --show-error --retry 5 --retry-delay 3 "${{ steps.deploy.outputs.url }}")"
+          grep -q "Averis" <<<"$html"
+      - name: Remove old web production deployments
+        run: bash .github/scripts/cleanup-vercel-production.sh "${{ steps.deploy.outputs.url }}" "$VERCEL_PROJECT_ID"
