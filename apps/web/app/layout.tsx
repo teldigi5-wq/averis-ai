@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./student-ui-v1.css";
+import "./print-report.css";
 
 export const metadata: Metadata = {
   title: "Averis — Academic Integrity Intelligence",
