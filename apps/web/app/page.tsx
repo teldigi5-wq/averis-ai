@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { supabase, supabaseConfigured } from "../lib/supabase";
+import IntegrityReportExport from "./IntegrityReportExport";
 
 type ToolTab = "integrity" | "sources" | "references" | "history";
 type EvidenceView = "passages" | "documents";
@@ -768,6 +769,7 @@ export default function Home() {
                           <button className={evidenceView === "passages" ? "active" : ""} onClick={() => setEvidenceView("passages")}>Passages</button>
                           <button className={evidenceView === "documents" ? "active" : ""} onClick={() => setEvidenceView("documents")}>Documents</button>
                         </div>
+                        <IntegrityReportExport documentName={document?.filename ?? "submission"} report={report} />
                         <span className="chip">{report.source_name}</span>
                       </div>
                     )}
