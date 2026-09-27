@@ -9,6 +9,8 @@ from app.schemas.revision import (
     CitationPassageReview,
     CitationReferenceLinkEvidence,
     LinkedReferenceEvidence,
+    PassageReviewItemEvidence,
+    PassageReviewMatrixMetrics,
     QuoteContextMetrics,
     QuotePassageContext,
     ReferenceLinkageMetrics,
@@ -20,6 +22,7 @@ from app.schemas.similarity import PassageMatch
 from app.services.auth import AuthContext, require_user
 from app.services.citation_context import analyze_citation_coverage
 from app.services.crossref import CrossrefClient
+from app.services.passage_review import build_passage_review_matrix
 from app.services.quote_context import analyze_quote_context
 from app.services.rate_limit import AI_REVISION, enforce_rate_limit
 from app.services.reference_linkage import (
@@ -96,7 +99,7 @@ async def ai_status() -> dict[str, object]:
             "semantic_calibrated": bool(thresholds),
             "semantic_calibration_id": settings.ai_semantic_calibration_id if thresholds else None,
             "reachable": False,
-            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v5.",
+            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v6.",
         }
 
     provider = OllamaProvider(
@@ -144,7 +147,11 @@ async def analyze_revision(
 
     citation_review = None
     quote_review = None
+    passage_review = None
     raw_citation_review = None
+    raw_quote_review = None
+    raw_reference_linkage = None
+
     if source_report is not None:
         raw_citation_review = analyze_citation_coverage(
             payload.text,
@@ -211,6 +218,34 @@ async def analyze_revision(
                 max_lookups=5,
             )
         reference_linkage = _reference_linkage_model(raw_reference_linkage)
+
+    if raw_quote_review is not None:
+        raw_passage_review = build_passage_review_matrix(
+            raw_quote_review,
+            raw_reference_linkage,
+        )
+        passage_review = PassageReviewMatrixMetrics(
+            passages_reviewed=raw_passage_review.passages_reviewed,
+            high_attention_count=raw_passage_review.high_attention_count,
+            attention_count=raw_passage_review.attention_count,
+            contextualized_count=raw_passage_review.contextualized_count,
+            items=[
+                PassageReviewItemEvidence(
+                    document_sentence=item.document_sentence,
+                    match_score=item.match_score,
+                    priority=item.priority,
+                    reasons=list(item.reasons),
+                    quote_detected=item.quote_detected,
+                    citation_detected=item.citation_detected,
+                    citation_marker=item.citation_marker,
+                    reference_link_status=item.reference_link_status,
+                    verified_reference_count=item.verified_reference_count,
+                    metadata_review_reference_count=item.metadata_review_reference_count,
+                )
+                for item in raw_passage_review.items
+            ],
+            scope_note=raw_passage_review.scope_note,
+        )
 
     semantic_similarity: float | None = None
     semantic_provider: str | None = None
@@ -285,13 +320,19 @@ async def analyze_revision(
                     if reference_linkage is not None
                     else "no bibliography was supplied for citation-to-reference linkage"
                 )
+                passage_note = (
+                    f"passage triage has {passage_review.high_attention_count} high-attention, "
+                    f"{passage_review.attention_count} attention, and {passage_review.contextualized_count} contextualized passages"
+                    if passage_review is not None
+                    else "passage triage unavailable"
+                )
                 source_summary = (
                     f"Primary similarity {source_report.similarity_percent}%; exact overlap "
                     f"{source_report.shingle_jaccard}%; fuzzy passage strength "
                     f"{source_report.sentence_match_score}%; whole-text semantic candidate "
                     f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%; strongest semantic "
                     f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%; "
-                    f"{citation_note}; {quote_note}; {reference_note}; {calibration_note}."
+                    f"{citation_note}; {quote_note}; {reference_note}; {passage_note}; {calibration_note}."
                 )
             prompt = (
                 "You are the Averis academic revision coach. Give 3-5 short manual revision actions only. "
@@ -400,6 +441,7 @@ async def analyze_revision(
         source_evidence=source_evidence,
         citation_review=citation_review,
         quote_review=quote_review,
+        passage_review=passage_review,
         reference_linkage=reference_linkage,
         revision_actions=actions,
         ai_enabled=ai_active,
@@ -411,8 +453,9 @@ async def analyze_revision(
             "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
             "plagiarism verdict; uncalibrated semantic scores do not change review bands. Quote detection recognizes "
             "common quotation marks but does not prove that quotation or paraphrasing rules were satisfied. Citation "
-            "proximity and local bibliography linkage do not prove that a citation supports a passage. Crossref DOI "
-            "verification confirms a source record exists; author/year differences are surfaced separately and still "
-            "require review. Human review, citation context, and the relevant institution's rules still apply."
+            "proximity and local bibliography linkage do not prove that a citation supports a passage. Passage review "
+            "priority is deterministic triage only and never changes the similarity score or declares misconduct. "
+            "Crossref DOI verification confirms a source record exists; author/year differences are surfaced separately "
+            "and still require review. Human review, citation context, and the relevant institution's rules still apply."
         ),
     )
