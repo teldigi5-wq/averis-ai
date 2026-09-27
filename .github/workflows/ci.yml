@@ -22,6 +22,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: python scripts/security/check_tracked_secrets.py
+      - run: bash scripts/vercel/test_ignored_build.sh
 
   api-tests:
     runs-on: ubuntu-latest
