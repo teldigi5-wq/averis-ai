@@ -1,0 +1,1 @@
+Pre-PR status: implementation complete on the stacked branch; exact-head CI and UI QA remain required before any merge or production enablement.
