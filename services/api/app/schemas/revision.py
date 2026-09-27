@@ -31,6 +31,8 @@ class SourceEvidenceMetrics(BaseModel):
     lexical_vector_percent: float | None = None
     semantic_similarity_percent: float | None = None
     semantic_provider: str | None = None
+    semantic_calibrated: bool = False
+    semantic_calibration_id: str | None = None
     overlap_review_band: str
     matched_passages: list[PassageMatch] = Field(default_factory=list)
     semantic_passages: list[PassageMatch] = Field(default_factory=list)
@@ -45,4 +47,4 @@ class RevisionAnalyzeResponse(BaseModel):
     semantic_model: str | None = None
     coach_summary: str | None = None
     caution: str
-    evidence_version: str = "ai-evidence-v1"
+    evidence_version: str = "ai-evidence-v2"
