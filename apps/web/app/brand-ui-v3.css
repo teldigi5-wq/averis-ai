@@ -1,0 +1,203 @@
+/* Averis brand/UI v3 — selected logo + final UX cleanup. Presentation only. */
+
+:root {
+  --averis-brand-symbol: url('/brand/averis-selected-symbol.webp');
+  --averis-brand-lockup: url('/brand/averis-selected-logo.webp');
+}
+
+html[data-base-path] {
+  --averis-brand-symbol: url('/averis-ai/brand/averis-selected-symbol.webp');
+  --averis-brand-lockup: url('/averis-ai/brand/averis-selected-logo.webp');
+}
+
+/* Selected brand artwork */
+.brandMark {
+  overflow: hidden;
+  border: 1px solid rgba(125, 190, 221, .16) !important;
+  background-color: #07131f !important;
+  background-image: var(--averis-brand-symbol) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  color: transparent !important;
+  text-indent: -9999px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.015), 0 8px 22px rgba(0,0,0,.16) !important;
+}
+
+.brandText strong {
+  font-weight: 780;
+  letter-spacing: -.025em;
+}
+
+/* Replace the decorative empty hero tile with the selected Averis lockup. */
+.hero {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px) !important;
+  gap: clamp(28px, 4vw, 64px) !important;
+}
+
+.heroCopy {
+  max-width: 820px !important;
+}
+
+.hero h1 {
+  max-width: 780px !important;
+  font-size: clamp(42px, 4.15vw, 62px) !important;
+  line-height: 1.015 !important;
+  letter-spacing: -.052em !important;
+}
+
+.heroOrb {
+  width: min(420px, 31vw) !important;
+  height: auto !important;
+  aspect-ratio: 600 / 198 !important;
+  justify-self: end;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background-color: transparent !important;
+  background-image: var(--averis-brand-lockup) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  box-shadow: none !important;
+  opacity: .96;
+}
+
+.heroOrb::before,
+.heroOrb::after,
+.heroOrb > span,
+.heroOrb > i {
+  display: none !important;
+}
+
+/* Cleaner file-picker UX on every workspace, including CSS-module routes. */
+label:has(input[type='file']) {
+  position: relative;
+  overflow: hidden;
+}
+
+label:has(input[type='file']) input[type='file'] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 2;
+}
+
+input[type='checkbox'] {
+  accent-color: #62d7cd;
+}
+
+/* Keep product hierarchy compact and reduce oversized route heroes. */
+.toolHero h2 {
+  max-width: 900px;
+  font-size: clamp(31px, 3.1vw, 46px) !important;
+  line-height: 1.04 !important;
+}
+
+.toolHero > div > p:last-child {
+  max-width: 760px;
+}
+
+main[class] {
+  padding-top: 84px !important;
+}
+
+main[class] > section:first-of-type h1 {
+  max-width: 920px !important;
+  font-size: clamp(38px, 4.25vw, 60px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.052em !important;
+}
+
+main[class] > section:first-of-type p {
+  max-width: 760px;
+}
+
+/* More consistent focus, click and disabled states. */
+button,
+a,
+input,
+textarea,
+label:has(input[type='file']) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+label:has(input[type='file']):focus-within {
+  outline: 2px solid rgba(101, 222, 212, .72) !important;
+  outline-offset: 2px !important;
+}
+
+button:disabled {
+  opacity: .48 !important;
+  filter: saturate(.65);
+}
+
+/* Prevent bottom navigation from visually colliding with primary content. */
+footer {
+  padding-bottom: 54px !important;
+}
+
+footer strong::before {
+  background-image: var(--averis-brand-symbol) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 330px) !important;
+  }
+
+  .heroOrb {
+    width: min(330px, 30vw) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .heroOrb {
+    display: block !important;
+    width: min(440px, 78vw) !important;
+    justify-self: start;
+    margin-top: 4px;
+  }
+
+  main[class] {
+    padding-top: 64px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .hero h1 {
+    font-size: clamp(35px, 10vw, 47px) !important;
+  }
+
+  .heroOrb {
+    width: min(360px, 92vw) !important;
+    border-radius: 12px !important;
+  }
+
+  main[class] > section:first-of-type h1 {
+    font-size: clamp(34px, 10vw, 46px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
