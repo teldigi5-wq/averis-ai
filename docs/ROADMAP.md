@@ -25,7 +25,7 @@
 - [x] apply production migration and configure environment
 - [x] deploy public zero-cost beta
 - [x] add account/request rate limiting
-- [ ] certify first end-to-end production scan after Vercel Hobby cooldown
+- [ ] certify first end-to-end production scan after Vercel production web deployment recovers
 
 ## M2 — Corpus + semantic similarity
 - [x] PostgreSQL schema for source/fingerprint corpus
@@ -95,9 +95,10 @@
 - [x] adversarial document-parser hardening (magic/container validation, filename safety, resource budgets)
 - [x] privacy controls and self-service export/delete account workflow
 - [x] privacy-safe request IDs and structured API request logging
-- [ ] verify ignored-build behavior after Hobby cooldown
+- [x] repository secret-hygiene CI gate and `.vercel`/environment ignore policy
+- [ ] verify ignored-build behavior for merged production deployments
 - [ ] sandboxed malware scanning/quarantine for higher-risk production profiles
-- [ ] object-storage lifecycle policy
-- [ ] encryption and secrets management
+- [ ] object-storage lifecycle policy when original-file storage exists
+- [ ] provider encryption/secret-rotation runbook
 - [ ] revenue-stage metrics/alerting/SLO dashboards
 - [ ] paid deployment profiles after revenue
