@@ -42,6 +42,28 @@ class CitationCoverageMetrics(BaseModel):
     scope_note: str
 
 
+class QuotePassageContext(BaseModel):
+    document_sentence: str
+    match_score: float
+    citation_detected: bool
+    citation_marker: str | None = None
+    quote_detected: bool
+    quote_style: str | None = None
+    context_status: str
+
+
+class QuoteContextMetrics(BaseModel):
+    matched_passage_count: int
+    quoted_passage_count: int
+    quoted_with_citation_count: int
+    quoted_without_citation_count: int
+    unquoted_with_citation_count: int
+    unquoted_without_citation_count: int
+    high_match_unquoted_count: int
+    passages: list[QuotePassageContext] = Field(default_factory=list)
+    scope_note: str
+
+
 class LinkedReferenceEvidence(BaseModel):
     index: int
     raw: str
@@ -93,6 +115,7 @@ class RevisionAnalyzeResponse(BaseModel):
     writing: WritingStyleMetrics
     source_evidence: SourceEvidenceMetrics | None = None
     citation_review: CitationCoverageMetrics | None = None
+    quote_review: QuoteContextMetrics | None = None
     reference_linkage: ReferenceLinkageMetrics | None = None
     revision_actions: list[str]
     ai_enabled: bool
@@ -100,4 +123,4 @@ class RevisionAnalyzeResponse(BaseModel):
     semantic_model: str | None = None
     coach_summary: str | None = None
     caution: str
-    evidence_version: str = "ai-evidence-v4"
+    evidence_version: str = "ai-evidence-v5"
