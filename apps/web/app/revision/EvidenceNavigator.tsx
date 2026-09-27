@@ -38,8 +38,7 @@ function priorityFromText(text: string): Priority {
 }
 
 function categoriesFromText(text: string): EvidenceCategory[] {
-  const normalized = text.casefold ? text : text;
-  const value = normalized.toLowerCase();
+  const value = text.toLowerCase();
   const categories: EvidenceCategory[] = [];
   if (value.includes("high-overlap") || value.includes("quoted wording") || value.includes("quotation")) categories.push("wording");
   if (value.includes("citation marker") || value.includes("attribution")) categories.push("attribution");
