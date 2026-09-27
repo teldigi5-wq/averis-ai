@@ -94,9 +94,10 @@
 - [x] Supabase-backed distributed per-user rate limiting
 - [x] adversarial document-parser hardening (magic/container validation, filename safety, resource budgets)
 - [x] privacy controls and self-service export/delete account workflow
+- [x] privacy-safe request IDs and structured API request logging
 - [ ] verify ignored-build behavior after Hobby cooldown
 - [ ] sandboxed malware scanning/quarantine for higher-risk production profiles
 - [ ] object-storage lifecycle policy
 - [ ] encryption and secrets management
-- [ ] observability
+- [ ] revenue-stage metrics/alerting/SLO dashboards
 - [ ] paid deployment profiles after revenue
