@@ -1,270 +1,275 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "./evidence-navigation.module.css";
 
-type Priority = "high_attention" | "attention" | "contextualized" | string;
-type PriorityFilter = "all" | "high_attention" | "attention" | "contextualized";
+type Priority = "high_attention" | "attention" | "contextualized";
+type PriorityFilter = "all" | Priority;
 
-export type PassageReviewItem = {
-  document_sentence: string;
-  match_score: number;
+type MatrixItem = {
+  key: string;
   priority: Priority;
-  reasons: string[];
-  quote_detected: boolean;
-  citation_detected: boolean;
-  citation_marker: string | null;
-  reference_link_status: string;
-  verified_reference_count: number;
-  metadata_review_reference_count: number;
+  label: string;
+  snippet: string;
 };
 
-export type PassageReviewMatrix = {
-  passages_reviewed: number;
-  high_attention_count: number;
-  attention_count: number;
-  contextualized_count: number;
-  items: PassageReviewItem[];
-  scope_note: string;
+type SectionTarget = {
+  key: string;
+  label: string;
+  element: HTMLElement;
 };
 
-type PassageMatch = {
-  document_sentence: string;
-  source_sentence: string;
-  score: number;
-};
-
-type EvidenceNavigatorProps = {
-  matrix: PassageReviewMatrix;
-  matchedPassages: PassageMatch[];
-};
-
-export function evidenceKey(sentence: string) {
+function hashText(value: string) {
   let hash = 2166136261;
-  for (let index = 0; index < sentence.length; index += 1) {
-    hash ^= sentence.charCodeAt(index);
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(36);
 }
 
-function priorityLabel(priority: string) {
-  if (priority === "high_attention") return "HIGH ATTENTION";
-  if (priority === "attention") return "ATTENTION";
-  return "CONTEXTUALIZED";
+function priorityFromText(text: string): Priority {
+  if (text.includes("HIGH ATTENTION")) return "high_attention";
+  if (text.includes("ATTENTION")) return "attention";
+  return "contextualized";
 }
 
-function reasonLabel(reason: string) {
-  const labels: Record<string, string> = {
-    quoted_without_citation_marker: "Quoted wording has no nearby citation marker",
-    high_overlap_unquoted: "High-overlap wording is not inside a recognized quotation",
-    citation_marker_missing: "Nearby citation marker was not detected",
-    citation_not_linked_to_bibliography: "Citation does not map to the supplied bibliography",
-    citation_link_ambiguous: "Citation maps ambiguously to the supplied bibliography",
-    reference_metadata_review: "Linked DOI metadata needs author/year review",
-    reference_verification_unavailable: "External reference verification should be retried",
-  };
-  return labels[reason] ?? reason.replaceAll("_", " ");
+function priorityLabel(priority: Priority) {
+  if (priority === "high_attention") return "High attention";
+  if (priority === "attention") return "Attention";
+  return "Contextualized";
 }
 
-function scrollToId(id: string) {
-  const target = document.getElementById(id);
-  if (!target) return false;
+function findSection(headingText: string) {
+  const heading = Array.from(document.querySelectorAll<HTMLElement>("h2")).find((node) =>
+    node.textContent?.trim().includes(headingText),
+  );
+  return heading?.closest<HTMLElement>("section") ?? null;
+}
+
+function scrollToElement(target: HTMLElement | null, announcement: (message: string) => void) {
+  if (!target) {
+    announcement("That evidence section is not available in the current report.");
+    return;
+  }
+  if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
   target.scrollIntoView({ behavior: "smooth", block: "center" });
   target.focus({ preventScroll: true });
-  return true;
 }
 
-export default function EvidenceNavigator({ matrix, matchedPassages }: EvidenceNavigatorProps) {
-  const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>("all");
-  const [reasonFilter, setReasonFilter] = useState("all");
+export default function EvidenceNavigator() {
+  const [items, setItems] = useState<MatrixItem[]>([]);
+  const [filter, setFilter] = useState<PriorityFilter>("all");
   const [reviewed, setReviewed] = useState<Record<string, boolean>>({});
   const [checklist, setChecklist] = useState({ passages: false, references: false, policy: false });
+  const [expanded, setExpanded] = useState(true);
   const [announcement, setAnnouncement] = useState("");
+  const sectionsRef = useRef<SectionTarget[]>([]);
+  const cardsRef = useRef(new Map<string, HTMLElement>());
+  const signatureRef = useRef("");
 
   useEffect(() => {
-    setPriorityFilter("all");
-    setReasonFilter("all");
-    setReviewed({});
-    setChecklist({ passages: false, references: false, policy: false });
-    setAnnouncement("");
-  }, [matrix]);
+    let scheduled = 0;
 
-  const reasons = useMemo(
-    () => Array.from(new Set(matrix.items.flatMap((item) => item.reasons))).sort(),
-    [matrix.items],
-  );
+    const scan = () => {
+      scheduled = 0;
+      const matrix = findSection("Inspect the strongest context gaps first");
+      if (!matrix) {
+        cardsRef.current.clear();
+        sectionsRef.current = [];
+        if (items.length) setItems([]);
+        return;
+      }
 
-  const sourceBySentence = useMemo(() => {
-    const entries = matchedPassages.map((match) => [match.document_sentence, match] as const);
-    return new Map(entries);
-  }, [matchedPassages]);
+      const cards = Array.from(matrix.querySelectorAll<HTMLElement>("article"));
+      const nextItems: MatrixItem[] = [];
+      const nextCards = new Map<string, HTMLElement>();
 
-  const visibleItems = useMemo(
-    () => matrix.items.filter((item) => {
-      const priorityMatches = priorityFilter === "all" || item.priority === priorityFilter;
-      const reasonMatches = reasonFilter === "all" || item.reasons.includes(reasonFilter);
-      return priorityMatches && reasonMatches;
-    }),
-    [matrix.items, priorityFilter, reasonFilter],
-  );
+      cards.forEach((card, index) => {
+        const text = card.textContent ?? "";
+        const priority = priorityFromText(text);
+        const paragraph = card.querySelector("p")?.textContent?.trim() ?? `Passage ${index + 1}`;
+        const key = `${hashText(paragraph)}-${index}`;
+        card.dataset.averisReviewKey = key;
+        card.dataset.averisReviewPriority = priority;
+        nextCards.set(key, card);
+        nextItems.push({
+          key,
+          priority,
+          label: `Passage ${String(index + 1).padStart(2, "0")}`,
+          snippet: paragraph.length > 118 ? `${paragraph.slice(0, 118)}…` : paragraph,
+        });
+      });
 
-  const reviewedCount = matrix.items.reduce(
-    (count, item) => count + (reviewed[evidenceKey(item.document_sentence)] ? 1 : 0),
-    0,
-  );
-  const progress = matrix.passages_reviewed > 0 ? Math.round((reviewedCount / matrix.passages_reviewed) * 100) : 0;
+      const sectionSpecs = [
+        ["citation", "Citation", "Check attribution around matched passages"],
+        ["quotation", "Quotation", "Separate direct-quote context from paraphrase review"],
+        ["matrix", "Review matrix", "Inspect the strongest context gaps first"],
+        ["references", "References", "Does the nearby citation map to an actual bibliography entry?"],
+        ["plan", "Revision plan", "Fix the underlying academic-integrity risks"],
+        ["semantic", "Semantic", "Meaning-level matches from the local embedding model"],
+        ["lexical", "Lexical", "Review wording before you submit"],
+      ] as const;
+      sectionsRef.current = sectionSpecs.flatMap(([key, label, heading]) => {
+        const element = findSection(heading);
+        return element ? [{ key, label, element }] : [];
+      });
+      cardsRef.current = nextCards;
 
-  function toggleReviewed(item: PassageReviewItem) {
-    const key = evidenceKey(item.document_sentence);
-    setReviewed((current) => {
-      const next = !current[key];
-      setAnnouncement(next ? "Passage marked reviewed." : "Passage returned to the review queue.");
-      return { ...current, [key]: next };
+      const nextSignature = nextItems.map((item) => `${item.key}:${item.priority}`).join("|");
+      if (nextSignature !== signatureRef.current) {
+        signatureRef.current = nextSignature;
+        setItems(nextItems);
+        setFilter("all");
+        setReviewed({});
+        setChecklist({ passages: false, references: false, policy: false });
+      }
+    };
+
+    const scheduleScan = () => {
+      if (scheduled) cancelAnimationFrame(scheduled);
+      scheduled = requestAnimationFrame(scan);
+    };
+
+    scheduleScan();
+    const observer = new MutationObserver(scheduleScan);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      if (scheduled) cancelAnimationFrame(scheduled);
+    };
+  }, [items.length]);
+
+  useEffect(() => {
+    cardsRef.current.forEach((card, key) => {
+      const priority = (card.dataset.averisReviewPriority ?? "contextualized") as Priority;
+      card.hidden = filter !== "all" && priority !== filter;
+      card.dataset.averisReviewed = reviewed[key] ? "true" : "false";
     });
+  }, [filter, reviewed, items]);
+
+  const counts = useMemo(() => ({
+    all: items.length,
+    high_attention: items.filter((item) => item.priority === "high_attention").length,
+    attention: items.filter((item) => item.priority === "attention").length,
+    contextualized: items.filter((item) => item.priority === "contextualized").length,
+  }), [items]);
+
+  const filteredItems = useMemo(
+    () => items.filter((item) => filter === "all" || item.priority === filter),
+    [items, filter],
+  );
+
+  const reviewedCount = items.filter((item) => reviewed[item.key]).length;
+  const progress = items.length ? Math.round((reviewedCount / items.length) * 100) : 0;
+  const checklistCount = Object.values(checklist).filter(Boolean).length;
+
+  function jumpToItem(item: MatrixItem) {
+    const card = cardsRef.current.get(item.key) ?? null;
+    scrollToElement(card, setAnnouncement);
+    setAnnouncement(`${item.label}: ${priorityLabel(item.priority)}.`);
   }
 
-  function jumpToNext() {
-    const next = visibleItems.find((item) => !reviewed[evidenceKey(item.document_sentence)]);
+  function jumpToNextUnreviewed() {
+    const next = filteredItems.find((item) => !reviewed[item.key]);
     if (!next) {
       setAnnouncement("No unreviewed passages remain in the current filter.");
       return;
     }
-    const key = evidenceKey(next.document_sentence);
-    if (scrollToId(`review-${key}`)) setAnnouncement("Moved to the next unreviewed passage.");
+    jumpToItem(next);
   }
 
-  function openMatch(item: PassageReviewItem) {
-    const key = evidenceKey(item.document_sentence);
-    if (!scrollToId(`evidence-${key}`)) {
-      setAnnouncement("The separate lexical match card is not available for this passage.");
-    } else {
-      setAnnouncement("Moved to the lexical source-match evidence.");
-    }
+  function toggleReviewed(key: string) {
+    setReviewed((current) => {
+      const value = !current[key];
+      setAnnouncement(value ? "Passage marked reviewed." : "Passage returned to the review queue.");
+      return { ...current, [key]: value };
+    });
   }
 
-  const checklistComplete = Object.values(checklist).filter(Boolean).length;
+  function jumpToSection(key: string) {
+    const section = sectionsRef.current.find((item) => item.key === key);
+    scrollToElement(section?.element ?? null, setAnnouncement);
+    if (section) setAnnouncement(`Moved to ${section.label} evidence.`);
+  }
+
+  if (!items.length) return null;
 
   return (
-    <section className={styles.navigator} aria-labelledby="evidence-navigator-title">
-      <div className={styles.header}>
-        <div>
-          <p>EVIDENCE NAVIGATION · REVIEW WORKSPACE</p>
-          <h2 id="evidence-navigator-title">Work through the highest-priority evidence first</h2>
-          <span>Filters and checklist state are local to this browser session and do not change Averis scores.</span>
-        </div>
-        <div className={styles.progressCard} aria-live="polite">
-          <small>REVIEW PROGRESS</small>
-          <strong>{reviewedCount}/{matrix.passages_reviewed}</strong>
-          <span>{progress}% inspected</span>
-          <div className={styles.progressTrack} aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
-        </div>
-      </div>
+    <aside className={`${styles.navigator} ${expanded ? styles.expanded : styles.collapsed}`} aria-label="Evidence review navigator">
+      <button type="button" className={styles.toggle} onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>
+        <span>Evidence navigator</span>
+        <strong>{reviewedCount}/{items.length}</strong>
+        <b>{expanded ? "−" : "+"}</b>
+      </button>
 
-      <div className={styles.toolbar}>
-        <div className={styles.filters} role="group" aria-label="Filter passages by review priority">
-          {([
-            ["all", "All", matrix.passages_reviewed],
-            ["high_attention", "High attention", matrix.high_attention_count],
-            ["attention", "Attention", matrix.attention_count],
-            ["contextualized", "Contextualized", matrix.contextualized_count],
-          ] as const).map(([value, label, count]) => (
-            <button
-              type="button"
-              key={value}
-              className={priorityFilter === value ? styles.filterActive : styles.filterButton}
-              aria-pressed={priorityFilter === value}
-              onClick={() => setPriorityFilter(value)}
-            >
-              {label}<b>{count}</b>
-            </button>
-          ))}
-        </div>
-        <label className={styles.reasonFilter}>
-          <span>Reason</span>
-          <select value={reasonFilter} onChange={(event) => setReasonFilter(event.target.value)}>
-            <option value="all">All review reasons</option>
-            {reasons.map((reason) => <option value={reason} key={reason}>{reasonLabel(reason)}</option>)}
-          </select>
-        </label>
-        <button type="button" className={styles.nextButton} onClick={jumpToNext}>Next unreviewed ↓</button>
-      </div>
+      {expanded && (
+        <div className={styles.body}>
+          <div className={styles.progressBlock}>
+            <div><span>REVIEW PROGRESS</span><strong>{progress}%</strong></div>
+            <div className={styles.progressTrack} aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
+            <small>Session-only checklist. Nothing here changes evidence scores.</small>
+          </div>
 
-      <div className={styles.summaryRow}>
-        <span>{visibleItems.length} passage{visibleItems.length === 1 ? "" : "s"} in current view</span>
-        {(priorityFilter !== "all" || reasonFilter !== "all") && (
-          <button type="button" onClick={() => { setPriorityFilter("all"); setReasonFilter("all"); }}>Clear filters</button>
-        )}
-      </div>
+          <div className={styles.sectionNav} aria-label="Jump to evidence section">
+            {sectionsRef.current.map((section) => (
+              <button type="button" key={section.key} onClick={() => jumpToSection(section.key)}>{section.label}</button>
+            ))}
+          </div>
 
-      <div className={styles.cards}>
-        {visibleItems.length === 0 ? (
-          <div className={styles.empty}>No passages match the current filters.</div>
-        ) : visibleItems.map((item, index) => {
-          const key = evidenceKey(item.document_sentence);
-          const isReviewed = Boolean(reviewed[key]);
-          const sourceMatch = sourceBySentence.get(item.document_sentence);
-          return (
-            <article
-              key={`${key}-${index}`}
-              id={`review-${key}`}
-              tabIndex={-1}
-              className={`${styles.reviewCard} ${styles[item.priority as "high_attention" | "attention" | "contextualized"] ?? ""} ${isReviewed ? styles.reviewed : ""}`}
-            >
-              <div className={styles.cardTop}>
-                <div>
-                  <small>PASSAGE {String(matrix.items.indexOf(item) + 1).padStart(2, "0")}</small>
-                  <strong>{priorityLabel(item.priority)}</strong>
-                </div>
-                <span>{Math.round(item.match_score)}% match</span>
-              </div>
+          <div className={styles.filters} role="group" aria-label="Filter human review matrix by priority">
+            {([
+              ["all", "All"],
+              ["high_attention", "High"],
+              ["attention", "Attention"],
+              ["contextualized", "Context"],
+            ] as const).map(([value, label]) => (
+              <button
+                type="button"
+                key={value}
+                className={filter === value ? styles.filterActive : styles.filterButton}
+                aria-pressed={filter === value}
+                onClick={() => setFilter(value)}
+              >
+                {label}<b>{counts[value]}</b>
+              </button>
+            ))}
+          </div>
 
-              <p className={styles.draftText}>{item.document_sentence}</p>
-
-              <div className={styles.contextRow}>
-                <span>{item.quote_detected ? "✓ quotation detected" : "○ quotation not detected"}</span>
-                <span>{item.citation_detected ? "✓ citation marker detected" : "○ citation marker missing"}</span>
-                <span>reference: {item.reference_link_status.replaceAll("_", " ")}</span>
-              </div>
-
-              {item.reasons.length > 0 ? (
-                <ul className={styles.reasons}>{item.reasons.map((reason) => <li key={reason}>{reasonLabel(reason)}</li>)}</ul>
-              ) : (
-                <p className={styles.noReason}>No deterministic priority reason is active. Human review still decides whether the passage is appropriately used.</p>
-              )}
-
-              {sourceMatch && (
-                <details className={styles.sourcePreview}>
-                  <summary>Preview matched source wording</summary>
-                  <p>{sourceMatch.source_sentence}</p>
-                </details>
-              )}
-
-              <div className={styles.cardActions}>
-                <button type="button" onClick={() => toggleReviewed(item)} aria-pressed={isReviewed}>
-                  {isReviewed ? "✓ Reviewed" : "Mark reviewed"}
+          <div className={styles.itemList}>
+            {filteredItems.map((item) => (
+              <div className={`${styles.item} ${reviewed[item.key] ? styles.itemReviewed : ""}`} key={item.key}>
+                <button type="button" className={styles.itemJump} onClick={() => jumpToItem(item)}>
+                  <span><b>{item.label}</b><em>{priorityLabel(item.priority)}</em></span>
+                  <small>{item.snippet}</small>
                 </button>
-                <button type="button" onClick={() => openMatch(item)}>Open match evidence ↘</button>
+                <button
+                  type="button"
+                  className={styles.reviewToggle}
+                  aria-label={reviewed[item.key] ? `Mark ${item.label} unreviewed` : `Mark ${item.label} reviewed`}
+                  aria-pressed={Boolean(reviewed[item.key])}
+                  onClick={() => toggleReviewed(item.key)}
+                >
+                  {reviewed[item.key] ? "✓" : "○"}
+                </button>
               </div>
-            </article>
-          );
-        })}
-      </div>
+            ))}
+          </div>
 
-      <div className={styles.checklist}>
-        <div>
-          <p>REVIEWER CHECKLIST</p>
-          <h3>Finish the evidence review before submission</h3>
-          <span>{checklistComplete}/3 confirmations complete · session only</span>
+          <button type="button" className={styles.nextButton} onClick={jumpToNextUnreviewed}>Next unreviewed passage ↓</button>
+
+          <details className={styles.checklist}>
+            <summary>Reviewer checklist <b>{checklistCount}/3</b></summary>
+            <label><input type="checkbox" checked={checklist.passages} onChange={(event) => setChecklist((current) => ({ ...current, passages: event.target.checked }))} /><span>Highest-attention passages inspected</span></label>
+            <label><input type="checkbox" checked={checklist.references} onChange={(event) => setChecklist((current) => ({ ...current, references: event.target.checked }))} /><span>Citations and linked references checked</span></label>
+            <label><input type="checkbox" checked={checklist.policy} onChange={(event) => setChecklist((current) => ({ ...current, policy: event.target.checked }))} /><span>Institution / assignment requirements confirmed</span></label>
+          </details>
+
+          <p className={styles.boundary}>Navigation and review state are presentation-only. High attention is not a misconduct verdict; contextualized is not automatic approval.</p>
+          <span className={styles.srOnly} aria-live="polite">{announcement}</span>
         </div>
-        <label><input type="checkbox" checked={checklist.passages} onChange={(event) => setChecklist((current) => ({ ...current, passages: event.target.checked }))} /><span>Highest-attention passages inspected</span></label>
-        <label><input type="checkbox" checked={checklist.references} onChange={(event) => setChecklist((current) => ({ ...current, references: event.target.checked }))} /><span>Citations and linked references checked</span></label>
-        <label><input type="checkbox" checked={checklist.policy} onChange={(event) => setChecklist((current) => ({ ...current, policy: event.target.checked }))} /><span>Institution / assignment requirements confirmed</span></label>
-      </div>
-
-      <p className={styles.scope}>{matrix.scope_note}</p>
-      <span className={styles.srOnly} aria-live="polite">{announcement}</span>
-    </section>
+      )}
+    </aside>
   );
 }
