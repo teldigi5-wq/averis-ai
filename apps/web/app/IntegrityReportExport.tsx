@@ -42,6 +42,10 @@ function label(value: string) {
   return value.replaceAll("_", " ");
 }
 
+function matchLabel(index: number) {
+  return `MATCH ${String(index + 1).padStart(2, "0")}`;
+}
+
 export default function IntegrityReportExport({ documentName, report }: Props) {
   const [mounted, setMounted] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
@@ -72,6 +76,12 @@ export default function IntegrityReportExport({ documentName, report }: Props) {
         <div className="printReportTitle"><p>INTEGRITY EVIDENCE REPORT</p><h1>Pre-submission similarity review</h1></div>
       </header>
 
+      <section className="printBoundaryStrip" aria-label="Report interpretation boundary">
+        <div><b>EVIDENCE</b><span>Exact and fuzzy passage signals are shown with the source text that produced them.</span></div>
+        <div><b>HUMAN REVIEW</b><span>Scores help direct attention. They do not decide whether plagiarism or misconduct occurred.</span></div>
+        <div><b>PRIVACY</b><span>This export is generated in your browser; Averis does not need to retain the exported PDF.</span></div>
+      </section>
+
       <section className="printMetaGrid">
         <div><span>DOCUMENT</span><strong>{documentName}</strong></div>
         <div><span>COMPARISON SOURCE</span><strong>{report.source_name}</strong></div>
@@ -79,8 +89,8 @@ export default function IntegrityReportExport({ documentName, report }: Props) {
         <div><span>SCAN REFERENCE</span><strong>{report.scan_id ?? "Local/development scan"}</strong></div>
       </section>
 
-      <section className="printScoreGrid">
-        <div className="printScorePrimary"><span>SIMILARITY</span><strong>{report.similarity_percent}%</strong><small>Primary evidence score</small></div>
+      <section className="printScoreGrid" aria-label="Evidence summary">
+        <div className="printScorePrimary"><span>SIMILARITY</span><strong>{report.similarity_percent}%</strong><small>Review signal · not a verdict</small></div>
         <div><span>EXACT OVERLAP</span><strong>{report.shingle_jaccard}%</strong><small>Word-shingle Jaccard</small></div>
         <div><span>PASSAGE STRENGTH</span><strong>{report.sentence_match_score}%</strong><small>Fuzzy sentence evidence</small></div>
         <div><span>MATCHED PASSAGES</span><strong>{report.matched_passages.length}</strong><small>Reviewable sentence matches</small></div>
@@ -106,11 +116,16 @@ export default function IntegrityReportExport({ documentName, report }: Props) {
 
       <section className="printSection">
         <div className="printSectionHead"><span>02</span><div><small>PASSAGE EVIDENCE</small><h2>Matched submission and source sentences</h2></div></div>
+        <p className="printSectionLead">Each item keeps the submission sentence beside the source sentence so the percentage can be reviewed in context.</p>
         {report.matched_passages.length === 0 ? (
           <p className="printEmpty">No strong sentence-level matches were returned after the selected evidence controls.</p>
         ) : report.matched_passages.map((match, index) => (
           <article className="printMatch" key={`${match.document_sentence}-${index}`}>
-            <div className="printMatchScore">{Math.round(match.score)}%</div>
+            <div className="printMatchAside">
+              <span>{matchLabel(index)}</span>
+              <strong>{Math.round(match.score)}%</strong>
+              <small>match strength</small>
+            </div>
             <div>
               <small>SUBMISSION</small>
               <p>{match.document_sentence}</p>
@@ -127,9 +142,16 @@ export default function IntegrityReportExport({ documentName, report }: Props) {
         <p><strong>Important:</strong> This report is a review aid. A similarity percentage, passage match, excluded quotation, or bibliography match is not by itself proof of plagiarism or academic misconduct. Final interpretation requires human review and the rules of the relevant institution or assessment.</p>
       </section>
 
+      <section className="printReviewChecklist">
+        <strong>Suggested reviewer checks</strong>
+        <span>Is the matched wording genuinely distinctive or mostly common language?</span>
+        <span>Is the source cited or quoted appropriately under the relevant academic rules?</span>
+        <span>Do exclusions or context change how the match should be interpreted?</span>
+      </section>
+
       <footer className="printFooter">
-        <span>Averis - Check before you submit.</span>
-        <span>This PDF is produced by the browser print engine from the current scan result; Averis does not need to store the exported PDF.</span>
+        <span>Averis · Check before you submit.</span>
+        <span>Browser-generated evidence export · no exported-PDF retention required by Averis.</span>
       </footer>
     </article>
   );
