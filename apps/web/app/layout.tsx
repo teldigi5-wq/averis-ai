@@ -3,6 +3,7 @@ import "./globals.css";
 import "./student-ui-v1.css";
 import "./professional-ui-v1.css";
 import "./professional-ui-v2.css";
+import "./brand-ui-v3.css";
 import "./print-report.css";
 
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
@@ -10,7 +11,7 @@ import WorkspaceSwitcher from "./WorkspaceSwitcher";
 const githubPages = process.env.GITHUB_PAGES === "true";
 const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "averis-ai";
 const basePath = githubPages ? `/${repositoryName}` : "";
-const brandIcon = `${basePath}/brand/averis-symbol.png`;
+const brandIcon = `${basePath}/brand/averis-selected-symbol.webp`;
 
 export const metadata: Metadata = {
   title: "Averis — Academic Integrity Intelligence",
