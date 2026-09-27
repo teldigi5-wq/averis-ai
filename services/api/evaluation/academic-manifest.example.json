@@ -1,0 +1,18 @@
+{
+  "schema_version": "averis.academic-eval/v1",
+  "dataset_id": "replace-with-dataset-id",
+  "dataset_name": "Replace with exact dataset name",
+  "revision": "replace-with-pinned-revision-or-version",
+  "task": "source-passage semantic reuse evidence",
+  "language": "en",
+  "domains": [
+    "academic"
+  ],
+  "source_url": "https://example.org/exact-dataset-record",
+  "license_name": "REPLACE AFTER HUMAN VERIFICATION",
+  "license_url": "https://example.org/exact-license",
+  "license_verified_by_human": false,
+  "calibration_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "holdout_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "notes": "Do not set license_verified_by_human=true until the exact corpus/revision and intended evaluation use have been checked. Replace both SHA-256 values with hashes of the exact local split files."
+}
