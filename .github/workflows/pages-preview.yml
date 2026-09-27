@@ -1,4 +1,4 @@
-name: Averis Static Web Certification
+name: Averis GitHub Pages
 
 on:
   push:
@@ -11,9 +11,11 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: "averis-static-web-certification"
+  group: "averis-github-pages"
   cancel-in-progress: true
 
 jobs:
@@ -30,6 +32,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -51,10 +56,18 @@ jobs:
           test -f out/multi-source/index.html
           test -f out/privacy/index.html
 
-      - name: Upload static export artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: averis-static-web
           path: apps/web/out
-          if-no-files-found: error
-          retention-days: 7
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
