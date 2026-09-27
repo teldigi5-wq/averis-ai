@@ -1,0 +1,629 @@
+/*
+ * Averis Professional UI v1
+ * Final visual layer: deliberately restrained academic/SaaS presentation.
+ * This file changes presentation only; evidence, auth, privacy, credits and API
+ * behavior remain owned by the existing application layers.
+ */
+
+:root {
+  --bg: #08111c;
+  --bg-2: #0b1520;
+  --surface: #0e1a27;
+  --surface-2: #122131;
+  --surface-3: #0a1622;
+  --line: rgba(157, 180, 199, .16);
+  --line-strong: rgba(91, 214, 204, .34);
+  --text: #eef5f8;
+  --muted: #9aafbd;
+  --muted-2: #708696;
+  --accent: #58d8cc;
+  --accent-2: #78aef4;
+  --violet: #8798e8;
+  --danger: #ef8795;
+  --warn: #e7bd72;
+  --good: #6fd6ad;
+  --shadow: 0 14px 36px rgba(0, 0, 0, .18);
+}
+
+html {
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+body {
+  background: linear-gradient(180deg, #08111c 0%, #0a1420 42%, #08111c 100%);
+  letter-spacing: -.005em;
+}
+
+body::before {
+  display: none;
+}
+
+::selection {
+  color: #071319;
+  background: #9ce9e1;
+}
+
+main {
+  width: min(1380px, calc(100% - 40px));
+}
+
+.topbar {
+  min-height: 72px;
+  border-bottom-color: rgba(157, 180, 199, .13);
+}
+
+.brandButton {
+  gap: 12px;
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(137, 184, 214, .18);
+  border-radius: 11px;
+  color: transparent;
+  text-indent: -9999px;
+  overflow: hidden;
+  background:
+    url("/brand/averis-symbol.png") center / 86% auto no-repeat,
+    #0c1825;
+  box-shadow: none;
+}
+
+.brandText {
+  gap: 1px;
+}
+
+.brandText strong {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.brandText small {
+  color: #7f95a5;
+  font-size: 10px;
+  letter-spacing: .035em;
+}
+
+.status,
+.creditPill {
+  padding: 8px 11px;
+  border-radius: 8px;
+  background: #0d1926;
+  font-size: 11px;
+}
+
+.status i {
+  width: 6px;
+  height: 6px;
+  box-shadow: none;
+}
+
+.hero {
+  min-height: 300px;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 54px;
+  padding: 54px 0 44px;
+}
+
+.hero h1 {
+  max-width: 900px;
+  margin: 8px 0 16px;
+  font-size: clamp(42px, 5vw, 68px);
+  line-height: 1;
+  letter-spacing: -.052em;
+}
+
+.hero h1 span {
+  color: #8de1d8;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.lede {
+  max-width: 760px;
+  color: #9eb1bf;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  color: #70d8ce;
+  letter-spacing: .15em;
+}
+
+.heroProof {
+  margin-top: 23px;
+  gap: 8px;
+}
+
+.heroProof span {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #0b1723;
+  color: #b8c9d4;
+}
+
+.heroOrb {
+  width: 230px;
+  height: 230px;
+  aspect-ratio: auto;
+  border: 1px solid rgba(157, 180, 199, .13);
+  border-radius: 18px;
+  background:
+    url("/brand/averis-symbol.png") center / 78% auto no-repeat,
+    #0b1723;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .16);
+}
+
+.heroOrb::before,
+.heroOrb::after,
+.heroOrb span,
+.heroOrb i {
+  display: none;
+}
+
+.panel,
+.toolRail {
+  border-color: rgba(157, 180, 199, .15);
+  background: #0d1a27;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+
+.panel {
+  border-radius: 15px;
+  padding: 21px;
+}
+
+.toolRail {
+  border-radius: 15px;
+  padding: 13px;
+}
+
+.panelHead {
+  margin-bottom: 17px;
+}
+
+.panelHead small,
+.sectionTitle small {
+  letter-spacing: .12em;
+}
+
+.step {
+  border-radius: 7px;
+  background: #0b1722;
+}
+
+.chip,
+.costChip,
+.evidenceTag,
+.resultCount {
+  border-radius: 7px;
+  background: #0b1722;
+  letter-spacing: .035em;
+}
+
+.productShell {
+  grid-template-columns: 252px minmax(0, 1fr);
+  gap: 20px;
+}
+
+.railAvatar {
+  border: 1px solid rgba(116, 177, 210, .18);
+  border-radius: 9px;
+  color: #dff8f5;
+  background: #10283a;
+}
+
+.toolButton {
+  border-radius: 10px;
+}
+
+.toolButton.active {
+  border-color: rgba(88, 216, 204, .28);
+  background: rgba(88, 216, 204, .07);
+}
+
+.toolIcon {
+  border-radius: 8px;
+  background: #102333;
+}
+
+input,
+textarea {
+  border-radius: 9px;
+  background: #091521;
+}
+
+input:focus,
+textarea:focus {
+  border-color: rgba(88, 216, 204, .62);
+  box-shadow: 0 0 0 3px rgba(88, 216, 204, .09);
+  background: #0a1723;
+}
+
+button {
+  border-radius: 9px;
+  color: #061615;
+  background: #64ddd2;
+  box-shadow: none;
+  transition:
+    background-color .16s ease,
+    border-color .16s ease,
+    color .16s ease,
+    opacity .16s ease,
+    transform .16s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: none;
+  filter: none;
+  background: #76e4da;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #8fe7df;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  color: #7b909d;
+  background: #142330;
+  border-color: rgba(157, 180, 199, .11);
+  opacity: .72;
+}
+
+.ghostButton,
+.dangerButton,
+.secondaryButton {
+  background: #0c1824;
+}
+
+.ghostButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled) {
+  color: #f0f7fa;
+  background: #132333;
+}
+
+.dangerButton:hover:not(:disabled) {
+  color: #ffd3d9;
+  background: rgba(239, 135, 149, .08);
+}
+
+.dropzone {
+  min-height: 220px;
+  border-color: rgba(142, 178, 201, .27);
+  border-radius: 12px;
+  background: #0a1723;
+}
+
+.dropzone:hover {
+  border-color: rgba(88, 216, 204, .45);
+  background: #0c1b29;
+}
+
+.dropIcon {
+  border: 1px solid rgba(157, 180, 199, .18);
+  border-radius: 10px;
+  background: #102131;
+  box-shadow: none;
+}
+
+.dropzone strong {
+  max-width: 92%;
+  overflow-wrap: anywhere;
+}
+
+.docCard {
+  border-radius: 10px;
+  background: #0a1723;
+}
+
+.docIcon {
+  border-radius: 8px;
+}
+
+.devBanner,
+.notice,
+.error {
+  border-radius: 10px;
+}
+
+.notice {
+  color: #c9efe0;
+  background: rgba(111, 214, 173, .055);
+}
+
+.error {
+  color: #f6c4cb;
+  background: rgba(239, 135, 149, .06);
+}
+
+.controlCard,
+.documentPane,
+.analysisTrace {
+  border-radius: 11px;
+  background: #0a1723;
+}
+
+.controlCard {
+  min-height: 124px;
+}
+
+.analysisTrace > div {
+  background: #0b1824;
+}
+
+.metricCard {
+  border-radius: 12px;
+  background: #0d1a27;
+  box-shadow: none;
+}
+
+.primaryMetric {
+  background: #102331;
+}
+
+.score {
+  text-shadow: none;
+}
+
+.match {
+  border-radius: 10px;
+  background: #0a1723;
+}
+
+.matchScore {
+  border-radius: 8px;
+}
+
+.viewSwitch {
+  border-radius: 8px;
+  background: #091521;
+}
+
+.viewSwitch button {
+  border-radius: 6px;
+}
+
+.viewSwitch button.active {
+  color: #061716;
+  background: #64ddd2;
+}
+
+.viewerSentence mark {
+  color: #dff9f5;
+  background: rgba(88, 216, 204, .12);
+}
+
+.accountGrid {
+  gap: 20px;
+}
+
+.accountIntro h2 {
+  font-size: clamp(30px, 3.5vw, 44px);
+}
+
+.authTabs {
+  border: 1px solid rgba(157, 180, 199, .12);
+  border-radius: 10px;
+  background: #091521;
+}
+
+button.authTab {
+  border-radius: 7px;
+}
+
+button.authTab.active {
+  color: #071716;
+  background: #64ddd2;
+}
+
+.sourceCard,
+.verificationRow,
+.parsedRow,
+.historyRow,
+.finding {
+  border-radius: 10px;
+}
+
+.sourceCard,
+.verificationRow,
+.parsedRow,
+.historyRow {
+  background: #0a1723;
+}
+
+.scopeNote,
+.helperText,
+.railPrivacy,
+.actionHint {
+  color: #8499a8;
+}
+
+footer {
+  border-top-color: rgba(157, 180, 199, .13);
+}
+
+footer strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+footer strong::before {
+  content: "";
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  background: url("/brand/averis-symbol.png") center / contain no-repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  main {
+    width: min(100% - 30px, 1120px);
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 32px;
+  }
+
+  .heroOrb {
+    width: 190px;
+    height: 190px;
+  }
+
+  .productShell {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    padding: 40px 0 34px;
+  }
+
+  .heroOrb {
+    display: none;
+  }
+
+  .hero h1 {
+    max-width: 760px;
+  }
+
+  .productShell {
+    grid-template-columns: 1fr;
+  }
+
+  .toolRail {
+    position: static;
+  }
+
+  .toolNav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .toolButton {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  main {
+    width: min(100% - 22px, 680px);
+  }
+
+  .topbar {
+    min-height: 68px;
+  }
+
+  .brandText small,
+  .status {
+    display: none;
+  }
+
+  .creditPill {
+    padding: 7px 9px;
+  }
+
+  .hero {
+    padding: 30px 0 28px;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 11vw, 50px);
+    line-height: 1.02;
+  }
+
+  .lede {
+    font-size: 15px;
+  }
+
+  .heroProof span {
+    width: 100%;
+  }
+
+  .panel {
+    padding: 17px;
+  }
+
+  .toolNav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .workspaceGrid,
+  .accountGrid {
+    gap: 13px;
+  }
+
+  .panelHead {
+    align-items: flex-start;
+  }
+
+  .panelHead > .chip {
+    max-width: 42%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dropzone {
+    min-height: 190px;
+  }
+
+  .topActions {
+    gap: 6px;
+  }
+
+  .ghostButton {
+    padding-inline: 11px;
+  }
+}
+
+@media (max-width: 440px) {
+  .brandMark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .brandText strong {
+    font-size: 15px;
+  }
+
+  .topActions .creditPill {
+    display: none;
+  }
+
+  .toolNav {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHead {
+    flex-direction: column;
+  }
+
+  .panelHead > .chip {
+    max-width: 100%;
+  }
+}

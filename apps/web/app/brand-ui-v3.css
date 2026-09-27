@@ -1,0 +1,435 @@
+/* Averis brand/UI v3 — selected logo + structural UX cleanup. Presentation only. */
+
+:root {
+  --averis-brand-symbol: url('/brand/averis-selected-symbol.webp');
+  --averis-brand-lockup: url('/brand/averis-selected-logo.webp');
+  --workspace-footer-height: 64px;
+}
+
+html[data-base-path] {
+  --averis-brand-symbol: url('/averis-ai/brand/averis-selected-symbol.webp');
+  --averis-brand-lockup: url('/averis-ai/brand/averis-selected-logo.webp');
+}
+
+body {
+  padding-bottom: calc(var(--workspace-footer-height) + 24px) !important;
+}
+
+/* Selected brand artwork */
+.brandMark {
+  overflow: hidden;
+  border: 1px solid rgba(125, 190, 221, .16) !important;
+  background-color: #07131f !important;
+  background-image: var(--averis-brand-symbol) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  color: transparent !important;
+  text-indent: -9999px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.015), 0 8px 22px rgba(0,0,0,.16) !important;
+}
+
+.brandText strong {
+  font-weight: 780;
+  letter-spacing: -.025em;
+}
+
+/* Marketing hero remains a signed-out landing experience. */
+.hero {
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px) !important;
+  gap: clamp(28px, 4vw, 64px) !important;
+}
+
+.heroCopy {
+  max-width: 820px !important;
+}
+
+.hero h1 {
+  max-width: 780px !important;
+  font-size: clamp(42px, 4.15vw, 62px) !important;
+  line-height: 1.015 !important;
+  letter-spacing: -.052em !important;
+}
+
+.heroOrb {
+  width: min(420px, 31vw) !important;
+  height: auto !important;
+  aspect-ratio: 600 / 198 !important;
+  justify-self: end;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background-color: transparent !important;
+  background-image: var(--averis-brand-lockup) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  box-shadow: none !important;
+  opacity: .96;
+}
+
+.heroOrb::before,
+.heroOrb::after,
+.heroOrb > span,
+.heroOrb > i {
+  display: none !important;
+}
+
+/* Authenticated app: remove the marketing hero and lead with the working surface. */
+main:has(.topActions .ghostButton) > .hero {
+  display: none !important;
+}
+
+main:has(.topActions .ghostButton) .productShell {
+  margin-top: 24px !important;
+}
+
+main:has(.topActions .ghostButton) .toolHero {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px 20px !important;
+  align-items: start !important;
+  margin-bottom: 16px !important;
+  padding: 18px 20px !important;
+  border: 1px solid rgba(156, 181, 200, .13);
+  border-radius: 14px;
+  background: #0b1722;
+}
+
+main:has(.topActions .ghostButton) .toolHero > div {
+  min-width: 0;
+}
+
+main:has(.topActions .ghostButton) .toolHero h2 {
+  max-width: 760px !important;
+  margin: 3px 0 6px !important;
+  font-size: clamp(28px, 2.2vw, 32px) !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  letter-spacing: -.035em !important;
+}
+
+main:has(.topActions .ghostButton) .toolHero > div > p:last-child {
+  max-width: 720px !important;
+  margin: 0 !important;
+  color: #8fa4b2;
+  font-size: 12px !important;
+  line-height: 1.55;
+}
+
+main:has(.topActions .ghostButton) .toolHero .costChip {
+  align-self: start;
+  justify-self: end;
+}
+
+/* Functional evidence preview replaces redundant authenticated hero branding. */
+main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero {
+  grid-template-columns: minmax(0, 1fr) auto minmax(250px, 320px) !important;
+}
+
+main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero::after {
+  content: "EVIDENCE PREVIEW\A Matching passage highlighted\A “Modern learning platforms can provide faster feedback…”\A Source evidence · review before deciding";
+  grid-column: 3;
+  grid-row: 1;
+  display: block;
+  white-space: pre-line;
+  padding: 12px 14px;
+  border: 1px solid rgba(97, 214, 204, .18);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(97, 214, 204, .07), rgba(120, 169, 232, .035));
+  box-shadow: inset 3px 0 0 rgba(97, 214, 204, .68);
+  color: #b7c8d1;
+  font-size: 9px;
+  line-height: 1.6;
+  letter-spacing: .01em;
+}
+
+/* Group account status metadata; Sign out remains the only button-like action. */
+.topActions:has(.ghostButton) {
+  gap: 0 !important;
+}
+
+.topActions:has(.ghostButton) .creditPill,
+.topActions:has(.ghostButton) .status {
+  min-height: 36px;
+  margin: 0 !important;
+  background: #09151f !important;
+  color: #8da2af !important;
+  box-shadow: none !important;
+}
+
+.topActions:has(.ghostButton) .creditPill {
+  position: relative;
+  padding: 7px 10px 7px 38px !important;
+  border: 1px solid rgba(156, 181, 200, .13) !important;
+  border-right: 0 !important;
+  border-radius: 10px 0 0 10px !important;
+}
+
+.topActions:has(.ghostButton) .creditPill::before {
+  content: "A";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  border-radius: 7px;
+  background-image: var(--averis-brand-symbol);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: transparent;
+  font-size: 0;
+}
+
+.topActions:has(.ghostButton) .creditPill b {
+  color: #84e0d8 !important;
+}
+
+.topActions:has(.ghostButton) .status {
+  padding: 7px 11px !important;
+  border: 1px solid rgba(156, 181, 200, .13) !important;
+  border-left: 1px solid rgba(156, 181, 200, .08) !important;
+  border-radius: 0 10px 10px 0 !important;
+}
+
+.topActions:has(.ghostButton) .ghostButton {
+  margin-left: 10px !important;
+}
+
+/* Cleaner file-picker UX on every workspace, including CSS-module routes. */
+label:has(input[type='file']) {
+  position: relative;
+  overflow: hidden;
+}
+
+label:has(input[type='file']) input[type='file'] {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 2;
+}
+
+label:has(input[type='file']) > :not(input) {
+  position: relative;
+  z-index: 1;
+}
+
+label:has(input[type='file'])::after {
+  content: "Drag & drop your file here, or click to browse\A TXT, PDF, DOCX · up to 15 MB";
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-top: 8px;
+  white-space: pre-line;
+  text-align: center;
+  color: #8fa4b2;
+  font-size: 10px;
+  line-height: 1.55;
+  pointer-events: none;
+}
+
+input[type='checkbox'] {
+  accent-color: #62d7cd;
+}
+
+/* Distinct semantic sidebar icons via lightweight inline SVG masks. */
+.toolButton .toolIcon {
+  position: relative;
+  font-size: 0 !important;
+}
+
+.toolButton .toolIcon::before {
+  content: "";
+  width: 17px;
+  height: 17px;
+  display: block;
+  background: #78ddd5;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.toolButton:nth-child(1) .toolIcon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 5 6v5c0 4.6 2.9 7.4 7 9 4.1-1.6 7-4.4 7-9V6l-7-3Z'/%3E%3Cpath d='m9.5 12 1.6 1.6 3.4-3.4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3 5 6v5c0 4.6 2.9 7.4 7 9 4.1-1.6 7-4.4 7-9V6l-7-3Z'/%3E%3Cpath d='m9.5 12 1.6 1.6 3.4-3.4'/%3E%3C/svg%3E");
+}
+
+.toolButton:nth-child(2) .toolIcon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6'/%3E%3Cpath d='m16 16 4 4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6'/%3E%3Cpath d='m16 16 4 4'/%3E%3C/svg%3E");
+}
+
+.toolButton:nth-child(3) .toolIcon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5h6'/%3E%3Cpath d='M9 3h6v4H9z'/%3E%3Cpath d='M7 5H5v16h14V5h-2'/%3E%3Cpath d='m8 12 1.5 1.5L12 11'/%3E%3Cpath d='M13 13h3'/%3E%3Cpath d='m8 17 1.5 1.5L12 16'/%3E%3Cpath d='M13 18h3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5h6'/%3E%3Cpath d='M9 3h6v4H9z'/%3E%3Cpath d='M7 5H5v16h14V5h-2'/%3E%3Cpath d='m8 12 1.5 1.5L12 11'/%3E%3Cpath d='M13 13h3'/%3E%3Cpath d='m8 17 1.5 1.5L12 16'/%3E%3Cpath d='M13 18h3'/%3E%3C/svg%3E");
+}
+
+.toolButton:nth-child(4) .toolIcon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 3-6.7L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 12a9 9 0 1 0 3-6.7L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E");
+}
+
+/* General product hierarchy stays compact. */
+.toolHero h2 {
+  max-width: 900px;
+  font-size: clamp(28px, 2.2vw, 32px) !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+}
+
+.toolHero > div > p:last-child {
+  max-width: 760px;
+}
+
+main[class] {
+  padding-top: 84px !important;
+}
+
+main[class] > section:first-of-type h1 {
+  max-width: 920px !important;
+  font-size: clamp(38px, 4.25vw, 60px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.052em !important;
+}
+
+main[class] > section:first-of-type p {
+  max-width: 760px;
+}
+
+/* More consistent focus, click and disabled states. */
+button,
+a,
+input,
+textarea,
+label:has(input[type='file']) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+label:has(input[type='file']):focus-within {
+  outline: 2px solid rgba(101, 222, 212, .72) !important;
+  outline-offset: 2px !important;
+}
+
+button:disabled {
+  opacity: .48 !important;
+  filter: saturate(.65);
+}
+
+footer {
+  padding-bottom: 24px !important;
+}
+
+footer strong::before {
+  background-image: var(--averis-brand-symbol) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 330px) !important;
+  }
+
+  .heroOrb {
+    width: min(330px, 30vw) !important;
+  }
+
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero::after {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .heroOrb {
+    display: block !important;
+    width: min(440px, 78vw) !important;
+    justify-self: start;
+    margin-top: 4px;
+  }
+
+  main[class] {
+    padding-top: 64px !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero {
+    grid-template-columns: 1fr !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero .costChip {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 680px) {
+  :root {
+    --workspace-footer-height: 70px;
+  }
+
+  body {
+    padding-bottom: calc(var(--workspace-footer-height) + 18px) !important;
+  }
+
+  .hero h1 {
+    font-size: clamp(35px, 10vw, 47px) !important;
+  }
+
+  .heroOrb {
+    width: min(360px, 92vw) !important;
+    border-radius: 12px !important;
+  }
+
+  main[class] > section:first-of-type h1 {
+    font-size: clamp(34px, 10vw, 46px) !important;
+  }
+
+  .topActions:has(.ghostButton) .status {
+    display: none !important;
+  }
+
+  .topActions:has(.ghostButton) .creditPill {
+    border-right: 1px solid rgba(156, 181, 200, .13) !important;
+    border-radius: 10px !important;
+  }
+}
+
+@media (max-width: 440px) {
+  .topActions:has(.ghostButton) .creditPill {
+    padding-left: 9px !important;
+  }
+
+  .topActions:has(.ghostButton) .creditPill::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,0 +1,12 @@
+[build]
+  base = "apps/web"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Runtime values are configured in the Netlify UI, never committed here:
+# NEXT_PUBLIC_API_URL
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY

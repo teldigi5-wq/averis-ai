@@ -41,6 +41,32 @@ jobs:
       - run: python -m compileall -q app
       - run: pytest -q
 
+  api-container-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API container
+        run: docker build --tag averis-api-ci .
+      - name: Smoke test API container
+        run: |
+          docker run --rm -d --name averis-api-ci -p 8000:8080 -e PORT=8080 averis-api-ci
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health > /tmp/averis-health.json; then
+              cat /tmp/averis-health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs averis-api-ci
+          exit 1
+      - name: Stop API container
+        if: always()
+        run: docker rm -f averis-api-ci >/dev/null 2>&1 || true
+
   web-build:
     runs-on: ubuntu-latest
     timeout-minutes: 15

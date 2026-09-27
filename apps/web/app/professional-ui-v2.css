@@ -1,0 +1,632 @@
+/*
+ * Averis Professional UI v2
+ * A calmer, denser product layer for a clean academic SaaS presentation.
+ * Presentation only: no auth, evidence, scoring, credit or privacy behavior.
+ */
+
+:root {
+  --bg: #07111b;
+  --bg-2: #0a141f;
+  --surface: #0c1722;
+  --surface-2: #0f1c29;
+  --surface-3: #09141e;
+  --line: rgba(156, 181, 200, .14);
+  --line-strong: rgba(87, 208, 199, .32);
+  --text: #f2f7f9;
+  --muted: #9cafbc;
+  --muted-2: #718694;
+  --accent: #61d6cc;
+  --accent-2: #78a9e8;
+  --danger: #ef8594;
+  --warn: #e4b96d;
+  --good: #70d5ad;
+  --shadow: 0 12px 34px rgba(0, 0, 0, .17);
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  padding-bottom: 82px;
+  background:
+    radial-gradient(circle at 88% -8%, rgba(92, 150, 197, .08), transparent 30%),
+    linear-gradient(180deg, #07111b 0%, #09131d 48%, #07111b 100%);
+  color: var(--text);
+}
+
+main {
+  width: min(1440px, calc(100% - 48px));
+}
+
+.topbar {
+  min-height: 72px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid rgba(156, 181, 200, .12);
+  background: rgba(7, 17, 27, .88);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+.brandButton {
+  gap: 11px;
+}
+
+.brandMark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border-color: rgba(144, 178, 202, .16);
+  background-color: #0b1722;
+}
+
+.brandText strong {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -.022em;
+}
+
+.brandText small {
+  color: #8296a4;
+  font-size: 9px;
+  letter-spacing: .04em;
+}
+
+.topActions {
+  gap: 7px;
+}
+
+.status,
+.creditPill {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border-color: rgba(156, 181, 200, .13);
+  background: #0a1621;
+  color: #91a5b3;
+  font-size: 10px;
+}
+
+.creditPill b {
+  color: #7ddfd6;
+  font-size: 12px;
+}
+
+.hero {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 188px;
+  gap: 48px;
+  padding: 48px 0 36px;
+  align-items: center;
+}
+
+.heroCopy {
+  max-width: 960px;
+}
+
+.eyebrow {
+  margin-bottom: 9px;
+  color: #72d9cf;
+  font-size: 9px;
+  letter-spacing: .17em;
+}
+
+.hero h1 {
+  max-width: 900px;
+  margin: 8px 0 16px;
+  font-size: clamp(44px, 4.7vw, 66px);
+  line-height: 1.01;
+  letter-spacing: -.052em;
+}
+
+.lede {
+  max-width: 760px;
+  color: #9badba;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.heroProof {
+  gap: 7px;
+  margin-top: 22px;
+}
+
+.heroProof span {
+  padding: 7px 9px;
+  border-radius: 7px;
+  border-color: rgba(156, 181, 200, .12);
+  background: #0a1621;
+  color: #b5c5cf;
+  font-size: 10px;
+}
+
+.heroProof b {
+  color: #74d9d0;
+}
+
+.heroOrb {
+  width: 188px;
+  height: 188px;
+  justify-self: end;
+  border-radius: 24px;
+  border-color: rgba(156, 181, 200, .13);
+  background-color: #0b1722;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .15);
+}
+
+.accountGrid {
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 450px);
+  gap: 22px;
+  margin: 4px 0 34px;
+}
+
+.accountIntro {
+  padding: 10px 4px 10px 0;
+}
+
+.accountIntro h2 {
+  max-width: 720px;
+  margin: 8px 0 13px;
+  font-size: clamp(30px, 3.7vw, 46px);
+  line-height: 1.04;
+  letter-spacing: -.044em;
+}
+
+.trustList {
+  gap: 8px;
+  margin-top: 22px;
+  color: #b9c9d2;
+  font-size: 11px;
+}
+
+.panel,
+.toolRail {
+  border: 1px solid rgba(156, 181, 200, .14);
+  background: #0c1722;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+
+.panel {
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.panelHead {
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.panelHead small,
+.sectionTitle small {
+  margin-bottom: 3px;
+  color: #718696;
+  font-size: 8px;
+  letter-spacing: .13em;
+}
+
+.panel h3,
+.sectionTitle h3 {
+  font-size: 15px;
+  letter-spacing: -.018em;
+}
+
+.step {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #09151f;
+}
+
+.chip,
+.costChip,
+.evidenceTag,
+.resultCount {
+  padding: 6px 8px;
+  border-radius: 7px;
+  border-color: rgba(156, 181, 200, .13);
+  background: #09151f;
+  color: #8fa3b1;
+  font-size: 8px;
+}
+
+.productShell {
+  grid-template-columns: 232px minmax(0, 1fr);
+  gap: 22px;
+  margin-bottom: 30px;
+}
+
+.toolRail {
+  top: 88px;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.railAccount {
+  gap: 9px;
+  padding: 3px 2px 13px;
+}
+
+.railAvatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  color: #daf5f1;
+  background: #102738;
+}
+
+.railAccount small {
+  color: #708594;
+  font-size: 7px;
+  letter-spacing: .14em;
+}
+
+.railAccount strong {
+  font-size: 11px;
+}
+
+.toolNav {
+  gap: 4px;
+  padding: 10px 0;
+}
+
+.toolButton {
+  min-height: 50px;
+  padding: 9px 9px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+}
+
+.toolButton:hover:not(:disabled) {
+  background: #101e2b;
+}
+
+.toolButton.active {
+  border-color: rgba(97, 214, 204, .24);
+  background: rgba(97, 214, 204, .075);
+}
+
+.toolIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #0f2231;
+}
+
+.railPrivacy,
+.scopeNote,
+.helperText,
+.actionHint {
+  color: #7f93a1;
+}
+
+input,
+textarea {
+  border-radius: 9px;
+  border-color: rgba(156, 181, 200, .16);
+  background: #08131d;
+  color: #edf5f8;
+}
+
+input {
+  min-height: 44px;
+}
+
+textarea {
+  min-height: 178px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #607481;
+}
+
+input:focus,
+textarea:focus {
+  border-color: rgba(97, 214, 204, .5);
+  box-shadow: 0 0 0 3px rgba(97, 214, 204, .07);
+  background: #091620;
+}
+
+button {
+  min-height: 42px;
+  border-radius: 9px;
+  background: #68d9cf;
+  box-shadow: none;
+  font-weight: 800;
+}
+
+button:hover:not(:disabled) {
+  background: #77e0d7;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.ghostButton,
+.secondaryButton,
+.dangerButton {
+  background: #0a1621;
+  border-color: rgba(156, 181, 200, .15);
+}
+
+.ghostButton:hover:not(:disabled),
+.secondaryButton:hover:not(:disabled) {
+  background: #101e2b;
+}
+
+.authTabs {
+  padding: 4px;
+  border-radius: 9px;
+  background: #08131d;
+}
+
+button.authTab {
+  min-height: 38px;
+  border-radius: 7px;
+}
+
+button.authTab.active {
+  background: #68d9cf;
+}
+
+.authForm {
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.authForm label span {
+  color: #8da0ad;
+  font-size: 9px;
+}
+
+.dropzone {
+  min-height: 205px;
+  border-radius: 11px;
+  border-color: rgba(143, 174, 196, .24);
+  background: #09151f;
+}
+
+.dropzone:hover {
+  border-color: rgba(97, 214, 204, .38);
+  background: #0b1925;
+}
+
+.dropIcon {
+  border-radius: 9px;
+  background: #102331;
+}
+
+.docCard,
+.controlCard,
+.documentPane,
+.analysisTrace,
+.sourceCard,
+.verificationRow,
+.parsedRow,
+.historyRow,
+.match,
+.finding {
+  border-radius: 10px;
+  background: #09151f;
+}
+
+.devBanner,
+.notice,
+.error {
+  border-radius: 9px;
+}
+
+.notice {
+  border-color: rgba(112, 213, 173, .22);
+  background: rgba(112, 213, 173, .055);
+}
+
+.error {
+  border-color: rgba(239, 133, 148, .24);
+  background: rgba(239, 133, 148, .055);
+}
+
+.metricCard {
+  min-height: 112px;
+  border-radius: 11px;
+  border-color: rgba(156, 181, 200, .13);
+  background: #0c1722;
+}
+
+.primaryMetric {
+  background: #10202c;
+}
+
+.score {
+  letter-spacing: -.045em;
+  text-shadow: none;
+}
+
+.viewSwitch {
+  padding: 3px;
+  border-radius: 8px;
+  background: #08131d;
+}
+
+.viewSwitch button {
+  min-height: 34px;
+  border-radius: 6px;
+}
+
+.viewSwitch button.active {
+  background: #68d9cf;
+}
+
+.viewerSentence mark {
+  border-radius: 3px;
+  color: #e1f8f5;
+  background: rgba(97, 214, 204, .14);
+}
+
+.historyRow,
+.sourceCard,
+.verificationRow,
+.parsedRow {
+  border-color: rgba(156, 181, 200, .12);
+}
+
+footer {
+  margin-top: 40px;
+  padding: 22px 0 30px;
+  border-top-color: rgba(156, 181, 200, .11);
+  color: #7d919f;
+}
+
+footer strong {
+  color: #dce8ed;
+}
+
+footer strong::before {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 1100px) {
+  main {
+    width: min(100% - 34px, 1180px);
+  }
+
+  .hero {
+    grid-template-columns: minmax(0, 1fr) 160px;
+    gap: 32px;
+  }
+
+  .heroOrb {
+    width: 160px;
+    height: 160px;
+    border-radius: 21px;
+  }
+
+  .productShell {
+    grid-template-columns: 214px minmax(0, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    position: relative;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 38px 0 30px;
+  }
+
+  .heroOrb {
+    display: none;
+  }
+
+  .accountGrid,
+  .productShell {
+    grid-template-columns: 1fr;
+  }
+
+  .accountIntro {
+    padding-right: 0;
+  }
+
+  .toolRail {
+    position: static;
+  }
+
+  .toolNav {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .toolButton {
+    min-height: 54px;
+  }
+}
+
+@media (max-width: 680px) {
+  body {
+    padding-bottom: 76px;
+  }
+
+  main {
+    width: min(100% - 22px, 680px);
+  }
+
+  .topbar {
+    min-height: 64px;
+  }
+
+  .brandText small,
+  .status {
+    display: none;
+  }
+
+  .hero {
+    padding: 28px 0 24px;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 10.5vw, 48px);
+    line-height: 1.02;
+  }
+
+  .lede {
+    font-size: 14px;
+  }
+
+  .heroProof span {
+    width: 100%;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .toolNav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .workspaceGrid,
+  .accountGrid {
+    gap: 12px;
+  }
+
+  .panelHead {
+    align-items: flex-start;
+  }
+
+  .dropzone {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 440px) {
+  .brandMark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brandText strong {
+    font-size: 15px;
+  }
+
+  .topActions .creditPill {
+    display: none;
+  }
+
+  .toolNav {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHead {
+    flex-direction: column;
+  }
+}

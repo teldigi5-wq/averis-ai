@@ -33,11 +33,14 @@ class Settings(BaseSettings):
     def cors_allowed_origins(self) -> list[str]:
         """Return normalized browser origins allowed to call the API.
 
-        WEB_ORIGIN is the deployment-controlled source of truth. The canonical
-        Averis production domain is also retained in beta/production so a
-        harmless trailing slash or Vercel alias mismatch cannot break uploads.
+        WEB_ORIGIN is deployment-controlled and may contain one origin or a
+        comma-separated list. This keeps the API portable across a primary
+        production host and a temporary migration/preview host without using a
+        wildcard CORS policy. The canonical Averis Vercel domain remains
+        allowed in beta/production while the zero-cost hosting migration is in
+        progress.
         """
-        candidates = [self.web_origin]
+        candidates = self.web_origin.split(",")
         if self.app_env.lower() in {"beta", "production"}:
             candidates.append("https://averis-web.vercel.app")
 
