@@ -8,8 +8,29 @@ class Settings(BaseSettings):
     app_env: str = "development"
     web_origin: str = "http://localhost:3000"
     ai_provider: str = "ollama"
+    ai_revision_enabled: bool = False
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3:4b"
+    ollama_embedding_model: str = "nomic-embed-text"
+    ollama_timeout_seconds: float = 8.0
+
+    # Semantic evidence is displayed as a candidate signal even when these are
+    # unset. It may influence review bands only after a labeled benchmark has
+    # produced and documented both thresholds plus a calibration identifier.
+    ai_semantic_review_threshold: float | None = None
+    ai_semantic_high_review_threshold: float | None = None
+    ai_semantic_calibration_id: str | None = None
+
+    @property
+    def semantic_review_thresholds(self) -> tuple[float, float] | None:
+        review = self.ai_semantic_review_threshold
+        high = self.ai_semantic_high_review_threshold
+        calibration_id = (self.ai_semantic_calibration_id or "").strip()
+        if review is None or high is None or not calibration_id:
+            return None
+        if not (0.0 <= review <= high <= 100.0):
+            return None
+        return review, high
 
     # Crossref public REST API. No API key is required. CROSSREF_MAILTO is
     # optional but recommended so Crossref can identify/contact API clients.

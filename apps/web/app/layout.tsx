@@ -7,9 +7,13 @@ import "./brand-ui-v3.css";
 import "./workspace-ui-v4.css";
 import "./history-ui-v1.css";
 import "./auth-experience-v1.css";
+import "./report-evidence-ui-v1.css";
+import "./enterprise-ui-v10.css";
+import "./browser-quality-v12.css";
 import "./print-report.css";
 
 import AuthExperience from "./AuthExperience";
+import CinematicIntroGate from "./CinematicIntroGate";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const githubPages = process.env.GITHUB_PAGES === "true";
@@ -19,7 +23,7 @@ const brandIcon = `${basePath}/brand/averis-selected-symbol.webp`;
 
 export const metadata: Metadata = {
   title: "Averis — Academic Integrity Intelligence",
-  description: "Evidence-first similarity, scholarly source, and citation review for students.",
+  description: "Evidence-first similarity, scholarly source, citation and revision review for students.",
   applicationName: "Averis",
   icons: {
     icon: brandIcon,
@@ -32,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" data-base-path={basePath || undefined}>
       <body>
+        <CinematicIntroGate />
         {children}
         <AuthExperience />
         <WorkspaceSwitcher />

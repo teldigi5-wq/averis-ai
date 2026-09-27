@@ -1,0 +1,438 @@
+/* Averis enterprise experience v10 — professional product-density and brand polish.
+ * Presentation only: no auth, scoring, credit, retention, API, Supabase or evidence-policy changes.
+ */
+
+:root {
+  --averis-official-lockup: url('/brand/averis-official-lockup.webp');
+  --enterprise-surface: #0a1723;
+  --enterprise-surface-raised: #0d1c2a;
+  --enterprise-surface-soft: #09141f;
+  --enterprise-line: rgba(148, 182, 204, .14);
+  --enterprise-line-strong: rgba(82, 217, 211, .28);
+  --enterprise-cyan: #65ddd4;
+  --enterprise-blue: #62aaf7;
+  --enterprise-text-soft: #a9bfce;
+  --enterprise-radius: 14px;
+  --enterprise-shadow: 0 18px 46px rgba(0, 0, 0, .22);
+}
+
+html[data-base-path] {
+  --averis-official-lockup: url('/averis-ai/brand/averis-official-lockup.webp');
+}
+
+body {
+  background:
+    radial-gradient(circle at 72% -10%, rgba(60, 151, 229, .09), transparent 28%),
+    radial-gradient(circle at 8% 18%, rgba(69, 214, 201, .055), transparent 30%),
+    linear-gradient(180deg, #06101a 0%, #07131e 47%, #050c13 100%) !important;
+}
+
+body::before {
+  opacity: .06 !important;
+  background-size: 56px 56px !important;
+}
+
+/* Professional command bar */
+.topbar {
+  position: sticky !important;
+  top: 0;
+  z-index: 72 !important;
+  min-height: 76px !important;
+  border-bottom-color: rgba(148, 182, 204, .12) !important;
+  background: linear-gradient(180deg, rgba(5, 15, 24, .94), rgba(5, 15, 24, .82));
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(101,221,212,.26), transparent 26%, transparent 74%, rgba(98,170,247,.16));
+}
+
+.brandButton {
+  position: relative;
+  width: 218px !important;
+  min-width: 218px;
+  min-height: 52px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 11px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.brandButton::before {
+  content: "";
+  position: absolute;
+  inset: 4px 0;
+  background-image: var(--averis-official-lockup);
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,.22));
+  transition: transform .22s ease, filter .22s ease;
+}
+
+.brandButton:hover::before {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 10px 24px rgba(30,162,208,.14));
+}
+
+.brandButton .brandMark,
+.brandButton .brandText {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.topActions .status,
+.topActions .creditPill,
+.topActions .ghostButton {
+  border-radius: 9px !important;
+}
+
+/* Signed-out landing: enterprise, not a marketing-template billboard. */
+main:not(:has(.topActions .ghostButton)) > .hero {
+  min-height: 390px !important;
+  margin-top: 24px;
+  padding: clamp(34px, 4vw, 52px) !important;
+  border: 1px solid rgba(148, 182, 204, .12);
+  border-radius: 20px;
+  overflow: hidden !important;
+  background:
+    linear-gradient(115deg, rgba(101,221,212,.035), transparent 38%),
+    linear-gradient(180deg, rgba(12,29,43,.73), rgba(7,18,29,.88));
+  box-shadow: inset 0 1px rgba(255,255,255,.03), 0 28px 70px rgba(0,0,0,.18);
+}
+
+main:not(:has(.topActions .ghostButton)) > .hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(117, 167, 196, .035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(117, 167, 196, .035) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(100deg, transparent 8%, #000 48%, transparent 96%);
+}
+
+main:not(:has(.topActions .ghostButton)) .heroCopy {
+  max-width: 760px !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .hero h1 {
+  max-width: 730px !important;
+  margin-bottom: 18px !important;
+  font-size: clamp(44px, 5vw, 70px) !important;
+  line-height: .98 !important;
+  letter-spacing: -.055em !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .lede {
+  max-width: 700px;
+  font-size: clamp(14px, 1.35vw, 17px) !important;
+  line-height: 1.65 !important;
+  color: #9eb5c4 !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroProof {
+  gap: 8px !important;
+  margin-top: 24px !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroProof span {
+  min-height: 36px;
+  padding: 8px 11px !important;
+  border-radius: 9px !important;
+  background: rgba(5,16,26,.58) !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroOrb {
+  width: min(410px, 30vw) !important;
+  padding: 30px;
+  border: 1px solid rgba(122, 178, 211, .11) !important;
+  border-radius: 18px !important;
+  background-color: rgba(3, 13, 22, .34) !important;
+  background-size: 88% auto !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025), 0 24px 50px rgba(0,0,0,.2) !important;
+}
+
+/* Entry / auth surface */
+main:not(:has(.topActions .ghostButton)) .accountGrid {
+  margin-top: 20px;
+  gap: 18px !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .accountIntro,
+main:not(:has(.topActions .ghostButton)) .authPanel {
+  border-radius: 16px !important;
+  border-color: var(--enterprise-line) !important;
+  background: linear-gradient(180deg, rgba(12,27,41,.94), rgba(7,18,28,.97)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025), var(--enterprise-shadow) !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .accountIntro h2 {
+  max-width: 690px;
+  font-size: clamp(34px, 3.5vw, 50px) !important;
+  letter-spacing: -.048em !important;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList {
+  grid-template-columns: repeat(2, minmax(0,1fr));
+}
+
+.authPanel:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(101,221,212,.2) !important;
+}
+
+.authTabs {
+  border-radius: 10px !important;
+}
+
+.authForm input {
+  min-height: 52px !important;
+  border-radius: 10px !important;
+}
+
+.authForm > button[type="submit"] {
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(37, 175, 165, .1), inset 0 1px rgba(255,255,255,.45) !important;
+}
+
+/* Signed-in product shell */
+main:has(.topActions .ghostButton) .productShell {
+  grid-template-columns: 236px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  margin-top: 22px !important;
+}
+
+main:has(.topActions .ghostButton) .toolRail {
+  top: 92px !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+  border-color: var(--enterprise-line) !important;
+  background: linear-gradient(180deg, rgba(12,27,41,.96), rgba(6,17,27,.98)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.025), 0 18px 44px rgba(0,0,0,.2) !important;
+}
+
+main:has(.topActions .ghostButton) .railAccount {
+  padding: 5px 5px 13px !important;
+}
+
+main:has(.topActions .ghostButton) .railAvatar {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 9px !important;
+  background-image: var(--averis-brand-symbol) !important;
+  background-size: cover !important;
+  color: transparent !important;
+  overflow: hidden;
+}
+
+main:has(.topActions .ghostButton) .toolNav {
+  gap: 4px !important;
+  padding: 10px 0 !important;
+}
+
+main:has(.topActions .ghostButton) .toolButton {
+  min-height: 43px;
+  border-radius: 9px !important;
+  border: 1px solid transparent !important;
+  color: #96adbc !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease, transform .16s ease !important;
+}
+
+main:has(.topActions .ghostButton) .toolButton:hover {
+  color: #d7e8f1 !important;
+  background: rgba(255,255,255,.025) !important;
+  transform: translateX(1px) !important;
+}
+
+main:has(.topActions .ghostButton) .toolButton.active {
+  color: #c8f5f1 !important;
+  border-color: rgba(101,221,212,.15) !important;
+  background: linear-gradient(90deg, rgba(101,221,212,.105), rgba(98,170,247,.035)) !important;
+  box-shadow: inset 2px 0 0 rgba(101,221,212,.7) !important;
+}
+
+main:has(.topActions .ghostButton) .workspace {
+  min-width: 0;
+}
+
+main:has(.topActions .ghostButton) .toolHero {
+  min-height: 96px;
+  margin-bottom: 14px !important;
+  border-radius: 13px !important;
+  border-color: var(--enterprise-line) !important;
+  background:
+    linear-gradient(90deg, rgba(101,221,212,.03), transparent 35%),
+    var(--enterprise-surface) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.02) !important;
+}
+
+main:has(.topActions .ghostButton) .toolHero h2 {
+  font-size: clamp(26px, 2vw, 31px) !important;
+}
+
+/* Work surfaces */
+.panel,
+.sourceCard,
+.resultCard,
+.evidenceCard,
+.matchCard {
+  border-radius: var(--enterprise-radius) !important;
+  border-color: var(--enterprise-line) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.022), 0 14px 36px rgba(0,0,0,.16) !important;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(12,27,41,.88), rgba(7,18,28,.94)) !important;
+}
+
+.metricGrid > *,
+.summaryGrid > * {
+  border-radius: 12px !important;
+  border-color: rgba(148,182,204,.12) !important;
+  background: linear-gradient(180deg, rgba(14,31,46,.86), rgba(8,20,31,.92)) !important;
+}
+
+input,
+textarea,
+select {
+  border-radius: 10px !important;
+  border-color: rgba(148,182,204,.15) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(101,221,212,.48) !important;
+  box-shadow: 0 0 0 3px rgba(101,221,212,.055) !important;
+}
+
+button:not(.brandButton):not(.toolButton):not(.authTab):not(.ghostButton):not(.dangerButton) {
+  border-radius: 10px;
+}
+
+.notice,
+.error,
+.devBanner {
+  border-radius: 10px !important;
+}
+
+/* Visible keyboard focus: enterprise accessibility baseline */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid rgba(123, 235, 225, .82) !important;
+  outline-offset: 3px !important;
+}
+
+/* Tablet */
+@media (max-width: 980px) {
+  .brandButton {
+    width: 190px !important;
+    min-width: 190px;
+  }
+
+  main:not(:has(.topActions .ghostButton)) > .hero {
+    grid-template-columns: 1fr !important;
+    padding: 34px !important;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .heroOrb {
+    width: min(420px, 70vw) !important;
+    justify-self: start !important;
+  }
+
+  main:has(.topActions .ghostButton) .productShell {
+    grid-template-columns: 1fr !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolRail {
+    position: static !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 680px) {
+  main {
+    width: min(100% - 20px, 1280px) !important;
+  }
+
+  .topbar {
+    min-height: 68px !important;
+    gap: 8px;
+  }
+
+  .brandButton {
+    width: 146px !important;
+    min-width: 146px;
+    min-height: 42px;
+  }
+
+  .topActions .status {
+    display: none !important;
+  }
+
+  main:not(:has(.topActions .ghostButton)) > .hero {
+    margin-top: 14px;
+    padding: 26px 20px !important;
+    border-radius: 16px;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .hero h1 {
+    font-size: clamp(38px, 12.5vw, 56px) !important;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .heroOrb {
+    width: 100% !important;
+    max-width: 360px;
+    padding: 22px;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .accountGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .trustList {
+    grid-template-columns: 1fr !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+  }
+
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero {
+    grid-template-columns: 1fr !important;
+  }
+
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero::after {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brandButton::before,
+  .toolButton,
+  .authPanel,
+  .heroProof span {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -3,7 +3,7 @@ name: Averis GitHub Pages
 on:
   push:
     branches:
-      - feat/professional-ui-brand-v1
+      - feat/cinematic-intro-safe-revision-v13
     paths:
       - "apps/web/**"
       - ".github/workflows/pages-preview.yml"
@@ -54,6 +54,7 @@ jobs:
         run: |
           test -f out/index.html
           test -f out/multi-source/index.html
+          test -f out/revision/index.html
           test -f out/privacy/index.html
 
       - name: Upload Pages artifact
