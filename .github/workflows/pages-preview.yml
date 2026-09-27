@@ -24,7 +24,7 @@ jobs:
         working-directory: apps/web
     env:
       GITHUB_PAGES: "true"
-      NEXT_PUBLIC_API_URL: "https://averis-api.vercel.app"
+      NEXT_PUBLIC_API_URL: "https://averis-api-beta-db36dd7d.azurewebsites.net"
       NEXT_PUBLIC_SUPABASE_URL: "https://lydepiaatemwpremgekt.supabase.co"
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_hrvA30mwTq5Yhjfq4SXaoA_TYcCUE0j"
     steps:
