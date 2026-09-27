@@ -4,12 +4,6 @@ import { notFound } from "next/navigation";
 import styles from "../averis2.module.css";
 
 const sections = {
-  "new-review": {
-    eyebrow: "New review",
-    title: "Review a document with transparent evidence",
-    description: "This route is scaffolded for the next implementation slice. Existing production upload, auth, credits, scoring, and privacy behavior remain untouched.",
-    steps: ["Upload or select the draft", "Choose transparent analysis controls", "Add comparison evidence", "Run the existing certified analysis flow once it is wired"],
-  },
   documents: {
     eyebrow: "Documents",
     title: "Your review workspace",
@@ -64,56 +58,29 @@ export default async function Averis2SectionPage({ params }: { params: Promise<{
 
   return (
     <>
-      <div className={styles.previewNotice} role="note">
-        <span className={styles.statusDot} />
-        Averis 2.0 route scaffold · no production behavior changed
-      </div>
-
+      <div className={styles.previewNotice} role="note"><span className={styles.statusDot}/>Averis 2.0 route scaffold · no production behavior changed</div>
       <header className={styles.pageHeader}>
         <div className={styles.pageHeading}>
           <span className={styles.eyebrow}>{config.eyebrow}</span>
           <h1 className={styles.pageTitle}>{config.title}</h1>
           <p className={styles.pageDescription}>{config.description}</p>
         </div>
-        <Link className={styles.secondaryButton} href="/v2">
-          Back to overview
-        </Link>
+        <Link className={styles.secondaryButton} href="/v2">Back to overview</Link>
       </header>
-
       <section className={styles.placeholderGrid}>
         <article className={`${styles.placeholderCard} ${styles.placeholderCardStrong}`}>
           <h2>Implementation boundary</h2>
-          <p>This first Averis 2.0 slice establishes the visual application shell and route structure before existing certified product logic is moved behind it.</p>
-          <ol className={styles.placeholderSteps}>
-            {config.steps.map((step, index) => (
-              <li key={step}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <div>{step}</div>
-              </li>
-            ))}
-          </ol>
+          <p>This route remains presentation scaffolding while certified product logic is moved behind the Averis 2.0 shell in narrow, separately certified slices.</p>
+          <ol className={styles.placeholderSteps}>{config.steps.map((step, index) => <li key={step}><span>{String(index + 1).padStart(2, "0")}</span><div>{step}</div></li>)}</ol>
         </article>
-
         <aside className={styles.placeholderCard}>
           <h2>Safety boundary</h2>
-          <p>These routes are presentational scaffolding. The following remain unchanged in this PR.</p>
+          <p>The following remain unchanged in this route scaffold.</p>
           <div className={styles.placeholderMeta}>
-            <div>
-              <strong>Authentication</strong>
-              <span>Existing Supabase sign-in behavior is not replaced.</span>
-            </div>
-            <div>
-              <strong>Credits & scoring</strong>
-              <span>No scan-credit or evidence calculation logic changes.</span>
-            </div>
-            <div>
-              <strong>Privacy & retention</strong>
-              <span>Original-upload retention stays off; no schema changes.</span>
-            </div>
-            <div>
-              <strong>Hosting</strong>
-              <span>Azure API and GitHub Pages production paths are unchanged.</span>
-            </div>
+            <div><strong>Authentication</strong><span>Existing Supabase sign-in behavior is not replaced.</span></div>
+            <div><strong>Credits & scoring</strong><span>No scan-credit or evidence calculation logic changes.</span></div>
+            <div><strong>Privacy & retention</strong><span>Original-upload retention stays off; no schema changes.</span></div>
+            <div><strong>Hosting</strong><span>Azure API and GitHub Pages production paths are unchanged.</span></div>
           </div>
         </aside>
       </section>

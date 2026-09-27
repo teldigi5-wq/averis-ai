@@ -1,0 +1,506 @@
+.creditBadge {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 11px;
+  border: 1px solid rgba(95, 224, 209, 0.42);
+  border-radius: 9px;
+  background: #103132;
+  color: #5fe0d1;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.errorBanner,
+.noticeBanner {
+  margin: -8px 0 18px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.errorBanner {
+  border: 1px solid rgba(255, 123, 142, 0.34);
+  background: rgba(255, 123, 142, 0.08);
+  color: #ffc3cc;
+}
+
+.noticeBanner {
+  border: 1px solid rgba(99, 211, 154, 0.28);
+  background: rgba(99, 211, 154, 0.07);
+  color: #b8efcf;
+}
+
+.inputGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.panel,
+.controlsPanel,
+.evidencePanel,
+.resultMetrics article {
+  border: 1px solid #1d3144;
+  border-radius: 12px;
+  background: #0b1724;
+}
+
+.panel {
+  min-width: 0;
+  padding: 18px;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.panelHeading > div {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.panelHeading > div > span {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #245a5c;
+  border-radius: 9px;
+  color: #5fe0d1;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.panelHeading small,
+.evidenceHeader small {
+  display: block;
+  margin: 1px 0 5px;
+  color: #71879a;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.panelHeading h2,
+.evidenceHeader h2 {
+  margin: 0;
+  color: #f4f8fb;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.panelHeading em {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid #1d3144;
+  border-radius: 8px;
+  color: #9fb2c1;
+  font-size: 9px;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.uploadZone {
+  min-height: 206px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 24px;
+  border: 1px dashed #27455d;
+  border-radius: 12px;
+  background: #0e1c2c;
+  color: #f4f8fb;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.uploadZone:hover,
+.uploadZone:focus-within {
+  border-color: rgba(95, 224, 209, 0.72);
+  background: #102234;
+}
+
+.uploadZone input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.uploadIcon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #12383a;
+  color: #5fe0d1;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.uploadZone strong {
+  max-width: 88%;
+  color: #f4f8fb;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.uploadZone small {
+  color: #9fb2c1;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.fileState {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #1d3144;
+  border-radius: 9px;
+  background: #0e1c2c;
+}
+
+.fileState div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.fileState strong {
+  overflow: hidden;
+  color: #f4f8fb;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileState span {
+  color: #9fb2c1;
+  font-size: 10px;
+}
+
+.fileState b {
+  color: #5fe0d1;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.referenceInput {
+  width: 100%;
+  min-height: 206px;
+  resize: vertical;
+  padding: 15px;
+  border: 1px solid #1d3144;
+  border-radius: 10px;
+  outline: none;
+  background: #0e1c2c;
+  color: #f4f8fb;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.referenceInput:focus {
+  border-color: #5fe0d1;
+  box-shadow: 0 0 0 3px rgba(95, 224, 209, 0.07);
+}
+
+.referenceInput::placeholder {
+  color: #71879a;
+}
+
+.inputMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 1px 12px;
+  color: #71879a;
+  font-size: 10px;
+}
+
+.primaryAction {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 14px;
+  border: 1px solid #5fe0d1;
+  border-radius: 10px;
+  background: #5fe0d1;
+  color: #04101a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryAction:disabled {
+  border-color: #1d3144;
+  background: #102234;
+  color: #71879a;
+  cursor: not-allowed;
+}
+
+.controlsPanel {
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.controlCard,
+.rangeCard {
+  min-height: 118px;
+  border: 1px solid #1d3144;
+  border-radius: 10px;
+  background: #0e1c2c;
+}
+
+.controlCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.controlCard input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: #5fe0d1;
+}
+
+.controlCard span {
+  display: grid;
+  gap: 8px;
+}
+
+.controlCard strong,
+.rangeCard strong {
+  color: #f4f8fb;
+  font-size: 12px;
+}
+
+.controlCard small,
+.rangeCard small {
+  color: #9fb2c1;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.rangeCard {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.rangeCard > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rangeCard b {
+  color: #5fe0d1;
+  font-size: 12px;
+}
+
+.rangeCard input {
+  width: 100%;
+  accent-color: #5fe0d1;
+}
+
+.controlsNote {
+  margin: 14px 2px 0;
+  color: #71879a;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.resultsSection {
+  margin-top: 18px;
+}
+
+.resultMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.resultMetrics article {
+  min-height: 116px;
+  padding: 16px;
+}
+
+.resultMetrics span,
+.resultMetrics small {
+  display: block;
+  color: #9fb2c1;
+  font-size: 10px;
+}
+
+.resultMetrics strong {
+  display: block;
+  margin: 11px 0 9px;
+  color: #f4f8fb;
+  font-size: 27px;
+  line-height: 1;
+  font-weight: 780;
+  letter-spacing: -0.035em;
+}
+
+.resultMetrics article:first-child strong {
+  color: #f5c76c;
+}
+
+.evidencePanel {
+  margin-top: 14px;
+  padding: 18px;
+}
+
+.evidenceHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.evidenceHeader > span {
+  padding: 6px 9px;
+  border: 1px solid #1d3144;
+  border-radius: 8px;
+  color: #9fb2c1;
+  font-size: 10px;
+}
+
+.evidenceNote {
+  margin: 16px 0;
+  color: #9fb2c1;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.matchCard {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid #1d3144;
+}
+
+.matchCard > strong {
+  color: #5fe0d1;
+  font-size: 22px;
+}
+
+.matchCard div {
+  min-width: 0;
+}
+
+.matchCard small {
+  color: #71879a;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.matchCard p {
+  margin: 7px 0 16px;
+  color: #f4f8fb;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.emptyEvidence {
+  padding: 20px 0 4px;
+  border-top: 1px solid #1d3144;
+  color: #9fb2c1;
+  font-size: 12px;
+}
+
+@media (max-width: 980px) {
+  .inputGrid,
+  .controlGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .panel,
+  .controlsPanel,
+  .evidencePanel {
+    padding: 15px;
+  }
+
+  .panelHeading {
+    gap: 10px;
+  }
+
+  .panelHeading em {
+    display: none;
+  }
+
+  .uploadZone,
+  .referenceInput {
+    min-height: 170px;
+  }
+
+  .resultMetrics {
+    gap: 10px;
+  }
+
+  .resultMetrics article {
+    min-height: 102px;
+    padding: 13px;
+  }
+
+  .resultMetrics strong {
+    font-size: 24px;
+  }
+
+  .matchCard {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uploadZone {
+    transition: none;
+  }
+}
