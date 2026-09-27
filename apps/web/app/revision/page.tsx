@@ -12,6 +12,13 @@ type PassageMatch = {
   score: number;
 };
 
+type CitationPassageReview = {
+  document_sentence: string;
+  match_score: number;
+  citation_detected: boolean;
+  citation_marker: string | null;
+};
+
 type RevisionReport = {
   writing: {
     word_count: number;
@@ -38,6 +45,14 @@ type RevisionReport = {
     overlap_review_band: string;
     matched_passages: PassageMatch[];
     semantic_passages: PassageMatch[];
+  };
+  citation_review: null | {
+    matched_passage_count: number;
+    citation_detected_count: number;
+    uncited_match_count: number;
+    citation_coverage_percent: number;
+    passages: CitationPassageReview[];
+    scope_note: string;
   };
   revision_actions: string[];
   ai_enabled: boolean;
@@ -140,8 +155,8 @@ export default function RevisionPage() {
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>AI EVIDENCE LAYER · REVISION COACH</p>
-          <h1>Fix weak paraphrasing, copied wording, and repetitive AI-like writing patterns with evidence.</h1>
-          <p className={styles.lede}>Averis combines source-overlap metrics with writing-style signals and optional local open-source AI. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
+          <h1>Fix weak paraphrasing, copied wording, missing attribution, and repetitive writing patterns with evidence.</h1>
+          <p className={styles.lede}>Averis combines source-overlap, citation-proximity, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
         </div>
         <div className={styles.boundaryCard}>
           <span>ACADEMIC-INTEGRITY BOUNDARY</span>
@@ -162,13 +177,13 @@ export default function RevisionPage() {
         <article className={styles.panel}>
           <div className={styles.panelHead}><span>02</span><div><small>OPTIONAL SOURCE EVIDENCE</small><h2>Paste the source you are worried about</h2></div></div>
           <input value={sourceName} maxLength={250} onChange={(event) => setSourceName(event.target.value)} aria-label="Comparison source name" />
-          <textarea value={source} maxLength={40000} onChange={(event) => { setSource(event.target.value); setReport(null); }} placeholder="Paste a source to measure exact, fuzzy and semantic overlap…" />
+          <textarea value={source} maxLength={40000} onChange={(event) => { setSource(event.target.value); setReport(null); }} placeholder="Paste a source to measure exact, fuzzy, semantic, and citation-context evidence…" />
           <div className={styles.metaRow}><span>Optional</span><span>No extra scan credit</span></div>
         </article>
 
         <div className={styles.runRow}>
-          <div><b>Real metrics</b><span>Exact overlap · fuzzy passages · semantic passage reranking · lexical diversity · sentence variation · repeated trigrams</span></div>
-          <button type="submit" disabled={busy || draft.trim().length < 50}>{busy ? "Analyzing evidence…" : "Run originality & AI-style review"}</button>
+          <div><b>Real metrics</b><span>Exact overlap · fuzzy passages · citation proximity · semantic candidates · lexical diversity · sentence variation · repeated trigrams</span></div>
+          <button type="submit" disabled={busy || draft.trim().length < 50}>{busy ? "Analyzing evidence…" : "Run originality & writing review"}</button>
         </div>
       </form>
 
@@ -207,6 +222,34 @@ export default function RevisionPage() {
               </article>
             )}
           </section>
+
+          {report.citation_review && report.citation_review.matched_passage_count > 0 && (
+            <section className={styles.panel}>
+              <div className={styles.sectionTitle}>
+                <div><p className={styles.eyebrow}>CITATION CONTEXT</p><h2>Check attribution around matched passages</h2></div>
+                <span className={styles.safeChip}>{report.citation_review.uncited_match_count > 0 ? "REVIEW ATTRIBUTION" : "MARKERS FOUND"}</span>
+              </div>
+              <div className={styles.metricGrid}>
+                <div><span>CITATION COVERAGE</span><strong>{report.citation_review.citation_coverage_percent}%</strong><small>near matched passages</small></div>
+                <div><span>PASSAGES REVIEWED</span><strong>{report.citation_review.matched_passage_count}</strong><small>strong lexical/fuzzy matches</small></div>
+                <div><span>MARKER DETECTED</span><strong>{report.citation_review.citation_detected_count}</strong><small>common nearby citation form</small></div>
+                <div><span>UNCITED CANDIDATES</span><strong>{report.citation_review.uncited_match_count}</strong><small>needs manual attribution review</small></div>
+              </div>
+              {report.citation_review.uncited_match_count > 0 && (
+                <div className={styles.matches}>
+                  {report.citation_review.passages.filter((item) => !item.citation_detected).slice(0, 4).map((item, index) => (
+                    <article key={`citation-${index}-${item.document_sentence}`}>
+                      <div><span>ATTRIBUTION CHECK {String(index + 1).padStart(2, "0")}</span><strong>{Math.round(item.match_score)}%</strong></div>
+                      <small>MATCHED DRAFT PASSAGE</small>
+                      <p>{item.document_sentence}</p>
+                      <small>No nearby recognized citation marker detected</small>
+                    </article>
+                  ))}
+                </div>
+              )}
+              <p className={styles.scopeNote}>{report.citation_review.scope_note}</p>
+            </section>
+          )}
 
           <section className={styles.panel}>
             <div className={styles.sectionTitle}><div><p className={styles.eyebrow}>REVISION PLAN</p><h2>Fix the underlying academic-integrity risks</h2></div><span className={styles.safeChip}>NO DETECTOR EVASION</span></div>
