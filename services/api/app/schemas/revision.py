@@ -24,6 +24,22 @@ class WritingStyleMetrics(BaseModel):
     style_uniformity_band: str
 
 
+class CitationPassageReview(BaseModel):
+    document_sentence: str
+    match_score: float
+    citation_detected: bool
+    citation_marker: str | None = None
+
+
+class CitationCoverageMetrics(BaseModel):
+    matched_passage_count: int
+    citation_detected_count: int
+    uncited_match_count: int
+    citation_coverage_percent: float
+    passages: list[CitationPassageReview] = Field(default_factory=list)
+    scope_note: str
+
+
 class SourceEvidenceMetrics(BaseModel):
     exact_overlap_percent: float
     fuzzy_passage_percent: float
@@ -41,10 +57,11 @@ class SourceEvidenceMetrics(BaseModel):
 class RevisionAnalyzeResponse(BaseModel):
     writing: WritingStyleMetrics
     source_evidence: SourceEvidenceMetrics | None = None
+    citation_review: CitationCoverageMetrics | None = None
     revision_actions: list[str]
     ai_enabled: bool
     ai_provider: str
     semantic_model: str | None = None
     coach_summary: str | None = None
     caution: str
-    evidence_version: str = "ai-evidence-v2"
+    evidence_version: str = "ai-evidence-v3"
