@@ -7,6 +7,9 @@ from app.core.config import get_settings
 from app.schemas.revision import (
     CitationCoverageMetrics,
     CitationPassageReview,
+    CitationReferenceLinkEvidence,
+    LinkedReferenceEvidence,
+    ReferenceLinkageMetrics,
     RevisionAnalyzeRequest,
     RevisionAnalyzeResponse,
     SourceEvidenceMetrics,
@@ -14,7 +17,13 @@ from app.schemas.revision import (
 from app.schemas.similarity import PassageMatch
 from app.services.auth import AuthContext, require_user
 from app.services.citation_context import analyze_citation_coverage
+from app.services.crossref import CrossrefClient
 from app.services.rate_limit import AI_REVISION, enforce_rate_limit
+from app.services.reference_linkage import (
+    ReferenceLinkageReview,
+    link_citations_to_references,
+    verify_linked_dois,
+)
 from app.services.revision_metrics import (
     analyze_writing_style,
     build_revision_actions,
@@ -25,6 +34,52 @@ from app.services.semantic_evidence import semantic_passage_matches
 from app.services.similarity import compare_texts
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
+
+def _crossref_client() -> CrossrefClient:
+    settings = get_settings()
+    return CrossrefClient(
+        base_url=settings.crossref_base_url,
+        mailto=settings.crossref_mailto,
+        timeout_seconds=settings.crossref_timeout_seconds,
+    )
+
+
+def _reference_linkage_model(review: ReferenceLinkageReview) -> ReferenceLinkageMetrics:
+    return ReferenceLinkageMetrics(
+        supplied_reference_count=review.supplied_reference_count,
+        linked_passage_count=review.linked_passage_count,
+        unlinked_citation_count=review.unlinked_citation_count,
+        doi_verified_reference_count=review.doi_verified_reference_count,
+        doi_metadata_review_count=review.doi_metadata_review_count,
+        verification_unavailable_count=review.verification_unavailable_count,
+        links=[
+            CitationReferenceLinkEvidence(
+                document_sentence=link.document_sentence,
+                match_score=link.match_score,
+                citation_marker=link.citation_marker,
+                link_status=link.link_status,
+                references=[
+                    LinkedReferenceEvidence(
+                        index=reference.index,
+                        raw=reference.raw,
+                        doi=reference.doi,
+                        year=reference.year,
+                        author_key=reference.author_key,
+                        verification_status=reference.verification_status,
+                        verification_issues=list(reference.verification_issues),
+                        verified_title=reference.verified_source.title if reference.verified_source else None,
+                        verified_doi=reference.verified_source.doi if reference.verified_source else None,
+                        verified_year=reference.verified_source.published_year if reference.verified_source else None,
+                        verified_authors=list(reference.verified_source.authors) if reference.verified_source else [],
+                    )
+                    for reference in link.references
+                ],
+            )
+            for link in review.links
+        ],
+        scope_note=review.scope_note,
+    )
 
 
 @router.get("/status")
@@ -38,7 +93,7 @@ async def ai_status() -> dict[str, object]:
             "semantic_calibrated": bool(thresholds),
             "semantic_calibration_id": settings.ai_semantic_calibration_id if thresholds else None,
             "reachable": False,
-            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v3.",
+            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v4.",
         }
 
     provider = OllamaProvider(
@@ -85,6 +140,7 @@ async def analyze_revision(
         )
 
     citation_review = None
+    raw_citation_review = None
     if source_report is not None:
         raw_citation_review = analyze_citation_coverage(
             payload.text,
@@ -107,6 +163,24 @@ async def analyze_revision(
             scope_note=raw_citation_review.scope_note,
         )
 
+    reference_linkage = None
+    if (
+        raw_citation_review is not None
+        and payload.references_text
+        and payload.references_text.strip()
+    ):
+        raw_reference_linkage = link_citations_to_references(
+            raw_citation_review.passages,
+            payload.references_text,
+        )
+        if payload.verify_linked_references:
+            raw_reference_linkage = await verify_linked_dois(
+                raw_reference_linkage,
+                crossref=_crossref_client(),
+                max_lookups=5,
+            )
+        reference_linkage = _reference_linkage_model(raw_reference_linkage)
+
     semantic_similarity: float | None = None
     semantic_provider: str | None = None
     semantic_passages: list[PassageMatch] = []
@@ -120,8 +194,6 @@ async def analyze_revision(
         )
 
         if source_report is not None and payload.source_text:
-            # Whole-text cosine is a broad candidate signal. Sentence-level
-            # semantic evidence below catches stronger paraphrase candidates.
             embeddings = await provider.embed_texts(
                 [payload.text[:12_000], payload.source_text[:12_000]],
                 model=settings.ollama_embedding_model,
@@ -167,13 +239,21 @@ async def analyze_revision(
                     if citation_review is not None and citation_review.matched_passage_count
                     else "no fuzzy matched passage was available for citation-proximity review"
                 )
+                reference_note = (
+                    f"{reference_linkage.linked_passage_count} matched passages linked to supplied bibliography entries, "
+                    f"{reference_linkage.unlinked_citation_count} citation markers unresolved, "
+                    f"{reference_linkage.doi_verified_reference_count} linked references resolved through Crossref, and "
+                    f"{reference_linkage.doi_metadata_review_count} resolved DOI records have author/year metadata differences"
+                    if reference_linkage is not None
+                    else "no bibliography was supplied for citation-to-reference linkage"
+                )
                 source_summary = (
                     f"Primary similarity {source_report.similarity_percent}%; exact overlap "
                     f"{source_report.shingle_jaccard}%; fuzzy passage strength "
                     f"{source_report.sentence_match_score}%; whole-text semantic candidate "
                     f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%; strongest semantic "
                     f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%; "
-                    f"{citation_note}; {calibration_note}."
+                    f"{citation_note}; {reference_note}; {calibration_note}."
                 )
             prompt = (
                 "You are the Averis academic revision coach. Give 3-5 short manual revision actions only. "
@@ -202,7 +282,37 @@ async def analyze_revision(
             "Add the required attribution or quotation/citation where the borrowed wording or idea actually comes from a source."
         )
         actions = [citation_action, *actions]
-        actions = list(dict.fromkeys(actions))[:6]
+
+    if reference_linkage is not None and reference_linkage.unlinked_citation_count > 0:
+        linkage_action = (
+            f"Check {reference_linkage.unlinked_citation_count} nearby citation marker"
+            f"{'s' if reference_linkage.unlinked_citation_count != 1 else ''} that could not be linked to the supplied bibliography. "
+            "Correct the in-text citation or bibliography entry before submission, then run Reference Audit."
+        )
+        actions = [linkage_action, *actions]
+
+    if reference_linkage is not None and reference_linkage.doi_metadata_review_count > 0:
+        actions = [
+            (
+                f"Review {reference_linkage.doi_metadata_review_count} DOI-linked reference"
+                f"{'s' if reference_linkage.doi_metadata_review_count != 1 else ''} whose Crossref author/year metadata differs from the supplied bibliography entry."
+            ),
+            *actions,
+        ]
+
+    if reference_linkage is not None:
+        linked_without_clean_external_verification = sum(
+            1
+            for link in reference_linkage.links
+            for reference in link.references
+            if reference.verification_status != "verified_doi"
+        )
+        if linked_without_clean_external_verification > 0:
+            actions.append(
+                "Run Reference Audit for linked references that do not yet have clean DOI metadata verification; local linkage or a metadata-review state does not establish that a source record is correct."
+            )
+
+    actions = list(dict.fromkeys(actions))[:6]
 
     source_evidence = None
     if source_report is not None:
@@ -230,6 +340,7 @@ async def analyze_revision(
         writing=writing,
         source_evidence=source_evidence,
         citation_review=citation_review,
+        reference_linkage=reference_linkage,
         revision_actions=actions,
         ai_enabled=ai_active,
         ai_provider=settings.ai_provider,
@@ -238,8 +349,9 @@ async def analyze_revision(
         caution=(
             "Writing-style metrics and AI-generated-text detectors can produce false positives and are not proof of "
             "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
-            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Citation proximity only detects "
-            "common nearby in-text markers and does not verify citation correctness. Source-overlap evidence still requires "
-            "human review, citation context, and the relevant institution's rules."
+            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Citation proximity and local "
+            "bibliography linkage do not prove that a citation supports a passage. Crossref DOI verification confirms "
+            "a source record exists; author/year differences are surfaced separately and still require review. Human "
+            "review, citation context, and the relevant institution's rules still apply."
         ),
     )

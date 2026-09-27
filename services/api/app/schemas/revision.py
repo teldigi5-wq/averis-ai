@@ -7,6 +7,8 @@ class RevisionAnalyzeRequest(BaseModel):
     text: str = Field(min_length=50, max_length=80_000)
     source_text: str | None = Field(default=None, max_length=40_000)
     source_name: str = Field(default="Comparison source", min_length=1, max_length=250)
+    references_text: str | None = Field(default=None, max_length=25_000)
+    verify_linked_references: bool = True
     include_ai_coach: bool = True
 
 
@@ -40,6 +42,39 @@ class CitationCoverageMetrics(BaseModel):
     scope_note: str
 
 
+class LinkedReferenceEvidence(BaseModel):
+    index: int
+    raw: str
+    doi: str | None = None
+    year: str | None = None
+    author_key: str | None = None
+    verification_status: str
+    verification_issues: list[str] = Field(default_factory=list)
+    verified_title: str | None = None
+    verified_doi: str | None = None
+    verified_year: int | None = None
+    verified_authors: list[str] = Field(default_factory=list)
+
+
+class CitationReferenceLinkEvidence(BaseModel):
+    document_sentence: str
+    match_score: float
+    citation_marker: str | None = None
+    link_status: str
+    references: list[LinkedReferenceEvidence] = Field(default_factory=list)
+
+
+class ReferenceLinkageMetrics(BaseModel):
+    supplied_reference_count: int
+    linked_passage_count: int
+    unlinked_citation_count: int
+    doi_verified_reference_count: int
+    doi_metadata_review_count: int
+    verification_unavailable_count: int
+    links: list[CitationReferenceLinkEvidence] = Field(default_factory=list)
+    scope_note: str
+
+
 class SourceEvidenceMetrics(BaseModel):
     exact_overlap_percent: float
     fuzzy_passage_percent: float
@@ -58,10 +93,11 @@ class RevisionAnalyzeResponse(BaseModel):
     writing: WritingStyleMetrics
     source_evidence: SourceEvidenceMetrics | None = None
     citation_review: CitationCoverageMetrics | None = None
+    reference_linkage: ReferenceLinkageMetrics | None = None
     revision_actions: list[str]
     ai_enabled: bool
     ai_provider: str
     semantic_model: str | None = None
     coach_summary: str | None = None
     caution: str
-    evidence_version: str = "ai-evidence-v3"
+    evidence_version: str = "ai-evidence-v4"
