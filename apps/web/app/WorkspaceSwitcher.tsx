@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 import styles from "./workspace-switcher.module.css";
 
-type IconName = "workspace" | "sources" | "revision" | "privacy";
+type IconName = "workspace" | "sources" | "revision" | "refine" | "privacy";
 
 function WorkspaceIcon({ name }: { name: IconName }) {
   const common = {
@@ -47,6 +47,15 @@ function WorkspaceIcon({ name }: { name: IconName }) {
     );
   }
 
+  if (name === "refine") {
+    return (
+      <svg {...common}>
+        <path d="m4 16-1 5 5-1L20 8l-4-4L4 16Z" />
+        <path d="m13 7 4 4M10 18h10" />
+      </svg>
+    );
+  }
+
   return (
     <svg {...common}>
       <path d="M12 3 5 6v5c0 4.6 2.9 7.4 7 9 4.1-1.6 7-4.4 7-9V6z" />
@@ -59,8 +68,9 @@ export default function WorkspaceSwitcher() {
   const pathname = usePathname();
   const multiSource = pathname === "/multi-source" || pathname.endsWith("/multi-source");
   const revision = pathname === "/revision" || pathname.endsWith("/revision");
+  const refine = pathname === "/refine" || pathname.endsWith("/refine");
   const privacy = pathname === "/privacy" || pathname.endsWith("/privacy");
-  const main = !multiSource && !revision && !privacy;
+  const main = !multiSource && !revision && !refine && !privacy;
 
   useEffect(() => {
     const basePath = document.documentElement.dataset.basePath;
@@ -77,15 +87,19 @@ export default function WorkspaceSwitcher() {
     <nav className={styles.switcher} aria-label="Averis workspace switcher">
       <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined}>
         <WorkspaceIcon name="workspace" />
-        <span className={styles.label}>Main workspace</span>
+        <span className={styles.label}>Workspace</span>
       </Link>
       <Link className={multiSource ? styles.active : ""} href="/multi-source" aria-current={multiSource ? "page" : undefined}>
         <WorkspaceIcon name="sources" />
-        <span className={styles.label}>Multi-source</span>
+        <span className={styles.label}>Sources</span>
       </Link>
       <Link className={revision ? styles.active : ""} href="/revision" aria-current={revision ? "page" : undefined}>
         <WorkspaceIcon name="revision" />
-        <span className={styles.label}>Revision AI</span>
+        <span className={styles.label}>Evidence AI</span>
+      </Link>
+      <Link className={refine ? styles.active : ""} href="/refine" aria-current={refine ? "page" : undefined}>
+        <WorkspaceIcon name="refine" />
+        <span className={styles.label}>Refine</span>
       </Link>
       <Link className={privacy ? styles.active : ""} href="/privacy" aria-current={privacy ? "page" : undefined}>
         <WorkspaceIcon name="privacy" />
