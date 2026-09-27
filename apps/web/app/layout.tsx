@@ -11,6 +11,7 @@ import "./report-evidence-ui-v1.css";
 import "./enterprise-ui-v10.css";
 import "./browser-quality-v12.css";
 import "./print-report.css";
+import "./enterprise-rebuild-v14.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
@@ -19,11 +20,11 @@ import WorkspaceSwitcher from "./WorkspaceSwitcher";
 const githubPages = process.env.GITHUB_PAGES === "true";
 const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "averis-ai";
 const basePath = githubPages ? `/${repositoryName}` : "";
-const brandIcon = `${basePath}/brand/averis-selected-symbol.webp`;
+const brandIcon = `${basePath}/brand/averis-enterprise-symbol.svg`;
 
 export const metadata: Metadata = {
   title: "Averis — Academic Integrity Intelligence",
-  description: "Evidence-first similarity, scholarly source, citation and revision review for students.",
+  description: "Evidence-first similarity, scholarly source, citation and guided revision review for students.",
   applicationName: "Averis",
   icons: {
     icon: brandIcon,
