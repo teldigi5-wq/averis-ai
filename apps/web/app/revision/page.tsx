@@ -29,6 +29,19 @@ type QuotePassageContext = {
   context_status: string;
 };
 
+type PassageReviewItem = {
+  document_sentence: string;
+  match_score: number;
+  priority: "high_attention" | "attention" | "contextualized" | string;
+  reasons: string[];
+  quote_detected: boolean;
+  citation_detected: boolean;
+  citation_marker: string | null;
+  reference_link_status: string;
+  verified_reference_count: number;
+  metadata_review_reference_count: number;
+};
+
 type LinkedReference = {
   index: number;
   raw: string;
@@ -97,6 +110,14 @@ type RevisionReport = {
     passages: QuotePassageContext[];
     scope_note: string;
   };
+  passage_review: null | {
+    passages_reviewed: number;
+    high_attention_count: number;
+    attention_count: number;
+    contextualized_count: number;
+    items: PassageReviewItem[];
+    scope_note: string;
+  };
   reference_linkage: null | {
     supplied_reference_count: number;
     linked_passage_count: number;
@@ -138,6 +159,31 @@ function quoteContextLabel(status: string) {
   if (status === "quoted_without_marker") return "QUOTED · CHECK CITATION";
   if (status === "unquoted_with_marker") return "CITED PARAPHRASE CHECK";
   return "UNQUOTED · CHECK ATTRIBUTION";
+}
+
+function reviewPriorityLabel(priority: string) {
+  if (priority === "high_attention") return "HIGH ATTENTION";
+  if (priority === "attention") return "ATTENTION";
+  return "CONTEXTUALIZED";
+}
+
+function reviewPriorityClass(priority: string) {
+  if (priority === "high_attention") return styles.high;
+  if (priority === "attention") return styles.review;
+  return styles.low;
+}
+
+function reviewReasonLabel(reason: string) {
+  const labels: Record<string, string> = {
+    quoted_without_citation_marker: "quoted wording without a nearby citation marker",
+    high_overlap_unquoted: "high-overlap wording is not inside a recognized quotation",
+    citation_marker_missing: "nearby citation marker not detected",
+    citation_not_linked_to_bibliography: "citation marker does not map to the supplied bibliography",
+    citation_link_ambiguous: "citation marker maps ambiguously to the supplied bibliography",
+    reference_metadata_review: "linked DOI metadata needs author/year review",
+    reference_verification_unavailable: "external reference verification should be retried",
+  };
+  return labels[reason] ?? reason.replaceAll("_", " ");
 }
 
 export default function RevisionPage() {
@@ -228,7 +274,7 @@ export default function RevisionPage() {
         <div>
           <p className={styles.eyebrow}>AI EVIDENCE LAYER · REVISION COACH</p>
           <h1>Fix weak paraphrasing, copied wording, missing attribution, and reference gaps with evidence.</h1>
-          <p className={styles.lede}>Averis combines source overlap, quotation context, citation context, bibliography linkage, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
+          <p className={styles.lede}>Averis combines source overlap, quotation context, citation context, bibliography linkage, passage-level review priority, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
         </div>
         <div className={styles.boundaryCard}>
           <span>ACADEMIC-INTEGRITY BOUNDARY</span>
@@ -260,7 +306,7 @@ export default function RevisionPage() {
         </article>
 
         <div className={styles.runRow}>
-          <div><b>Evidence chain</b><span>Exact overlap · fuzzy passages · quotation context · citation proximity · bibliography linkage · DOI metadata · semantic candidates · writing metrics</span></div>
+          <div><b>Evidence chain</b><span>Exact overlap · fuzzy passages · quotation context · citation proximity · bibliography linkage · DOI metadata · human-review priority · semantic candidates · writing metrics</span></div>
           <button type="submit" disabled={busy || draft.trim().length < 50}>{busy ? "Analyzing evidence…" : "Run originality & writing review"}</button>
         </div>
       </form>
@@ -352,6 +398,40 @@ export default function RevisionPage() {
                 ))}
               </div>
               <p className={styles.scopeNote}>{report.quote_review.scope_note}</p>
+            </section>
+          )}
+
+          {report.passage_review && report.passage_review.passages_reviewed > 0 && (
+            <section className={styles.panel}>
+              <div className={styles.sectionTitle}>
+                <div><p className={styles.eyebrow}>HUMAN REVIEW MATRIX</p><h2>Inspect the strongest context gaps first</h2></div>
+                <span className={styles.safeChip}>{report.passage_review.high_attention_count > 0 ? "PRIORITY REVIEW" : "CONTEXT TRIAGED"}</span>
+              </div>
+              <div className={styles.metricGrid}>
+                <div><span>HIGH ATTENTION</span><strong>{report.passage_review.high_attention_count}</strong><small>wording / attribution context first</small></div>
+                <div><span>ATTENTION</span><strong>{report.passage_review.attention_count}</strong><small>citation or reference context</small></div>
+                <div><span>CONTEXTUALIZED</span><strong>{report.passage_review.contextualized_count}</strong><small>no current triage reason</small></div>
+                <div><span>TOTAL REVIEWED</span><strong>{report.passage_review.passages_reviewed}</strong><small>matched passage evidence</small></div>
+              </div>
+              <div className={styles.matches}>
+                {report.passage_review.items.slice(0, 8).map((item, index) => (
+                  <article key={`matrix-${index}-${item.document_sentence}`}>
+                    <div>
+                      <span>PASSAGE {String(index + 1).padStart(2, "0")}</span>
+                      <strong className={`${styles.band} ${reviewPriorityClass(item.priority)}`}>{reviewPriorityLabel(item.priority)}</strong>
+                    </div>
+                    <small>MATCH STRENGTH · {Math.round(item.match_score)}%</small>
+                    <p>{item.document_sentence}</p>
+                    <small>{item.quote_detected ? "Quotation detected" : "Quotation not detected"} · {item.citation_detected ? "Citation marker detected" : "Citation marker not detected"} · Reference link: {item.reference_link_status.replaceAll("_", " ")}</small>
+                    {item.reasons.length > 0 ? (
+                      <p>{item.reasons.map(reviewReasonLabel).join(" · ")}</p>
+                    ) : (
+                      <p>Current quote, citation, and reference context produced no deterministic priority reason. Human review still decides whether the use is appropriate.</p>
+                    )}
+                  </article>
+                ))}
+              </div>
+              <p className={styles.scopeNote}>{report.passage_review.scope_note}</p>
             </section>
           )}
 
