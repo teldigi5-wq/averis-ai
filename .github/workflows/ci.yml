@@ -83,3 +83,38 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm run typecheck
       - run: npm run build
+
+  web-static-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      GITHUB_PAGES: "true"
+      NEXT_PUBLIC_API_URL: "https://averis-api-beta-db36dd7d.azurewebsites.net"
+      NEXT_PUBLIC_SUPABASE_URL: "https://lydepiaatemwpremgekt.supabase.co"
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_hrvA30mwTq5Yhjfq4SXaoA_TYcCUE0j"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package.json
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Verify certified beta and Averis 2.0 static routes
+        run: |
+          test -f out/index.html
+          test -f out/multi-source/index.html
+          test -f out/privacy/index.html
+          test -f out/v2/index.html
+          test -f out/v2/new-review/index.html
+          test -f out/v2/documents/index.html
+          test -f out/v2/sources/index.html
+          test -f out/v2/citations/index.html
+          test -f out/v2/history/index.html
+          test -f out/v2/settings/index.html
+          test -f out/v2/help/index.html
