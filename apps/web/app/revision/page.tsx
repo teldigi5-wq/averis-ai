@@ -19,6 +19,27 @@ type CitationPassageReview = {
   citation_marker: string | null;
 };
 
+type LinkedReference = {
+  index: number;
+  raw: string;
+  doi: string | null;
+  year: string | null;
+  author_key: string | null;
+  verification_status: string;
+  verified_title: string | null;
+  verified_doi: string | null;
+  verified_year: number | null;
+  verified_authors: string[];
+};
+
+type CitationReferenceLink = {
+  document_sentence: string;
+  match_score: number;
+  citation_marker: string | null;
+  link_status: string;
+  references: LinkedReference[];
+};
+
 type RevisionReport = {
   writing: {
     word_count: number;
@@ -54,6 +75,15 @@ type RevisionReport = {
     passages: CitationPassageReview[];
     scope_note: string;
   };
+  reference_linkage: null | {
+    supplied_reference_count: number;
+    linked_passage_count: number;
+    unlinked_citation_count: number;
+    doi_verified_reference_count: number;
+    verification_unavailable_count: number;
+    links: CitationReferenceLink[];
+    scope_note: string;
+  };
   revision_actions: string[];
   ai_enabled: boolean;
   ai_provider: string;
@@ -71,11 +101,20 @@ function toneClass(band: string) {
   return styles.low;
 }
 
+function verificationLabel(status: string) {
+  if (status === "verified_doi") return "DOI VERIFIED";
+  if (status === "doi_not_found") return "DOI NOT FOUND";
+  if (status === "verification_unavailable") return "VERIFY RETRY";
+  if (status === "not_checked_limit") return "NOT CHECKED";
+  return "LOCAL LINK";
+}
+
 export default function RevisionPage() {
   const [user, setUser] = useState<User | null>(null);
   const [draft, setDraft] = useState("");
   const [source, setSource] = useState("");
   const [sourceName, setSourceName] = useState("Comparison source");
+  const [references, setReferences] = useState("");
   const [report, setReport] = useState<RevisionReport | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -123,6 +162,8 @@ export default function RevisionPage() {
           text: draft,
           source_text: source.trim() || null,
           source_name: sourceName.trim() || "Comparison source",
+          references_text: references.trim() || null,
+          verify_linked_references: true,
           include_ai_coach: true,
         }),
       });
@@ -155,8 +196,8 @@ export default function RevisionPage() {
       <section className={styles.hero}>
         <div>
           <p className={styles.eyebrow}>AI EVIDENCE LAYER · REVISION COACH</p>
-          <h1>Fix weak paraphrasing, copied wording, missing attribution, and repetitive writing patterns with evidence.</h1>
-          <p className={styles.lede}>Averis combines source-overlap, citation-proximity, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
+          <h1>Fix weak paraphrasing, copied wording, missing attribution, and reference gaps with evidence.</h1>
+          <p className={styles.lede}>Averis combines source-overlap, citation context, bibliography linkage, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
         </div>
         <div className={styles.boundaryCard}>
           <span>ACADEMIC-INTEGRITY BOUNDARY</span>
@@ -181,14 +222,20 @@ export default function RevisionPage() {
           <div className={styles.metaRow}><span>Optional</span><span>No extra scan credit</span></div>
         </article>
 
+        <article className={`${styles.panel} ${styles.referencePanel}`}>
+          <div className={styles.panelHead}><span>03</span><div><small>OPTIONAL BIBLIOGRAPHY</small><h2>Link nearby citation markers to your actual references</h2></div></div>
+          <textarea value={references} maxLength={25000} onChange={(event) => { setReferences(event.target.value); setReport(null); }} placeholder="Paste the bibliography / reference list here. Author-year and numbered citations can be linked to entries; linked DOI metadata is checked with Crossref when available…" />
+          <div className={styles.metaRow}><span>{references.trim() ? references.trim().split(/\n+/).filter(Boolean).length : 0} reference lines</span><span>Up to 5 linked DOIs checked · public Crossref</span></div>
+        </article>
+
         <div className={styles.runRow}>
-          <div><b>Real metrics</b><span>Exact overlap · fuzzy passages · citation proximity · semantic candidates · lexical diversity · sentence variation · repeated trigrams</span></div>
+          <div><b>Evidence chain</b><span>Exact overlap · fuzzy passages · citation proximity · bibliography linkage · DOI metadata · semantic candidates · writing metrics</span></div>
           <button type="submit" disabled={busy || draft.trim().length < 50}>{busy ? "Analyzing evidence…" : "Run originality & writing review"}</button>
         </div>
       </form>
 
       {!report ? (
-        <section className={styles.emptyState}><span>◎</span><h2>No revision evidence yet</h2><p>Paste your draft, optionally add the source you used, then run the review.</p></section>
+        <section className={styles.emptyState}><span>◎</span><h2>No revision evidence yet</h2><p>Paste your draft, optionally add the source and bibliography you used, then run the review.</p></section>
       ) : (
         <>
           <section className={styles.statusStrip}>
@@ -248,6 +295,40 @@ export default function RevisionPage() {
                 </div>
               )}
               <p className={styles.scopeNote}>{report.citation_review.scope_note}</p>
+            </section>
+          )}
+
+          {report.reference_linkage && (
+            <section className={styles.panel}>
+              <div className={styles.sectionTitle}>
+                <div><p className={styles.eyebrow}>REFERENCE LINKAGE</p><h2>Does the nearby citation map to an actual bibliography entry?</h2></div>
+                <span className={styles.safeChip}>{report.reference_linkage.unlinked_citation_count > 0 ? "CHECK LINKS" : "BIBLIOGRAPHY LINKED"}</span>
+              </div>
+              <div className={styles.metricGrid}>
+                <div><span>REFERENCES SUPPLIED</span><strong>{report.reference_linkage.supplied_reference_count}</strong><small>parsed bibliography entries</small></div>
+                <div><span>PASSAGES LINKED</span><strong>{report.reference_linkage.linked_passage_count}</strong><small>citation marker → reference</small></div>
+                <div><span>UNRESOLVED MARKERS</span><strong>{report.reference_linkage.unlinked_citation_count}</strong><small>marker not mapped to bibliography</small></div>
+                <div><span>DOI VERIFIED</span><strong>{report.reference_linkage.doi_verified_reference_count}</strong><small>Crossref metadata confirmed</small></div>
+              </div>
+              <div className={styles.matches}>
+                {report.reference_linkage.links.filter((item) => item.citation_marker).slice(0, 6).map((item, index) => (
+                  <article key={`reference-link-${index}-${item.document_sentence}`}>
+                    <div><span>REFERENCE LINK {String(index + 1).padStart(2, "0")}</span><strong>{item.link_status === "linked" ? "LINKED" : item.link_status === "ambiguous_link" ? "REVIEW" : "UNRESOLVED"}</strong></div>
+                    <small>MATCHED DRAFT PASSAGE</small>
+                    <p>{item.document_sentence}</p>
+                    <small>NEARBY MARKER</small>
+                    <p>{item.citation_marker}</p>
+                    {item.references.length > 0 ? item.references.map((reference) => (
+                      <div className={styles.referenceEvidence} key={`${item.document_sentence}-${reference.index}`}>
+                        <span>REFERENCE {reference.index} · {verificationLabel(reference.verification_status)}</span>
+                        <p>{reference.raw}</p>
+                        {reference.verified_title && <small>Crossref: {reference.verified_title}{reference.verified_year ? ` · ${reference.verified_year}` : ""}{reference.verified_doi ? ` · ${reference.verified_doi}` : ""}</small>}
+                      </div>
+                    )) : <small>No supplied bibliography entry matched this marker.</small>}
+                  </article>
+                ))}
+              </div>
+              <p className={styles.scopeNote}>{report.reference_linkage.scope_note}</p>
             </section>
           )}
 
