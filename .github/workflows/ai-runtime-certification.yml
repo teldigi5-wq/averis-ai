@@ -40,6 +40,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install "pyarrow>=17,<23"
       - name: Install Ollama
         run: |
           set -o pipefail
@@ -80,22 +81,28 @@ jobs:
               raise SystemExit("runtime certification artifact did not report ok=true")
           print("runtime certification artifact validated: ok=true")
           PY
-      - name: Download licensed PAWS-Wiki labeled benchmark
+      - name: Download pinned PAWS-Wiki labeled benchmark
         run: |
           set -o pipefail
           mkdir -p /tmp/paws-wiki ../../artifacts/paws
-          curl -fsSL \
-            https://storage.googleapis.com/paws/english/paws_wiki_labeled_final.tar.gz \
-            -o /tmp/paws_wiki_labeled_final.tar.gz
-          tar -xzf /tmp/paws_wiki_labeled_final.tar.gz -C /tmp/paws-wiki
-          curl -fsSL \
+          PAWS_REVISION=161ece9501cf0a11f3e48bd356eaa82de46d6a09
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://huggingface.co/datasets/google-research-datasets/paws/resolve/${PAWS_REVISION}/labeled_final/validation-00000-of-00001.parquet?download=true" \
+            -o /tmp/paws-wiki/validation.parquet
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://huggingface.co/datasets/google-research-datasets/paws/resolve/${PAWS_REVISION}/labeled_final/test-00000-of-00001.parquet?download=true" \
+            -o /tmp/paws-wiki/test.parquet
+          curl --fail --location --silent --show-error --retry 3 \
             https://raw.githubusercontent.com/google-research-datasets/paws/master/LICENSE \
             -o ../../artifacts/paws/LICENSE.txt
-      - name: Prepare deterministic PAWS dev and test samples
+          sha256sum /tmp/paws-wiki/validation.parquet /tmp/paws-wiki/test.parquet \
+            | tee ../../artifacts/paws/source-files.sha256
+      - name: Prepare deterministic PAWS validation and test samples
         run: |
           set -o pipefail
           python -m scripts.prepare_paws_wiki_benchmark \
-            /tmp/paws-wiki \
+            /tmp/paws-wiki/validation.parquet \
+            /tmp/paws-wiki/test.parquet \
             ../../artifacts/paws \
             --per-class 100 \
             --seed averis-paws-wiki-v1 \
