@@ -21,6 +21,20 @@ class ThresholdMetrics:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class HeldoutThresholdEvaluation:
+    """A threshold selected on calibration data and evaluated unchanged on holdout data."""
+
+    calibration: ThresholdMetrics
+    holdout: ThresholdMetrics
+
+    def as_dict(self) -> dict[str, dict[str, float | int]]:
+        return {
+            "calibration": self.calibration.as_dict(),
+            "holdout": self.holdout.as_dict(),
+        }
+
+
 def _validate(labels: list[int], scores: list[float]) -> tuple[int, int]:
     if len(labels) != len(scores) or not labels:
         raise ValueError("labels and scores must be non-empty and the same length")
@@ -94,11 +108,38 @@ def calibrate_threshold(
     evaluated = [metrics_at_threshold(labels, scores, threshold) for threshold in candidates]
     eligible = [metric for metric in evaluated if metric.false_positive_rate <= max_false_positive_rate]
     if not eligible:
-        # This should not normally happen because the maximum observed score is a
-        # candidate, but fail explicitly rather than silently relaxing the FPR budget.
         raise ValueError("no observed threshold satisfies the false-positive-rate budget")
 
     return max(
         eligible,
         key=lambda metric: (metric.recall, metric.precision, metric.threshold),
     )
+
+
+def calibrate_and_evaluate_holdout(
+    calibration_labels: list[int],
+    calibration_scores: list[float],
+    holdout_labels: list[int],
+    holdout_scores: list[float],
+    *,
+    max_false_positive_rate: float = 0.05,
+) -> HeldoutThresholdEvaluation:
+    """Select a threshold only on calibration rows, then lock it for holdout evaluation.
+
+    Keeping threshold selection and final evaluation separate prevents the held-out
+    labels from silently tuning the threshold that is later reported as evidence.
+    This function intentionally does not loosen the requested FPR budget when the
+    independent holdout set performs worse than calibration.
+    """
+    calibration = calibrate_threshold(
+        calibration_labels,
+        calibration_scores,
+        max_false_positive_rate=max_false_positive_rate,
+    )
+    _validate(holdout_labels, holdout_scores)
+    holdout = metrics_at_threshold(
+        holdout_labels,
+        holdout_scores,
+        calibration.threshold,
+    )
+    return HeldoutThresholdEvaluation(calibration=calibration, holdout=holdout)
