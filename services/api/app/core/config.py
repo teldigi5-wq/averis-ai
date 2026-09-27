@@ -8,8 +8,11 @@ class Settings(BaseSettings):
     app_env: str = "development"
     web_origin: str = "http://localhost:3000"
     ai_provider: str = "ollama"
+    ai_revision_enabled: bool = False
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "qwen3:4b"
+    ollama_embedding_model: str = "nomic-embed-text"
+    ollama_timeout_seconds: float = 8.0
 
     # Crossref public REST API. No API key is required. CROSSREF_MAILTO is
     # optional but recommended so Crossref can identify/contact API clients.
