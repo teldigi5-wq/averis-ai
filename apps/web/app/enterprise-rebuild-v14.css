@@ -1,0 +1,284 @@
+/* Averis enterprise rebuild v14 — brand, density, mobile ergonomics, and product polish. */
+
+:root {
+  --averis-brand-symbol: url('/brand/averis-enterprise-symbol.svg');
+  --averis-brand-lockup: url('/brand/averis-enterprise-lockup.svg');
+  --bg: #030b16;
+  --bg-2: #061321;
+  --surface: rgba(8, 25, 42, .9);
+  --surface-2: rgba(10, 32, 52, .92);
+  --surface-3: rgba(4, 17, 30, .95);
+  --line: rgba(90, 165, 215, .16);
+  --line-strong: rgba(37, 213, 239, .34);
+  --text: #f5fbff;
+  --muted: #91a8bc;
+  --muted-2: #667f95;
+  --accent: #22ddec;
+  --accent-2: #2188ff;
+  --violet: #758dff;
+}
+
+html[data-base-path] {
+  --averis-brand-symbol: url('/averis-ai/brand/averis-enterprise-symbol.svg');
+  --averis-brand-lockup: url('/averis-ai/brand/averis-enterprise-lockup.svg');
+}
+
+body {
+  background:
+    radial-gradient(circle at 82% 0%, rgba(28, 126, 255, .13), transparent 29%),
+    radial-gradient(circle at 8% 26%, rgba(24, 219, 238, .07), transparent 29%),
+    linear-gradient(180deg, #030b16 0%, #06111e 54%, #030a13 100%);
+}
+
+.brandMark {
+  border-radius: 10px !important;
+  background-size: contain !important;
+  background-color: transparent !important;
+  border-color: rgba(57, 183, 238, .18) !important;
+}
+
+main[class] {
+  width: min(1420px, calc(100% - 40px));
+}
+
+main:has(.topActions .ghostButton) .topbar {
+  min-height: 72px;
+  padding: 0 4px;
+}
+
+main:has(.topActions .ghostButton) .brandButton {
+  min-width: 170px;
+}
+
+main:has(.topActions .ghostButton) .brandMark {
+  width: 36px;
+  height: 36px;
+}
+
+main:has(.topActions .ghostButton) .brandText strong {
+  font-size: 15px;
+}
+
+main:has(.topActions .ghostButton) .productShell {
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 14px;
+}
+
+main:has(.topActions .ghostButton) .toolRail,
+main:has(.topActions .ghostButton) .panel {
+  border-radius: 14px;
+  border-color: rgba(87, 158, 207, .14);
+  background: linear-gradient(180deg, rgba(9, 28, 47, .91), rgba(4, 17, 30, .96));
+  box-shadow: 0 22px 58px rgba(0, 4, 12, .2), inset 0 1px rgba(255,255,255,.025);
+}
+
+main:has(.topActions .ghostButton) .toolRail {
+  top: 14px;
+  padding: 11px;
+}
+
+main:has(.topActions .ghostButton) .toolButton {
+  min-height: 42px;
+  border-radius: 8px;
+}
+
+main:has(.topActions .ghostButton) .toolButton.active {
+  background: linear-gradient(135deg, rgba(25, 123, 255, .17), rgba(31, 216, 236, .08));
+  border-color: rgba(41, 194, 235, .22);
+}
+
+main:has(.topActions .ghostButton) input,
+main:has(.topActions .ghostButton) textarea {
+  border-radius: 10px;
+  border-color: rgba(85, 153, 201, .16);
+  background: rgba(2, 13, 24, .6);
+}
+
+main:has(.topActions .ghostButton) input:focus,
+main:has(.topActions .ghostButton) textarea:focus {
+  border-color: rgba(39, 213, 237, .48);
+  box-shadow: 0 0 0 3px rgba(32, 205, 230, .055);
+}
+
+main:has(.topActions .ghostButton) button:not(.ghostButton):not(.dangerButton):not(.secondaryButton):not(.toolButton) {
+  border-radius: 9px;
+}
+
+main:has(.topActions .ghostButton) .score,
+main:has(.topActions .ghostButton) .metric,
+main:has(.topActions .ghostButton) .evidenceCard,
+main:has(.topActions .ghostButton) .historyItem {
+  border-radius: 11px !important;
+}
+
+@media (max-width: 980px) {
+  main[class] {
+    width: min(100% - 28px, 980px);
+  }
+
+  main:has(.topActions .ghostButton) .productShell {
+    grid-template-columns: 1fr;
+  }
+
+  main:has(.topActions .ghostButton) .toolRail {
+    position: static;
+    overflow: hidden;
+  }
+
+  main:has(.topActions .ghostButton) .railAccount {
+    display: none;
+  }
+
+  main:has(.topActions .ghostButton) .toolNav {
+    display: flex;
+    gap: 7px;
+    padding: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  main:has(.topActions .ghostButton) .toolNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  main:has(.topActions .ghostButton) .toolButton {
+    min-width: 150px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 680px) {
+  body {
+    padding-bottom: calc(var(--workspace-footer-height) + env(safe-area-inset-bottom, 0px) + 14px) !important;
+  }
+
+  main[class] {
+    width: calc(100% - 20px);
+    padding-top: 10px !important;
+  }
+
+  main:has(.topActions .ghostButton) .topbar {
+    min-height: 64px;
+    gap: 8px;
+  }
+
+  main:has(.topActions .ghostButton) .brandButton {
+    min-width: 0;
+  }
+
+  main:has(.topActions .ghostButton) .brandMark {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+  }
+
+  main:has(.topActions .ghostButton) .brandText small {
+    display: none;
+  }
+
+  main:has(.topActions .ghostButton) .topActions .status {
+    display: none;
+  }
+
+  main:has(.topActions .ghostButton) .topActions .creditPill {
+    min-height: 33px;
+    padding: 6px 8px 6px 32px !important;
+    border-right: 1px solid rgba(156, 181, 200, .13) !important;
+    border-radius: 8px !important;
+    font-size: 9px;
+  }
+
+  main:has(.topActions .ghostButton) .topActions .creditPill::before {
+    left: 5px;
+    width: 22px;
+    height: 22px;
+  }
+
+  main:has(.topActions .ghostButton) .topActions .ghostButton {
+    min-height: 33px;
+    margin-left: 6px !important;
+    padding: 0 9px;
+    font-size: 9px;
+  }
+
+  main:has(.topActions .ghostButton) .productShell {
+    gap: 10px;
+    margin-top: 12px !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolRail {
+    margin: 0 -2px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  main:has(.topActions .ghostButton) .toolButton {
+    min-width: 132px;
+    min-height: 40px;
+    padding: 0 10px !important;
+    font-size: 9px !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero {
+    grid-template-columns: 1fr !important;
+    padding: 15px !important;
+    border-radius: 12px;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero::after,
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero::after {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    margin-top: 4px;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero h2 {
+    font-size: clamp(25px, 8vw, 32px) !important;
+  }
+
+  main:has(.topActions .ghostButton) .panel {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  main:has(.topActions .ghostButton) .panelHead {
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  main:has(.topActions .ghostButton) .panelHead .chip,
+  main:has(.topActions .ghostButton) .panelHead .costChip,
+  main:has(.topActions .ghostButton) .panelHead .resultCount {
+    max-width: 42vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  main:has(.topActions .ghostButton) textarea {
+    min-height: 150px;
+  }
+
+  main:has(.topActions .ghostButton) button,
+  main:has(.topActions .ghostButton) input,
+  main:has(.topActions .ghostButton) textarea {
+    font-size: 16px;
+  }
+
+  main:has(.topActions .ghostButton) button {
+    min-height: 44px;
+  }
+
+  .workspaceSwitcher,
+  [class*='workspaceSwitcher'] {
+    max-width: calc(100vw - 12px) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+}
