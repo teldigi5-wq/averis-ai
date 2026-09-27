@@ -3,7 +3,7 @@ name: Averis GitHub Pages
 on:
   push:
     branches:
-      - feat/cinematic-intro-safe-revision-v13
+      - main
     paths:
       - "apps/web/**"
       - ".github/workflows/pages-preview.yml"
