@@ -13,6 +13,7 @@ on:
       - "services/api/app/services/revision_metrics.py"
       - "services/api/scripts/certify_ollama.py"
       - "services/api/scripts/benchmark_semantic.py"
+      - "services/api/scripts/prepare_paws_wiki_benchmark.py"
       - "services/api/requirements.txt"
   workflow_dispatch:
 
@@ -24,9 +25,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ollama-embedding-smoke:
+  ollama-embedding-certification:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: services/api
@@ -79,14 +80,60 @@ jobs:
               raise SystemExit("runtime certification artifact did not report ok=true")
           print("runtime certification artifact validated: ok=true")
           PY
+      - name: Download licensed PAWS-Wiki labeled benchmark
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/paws-wiki ../../artifacts/paws
+          curl -fsSL \
+            https://storage.googleapis.com/paws/english/paws_wiki_labeled_final.tar.gz \
+            -o /tmp/paws_wiki_labeled_final.tar.gz
+          tar -xzf /tmp/paws_wiki_labeled_final.tar.gz -C /tmp/paws-wiki
+          curl -fsSL \
+            https://raw.githubusercontent.com/google-research-datasets/paws/master/LICENSE \
+            -o ../../artifacts/paws/LICENSE.txt
+      - name: Prepare deterministic PAWS dev and test samples
+        run: |
+          set -o pipefail
+          python -m scripts.prepare_paws_wiki_benchmark \
+            /tmp/paws-wiki \
+            ../../artifacts/paws \
+            --per-class 100 \
+            --seed averis-paws-wiki-v1 \
+            | tee ../../artifacts/paws-preparation.json
+      - name: Run disjoint held-out semantic benchmark
+        run: |
+          set -o pipefail
+          python -m scripts.benchmark_semantic \
+            ../../artifacts/paws/calibration.jsonl \
+            ../../artifacts/paws/holdout.jsonl \
+            --base-url http://127.0.0.1:11434 \
+            --embedding-model nomic-embed-text \
+            --timeout 60 \
+            --min-class-size 100 \
+            --batch-size 32 \
+            | tee ../../artifacts/paws-semantic-benchmark.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          artifact = Path("../../artifacts/paws-semantic-benchmark.json")
+          payload = json.loads(artifact.read_text(encoding="utf-8"))
+          if payload.get("locked_threshold") is None:
+              raise SystemExit("semantic benchmark did not produce a locked calibration threshold")
+          if payload.get("calibration_dataset", {}).get("samples") != 200:
+              raise SystemExit("unexpected calibration sample count")
+          if payload.get("holdout_dataset", {}).get("samples") != 200:
+              raise SystemExit("unexpected holdout sample count")
+          print("held-out benchmark artifact validated")
+          PY
       - name: Show Ollama log on failure
         if: failure()
         run: cat /tmp/ollama.log 2>/dev/null || true
-      - name: Upload runtime evidence
+      - name: Upload AI certification evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ollama-runtime-certification-${{ github.sha }}
-          path: artifacts/ollama-runtime-certification.json
-          if-no-files-found: warn
+          name: ai-certification-${{ github.sha }}
+          path: artifacts/
+          if-no-files-found: error
           retention-days: 30
