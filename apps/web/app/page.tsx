@@ -174,6 +174,7 @@ function viewerSentences(text: string) {
 export default function Home() {
   const [activeTool, setActiveTool] = useState<ToolTab>("integrity");
   const [document, setDocument] = useState<ExtractedDocument | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
   const [reference, setReference] = useState("");
   const [report, setReport] = useState<SimilarityReport | null>(null);
   const [evidenceView, setEvidenceView] = useState<EvidenceView>("passages");
@@ -244,6 +245,7 @@ export default function Home() {
         setProfile(null);
         setScans([]);
         setDocument(null);
+        setSelectedFileName("");
         setReport(null);
         setEvidenceView("passages");
         setActiveTool("integrity");
@@ -350,6 +352,7 @@ export default function Home() {
 
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setReport(null);
     setEvidenceView("passages");
 
@@ -358,9 +361,10 @@ export default function Home() {
       return;
     }
 
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const file = form.get("file");
     if (!(file instanceof File) || file.size === 0) {
+      setSelectedFileName("");
       setError("Choose a TXT, PDF or DOCX file first.");
       return;
     }
@@ -374,6 +378,8 @@ export default function Home() {
         body: data,
       });
       setDocument(payload);
+      formElement.reset();
+      setSelectedFileName("");
       setNotice("Document extracted in memory. The original upload is not persisted by this beta flow.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
@@ -669,7 +675,7 @@ export default function Home() {
             <div className="railSummary">
               <div><span>PLAN</span><strong>{profile?.plan?.toUpperCase() ?? (supabaseConfigured ? "FREE" : "LOCAL")}</strong></div>
               <div><span>SCANS</span><strong>{supabaseConfigured ? profile?.credits_remaining ?? "…" : "∞"}</strong></div>
-              <div><span>UPLOAD</span><strong>{document ? "READY" : "EMPTY"}</strong></div>
+              <div><span>UPLOAD</span><strong>{document ? "READY" : selectedFileName ? "SELECTED" : "EMPTY"}</strong></div>
             </div>
             <p className="railPrivacy"><i /> Original submission content is processed in memory in the current beta flow.</p>
           </aside>
@@ -693,12 +699,26 @@ export default function Home() {
                     </div>
                     <form onSubmit={upload}>
                       <label className="dropzone">
-                        <input name="file" type="file" accept=".txt,.pdf,.docx" />
+                        <input
+                          name="file"
+                          type="file"
+                          accept=".txt,.pdf,.docx"
+                          onChange={(event) => {
+                            const nextFile = event.target.files?.[0] ?? null;
+                            setSelectedFileName(nextFile?.name ?? "");
+                            if (nextFile) {
+                              setDocument(null);
+                              invalidateReport();
+                            }
+                          }}
+                        />
                         <span className="dropIcon">↑</span>
-                        <strong>{document ? "Replace submission" : "Choose your submission"}</strong>
-                        <small>Maximum 15 MB · processed in memory</small>
+                        <strong>{selectedFileName || (document ? "Replace submission" : "Choose your submission")}</strong>
+                        <small>{selectedFileName ? "Selected · click Extract document to process in memory" : "Maximum 15 MB · processed in memory"}</small>
                       </label>
-                      <button type="submit" disabled={busy}>{busyAction === "upload" ? "Extracting…" : "Extract document"}</button>
+                      <button type="submit" disabled={busy || !selectedFileName}>
+                        {busyAction === "upload" ? "Extracting…" : selectedFileName ? "Extract document" : "Choose a file first"}
+                      </button>
                     </form>
                     {document && (
                       <div className="docCard">
