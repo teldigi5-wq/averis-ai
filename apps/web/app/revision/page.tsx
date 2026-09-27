@@ -35,6 +35,7 @@ type RevisionReport = {
     semantic_provider: string | null;
     overlap_review_band: string;
     matched_passages: PassageMatch[];
+    semantic_passages: PassageMatch[];
   };
   revision_actions: string[];
   ai_enabled: boolean;
@@ -164,7 +165,7 @@ export default function RevisionPage() {
         </article>
 
         <div className={styles.runRow}>
-          <div><b>Real metrics</b><span>Exact overlap · fuzzy passages · semantic candidate · lexical diversity · sentence variation · repeated trigrams</span></div>
+          <div><b>Real metrics</b><span>Exact overlap · fuzzy passages · semantic passage reranking · lexical diversity · sentence variation · repeated trigrams</span></div>
           <button type="submit" disabled={busy || draft.trim().length < 50}>{busy ? "Analyzing evidence…" : "Run originality & AI-style review"}</button>
         </div>
       </form>
@@ -210,9 +211,17 @@ export default function RevisionPage() {
             {report.coach_summary && <div className={styles.aiCoach}><span>LOCAL AI COACH</span><p>{report.coach_summary}</p></div>}
           </section>
 
+          {report.source_evidence && report.source_evidence.semantic_passages.length > 0 && (
+            <section className={styles.panel}>
+              <div className={styles.sectionTitle}><div><p className={styles.eyebrow}>SEMANTIC PARAPHRASE CANDIDATES</p><h2>Meaning-level matches from the local embedding model</h2></div><span className={styles.safeChip}>REVIEW EVIDENCE</span></div>
+              <div className={styles.matches}>{report.source_evidence.semantic_passages.map((match, index) => <article key={`semantic-${index}-${match.document_sentence}`}><div><span>SEMANTIC {String(index + 1).padStart(2, "0")}</span><strong>{Math.round(match.score)}%</strong></div><small>YOUR DRAFT</small><p>{match.document_sentence}</p><small>SOURCE</small><p>{match.source_sentence}</p></article>)}</div>
+              <p className={styles.scopeNote}>Semantic cosine scores help surface paraphrases that may not share the same words. They are candidate evidence, not a plagiarism verdict.</p>
+            </section>
+          )}
+
           {report.source_evidence && report.source_evidence.matched_passages.length > 0 && (
             <section className={styles.panel}>
-              <div className={styles.sectionTitle}><div><p className={styles.eyebrow}>MATCHED PASSAGES</p><h2>Review wording before you submit</h2></div></div>
+              <div className={styles.sectionTitle}><div><p className={styles.eyebrow}>LEXICAL / FUZZY MATCHED PASSAGES</p><h2>Review wording before you submit</h2></div></div>
               <div className={styles.matches}>{report.source_evidence.matched_passages.map((match, index) => <article key={`${index}-${match.document_sentence}`}><div><span>MATCH {String(index + 1).padStart(2, "0")}</span><strong>{Math.round(match.score)}%</strong></div><small>YOUR DRAFT</small><p>{match.document_sentence}</p><small>SOURCE</small><p>{match.source_sentence}</p></article>)}</div>
             </section>
           )}
