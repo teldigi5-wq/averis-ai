@@ -1,3 +1,5 @@
+import asyncio
+
 from app.services.semantic_evidence import semantic_passage_matches
 
 
@@ -16,7 +18,7 @@ class FakeEmbeddingProvider:
         return vectors
 
 
-async def test_semantic_passage_matching_surfaces_paraphrase_candidate() -> None:
+def test_semantic_passage_matching_surfaces_paraphrase_candidate() -> None:
     document = (
         "Every access request should be checked continuously before a protected resource is trusted. "
         "Backups should also be tested regularly so recovery plans remain usable."
@@ -26,12 +28,14 @@ async def test_semantic_passage_matching_surfaces_paraphrase_candidate() -> None
         "Organizations should validate backup and recovery procedures on a regular schedule."
     )
 
-    matches = await semantic_passage_matches(
-        FakeEmbeddingProvider(),  # type: ignore[arg-type]
-        document,
-        source,
-        model="test-embedding",
-        threshold=60.0,
+    matches = asyncio.run(
+        semantic_passage_matches(
+            FakeEmbeddingProvider(),  # type: ignore[arg-type]
+            document,
+            source,
+            model="test-embedding",
+            threshold=60.0,
+        )
     )
 
     assert matches is not None
@@ -45,11 +49,13 @@ class UnavailableEmbeddingProvider:
         return None
 
 
-async def test_semantic_passage_matching_fails_open_to_deterministic_evidence() -> None:
-    matches = await semantic_passage_matches(
-        UnavailableEmbeddingProvider(),  # type: ignore[arg-type]
-        "A sufficiently long document sentence exists for semantic comparison.",
-        "A sufficiently long source sentence exists for semantic comparison.",
-        model="missing",
+def test_semantic_passage_matching_fails_open_to_deterministic_evidence() -> None:
+    matches = asyncio.run(
+        semantic_passage_matches(
+            UnavailableEmbeddingProvider(),  # type: ignore[arg-type]
+            "A sufficiently long document sentence exists for semantic comparison.",
+            "A sufficiently long source sentence exists for semantic comparison.",
+            model="missing",
+        )
     )
     assert matches is None
