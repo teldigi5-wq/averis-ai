@@ -92,8 +92,9 @@
 ## M8 — Production hardening
 - [x] Vercel project-root ignored-build protection
 - [x] Supabase-backed distributed per-user rate limiting
+- [x] adversarial document-parser hardening (magic/container validation, filename safety, resource budgets)
 - [ ] verify ignored-build behavior after Hobby cooldown
-- [ ] malware-safe upload pipeline
+- [ ] sandboxed malware scanning/quarantine for higher-risk production profiles
 - [ ] object-storage lifecycle policy
 - [ ] encryption and secrets management
 - [ ] privacy controls and export/delete account workflow
