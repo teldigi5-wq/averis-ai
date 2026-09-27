@@ -39,6 +39,22 @@ function compactViolation(violation) {
   };
 }
 
+async function exerciseScrollExperience(page) {
+  const { scrollHeight, viewportHeight } = await page.evaluate(() => ({
+    scrollHeight: document.documentElement.scrollHeight,
+    viewportHeight: window.innerHeight,
+  }));
+  const step = Math.max(320, Math.floor(viewportHeight * 0.72));
+  for (let y = 0; y < scrollHeight; y += step) {
+    await page.evaluate((offset) => window.scrollTo({ top: offset, behavior: "instant" }), y);
+    await page.waitForTimeout(70);
+  }
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+  await page.waitForTimeout(140);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(180);
+}
+
 await fs.mkdir(artifactDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
@@ -71,6 +87,7 @@ try {
       const url = routeUrl(route.path);
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
       await page.waitForTimeout(600);
+      await exerciseScrollExperience(page);
 
       const status = response?.status() ?? 0;
       const title = await page.title();
