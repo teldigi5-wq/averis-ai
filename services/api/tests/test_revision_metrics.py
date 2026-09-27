@@ -1,4 +1,9 @@
-from app.services.revision_metrics import analyze_writing_style, build_revision_actions, cosine_percent
+from app.services.revision_metrics import (
+    analyze_writing_style,
+    build_revision_actions,
+    cosine_percent,
+    overlap_review_band,
+)
 from app.services.similarity import compare_texts
 
 
@@ -27,6 +32,40 @@ def test_revision_actions_prioritize_source_attribution_for_close_overlap() -> N
     assert actions
     assert any("cite" in action.casefold() or "attribution" in action.casefold() for action in actions)
     assert any("original analysis" in action.casefold() for action in actions)
+
+
+def test_uncalibrated_semantic_score_does_not_change_review_band() -> None:
+    document = "Independent student analysis discusses architecture tradeoffs and deployment constraints."
+    source = "A completely different source explains agricultural irrigation scheduling and soil moisture."
+    report = compare_texts(document, source, "Different source")
+
+    baseline = overlap_review_band(report, None)
+    uncalibrated = overlap_review_band(report, 99.9)
+
+    assert baseline == "low review"
+    assert uncalibrated == baseline
+
+
+def test_calibrated_semantic_score_can_raise_review_band() -> None:
+    document = "Independent student analysis discusses architecture tradeoffs and deployment constraints."
+    source = "A completely different source explains agricultural irrigation scheduling and soil moisture."
+    report = compare_texts(document, source, "Different source")
+
+    review = overlap_review_band(
+        report,
+        74.0,
+        semantic_review_threshold=72.0,
+        semantic_high_review_threshold=88.0,
+    )
+    high = overlap_review_band(
+        report,
+        91.0,
+        semantic_review_threshold=72.0,
+        semantic_high_review_threshold=88.0,
+    )
+
+    assert review == "review"
+    assert high == "high review"
 
 
 def test_cosine_percent_is_bounded_and_handles_invalid_vectors() -> None:
