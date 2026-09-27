@@ -67,6 +67,101 @@
   scrollbar-color: rgba(104, 190, 190, .28) transparent;
 }
 
+.readiness {
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid rgba(123, 183, 211, .12);
+  border-radius: 11px;
+  background: rgba(255,255,255,.014);
+}
+
+.readiness > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.readiness > div:first-child > span {
+  color: #718e9d;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.readiness > div:first-child > strong {
+  color: #dceff2;
+  font-size: 12px;
+}
+
+.readiness > div:first-child > small {
+  color: #7895a4;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.readiness > button {
+  width: 100%;
+  min-height: 32px;
+  margin-top: 9px;
+  border: 1px solid rgba(102, 206, 194, .18);
+  border-radius: 9px;
+  background: rgba(68, 178, 167, .07);
+  color: #9ee7de;
+  font: inherit;
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.categoryGrid span {
+  display: grid;
+  gap: 2px;
+  place-items: center;
+  padding: 7px 3px;
+  border: 1px solid rgba(123, 183, 211, .08);
+  border-radius: 8px;
+  color: #718d9a;
+  font-size: 7px;
+  text-align: center;
+}
+
+.categoryGrid b {
+  color: #c7e0e4;
+  font-size: 11px;
+}
+
+.readiness > p {
+  margin: 8px 0 0;
+  color: #607d8b;
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.priority {
+  border-color: rgba(242, 129, 141, .24);
+  background: linear-gradient(145deg, rgba(91, 26, 39, .12), rgba(255,255,255,.012));
+}
+
+.attention {
+  border-color: rgba(225, 188, 102, .22);
+  background: linear-gradient(145deg, rgba(88, 65, 24, .1), rgba(255,255,255,.012));
+}
+
+.incomplete {
+  border-color: rgba(105, 166, 198, .2);
+}
+
+.complete {
+  border-color: rgba(90, 216, 201, .23);
+  background: linear-gradient(145deg, rgba(29, 92, 83, .1), rgba(255,255,255,.012));
+}
+
 .progressBlock {
   padding: 12px 0;
 }
@@ -152,7 +247,8 @@
 .filterActive:hover,
 .nextButton:hover,
 .itemJump:hover,
-.reviewToggle:hover {
+.reviewToggle:hover,
+.readiness > button:hover {
   border-color: rgba(92, 218, 202, .32);
   color: #c7f5ef;
 }
@@ -322,7 +418,8 @@
 .itemJump:focus-visible,
 .reviewToggle:focus-visible,
 .nextButton:focus-visible,
-.checklist summary:focus-visible {
+.checklist summary:focus-visible,
+.readiness > button:focus-visible {
   outline: 2px solid rgba(116, 230, 217, .7);
   outline-offset: 2px;
 }
@@ -352,6 +449,7 @@
 
 @media (max-width: 430px) {
   .filters { grid-template-columns: 1fr 1fr; }
+  .categoryGrid { grid-template-columns: 1fr 1fr; }
   .itemList { max-height: 220px; }
 }
 
