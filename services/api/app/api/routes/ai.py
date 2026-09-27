@@ -5,12 +5,15 @@ from fastapi import APIRouter, Depends
 from app.ai.providers.ollama import OllamaProvider
 from app.core.config import get_settings
 from app.schemas.revision import (
+    CitationCoverageMetrics,
+    CitationPassageReview,
     RevisionAnalyzeRequest,
     RevisionAnalyzeResponse,
     SourceEvidenceMetrics,
 )
 from app.schemas.similarity import PassageMatch
 from app.services.auth import AuthContext, require_user
+from app.services.citation_context import analyze_citation_coverage
 from app.services.rate_limit import AI_REVISION, enforce_rate_limit
 from app.services.revision_metrics import (
     analyze_writing_style,
@@ -35,7 +38,7 @@ async def ai_status() -> dict[str, object]:
             "semantic_calibrated": bool(thresholds),
             "semantic_calibration_id": settings.ai_semantic_calibration_id if thresholds else None,
             "reachable": False,
-            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v2.",
+            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v3.",
         }
 
     provider = OllamaProvider(
@@ -79,6 +82,29 @@ async def analyze_revision(
             document_text=payload.text,
             source_text=payload.source_text,
             source_name=payload.source_name,
+        )
+
+    citation_review = None
+    if source_report is not None:
+        raw_citation_review = analyze_citation_coverage(
+            payload.text,
+            source_report.matched_passages[:8],
+        )
+        citation_review = CitationCoverageMetrics(
+            matched_passage_count=raw_citation_review.matched_passage_count,
+            citation_detected_count=raw_citation_review.citation_detected_count,
+            uncited_match_count=raw_citation_review.uncited_match_count,
+            citation_coverage_percent=raw_citation_review.citation_coverage_percent,
+            passages=[
+                CitationPassageReview(
+                    document_sentence=item.document_sentence,
+                    match_score=item.match_score,
+                    citation_detected=item.citation_detected,
+                    citation_marker=item.citation_marker,
+                )
+                for item in raw_citation_review.passages
+            ],
+            scope_note=raw_citation_review.scope_note,
         )
 
     semantic_similarity: float | None = None
@@ -135,13 +161,19 @@ async def analyze_revision(
                     if semantic_thresholds
                     else "semantic scores are uncalibrated candidate evidence and must not change review bands"
                 )
+                citation_note = (
+                    f"citation coverage near matched passages {citation_review.citation_coverage_percent}% with "
+                    f"{citation_review.uncited_match_count} uncited match candidates"
+                    if citation_review is not None and citation_review.matched_passage_count
+                    else "no fuzzy matched passage was available for citation-proximity review"
+                )
                 source_summary = (
                     f"Primary similarity {source_report.similarity_percent}%; exact overlap "
                     f"{source_report.shingle_jaccard}%; fuzzy passage strength "
                     f"{source_report.sentence_match_score}%; whole-text semantic candidate "
                     f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%; strongest semantic "
                     f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%; "
-                    f"{calibration_note}."
+                    f"{citation_note}; {calibration_note}."
                 )
             prompt = (
                 "You are the Averis academic revision coach. Give 3-5 short manual revision actions only. "
@@ -163,6 +195,14 @@ async def analyze_revision(
         semantic_review_threshold=semantic_review_threshold,
         semantic_high_review_threshold=semantic_high_review_threshold,
     )
+    if citation_review is not None and citation_review.uncited_match_count > 0:
+        citation_action = (
+            f"Review {citation_review.uncited_match_count} matched passage"
+            f"{'s' if citation_review.uncited_match_count != 1 else ''} with no nearby recognized citation marker. "
+            "Add the required attribution or quotation/citation where the borrowed wording or idea actually comes from a source."
+        )
+        actions = [citation_action, *actions]
+        actions = list(dict.fromkeys(actions))[:6]
 
     source_evidence = None
     if source_report is not None:
@@ -189,6 +229,7 @@ async def analyze_revision(
     return RevisionAnalyzeResponse(
         writing=writing,
         source_evidence=source_evidence,
+        citation_review=citation_review,
         revision_actions=actions,
         ai_enabled=ai_active,
         ai_provider=settings.ai_provider,
@@ -197,7 +238,8 @@ async def analyze_revision(
         caution=(
             "Writing-style metrics and AI-generated-text detectors can produce false positives and are not proof of "
             "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
-            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Source-overlap evidence still "
-            "requires human review, citation context, and the relevant institution's rules."
+            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Citation proximity only detects "
+            "common nearby in-text markers and does not verify citation correctness. Source-overlap evidence still requires "
+            "human review, citation context, and the relevant institution's rules."
         ),
     )
