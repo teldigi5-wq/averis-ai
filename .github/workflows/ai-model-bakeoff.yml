@@ -1,0 +1,201 @@
+name: AI Model Bakeoff
+
+on:
+  push:
+    branches:
+      - feat/enterprise-experience-ai-bakeoff-v10
+    paths:
+      - ".github/workflows/ai-model-bakeoff.yml"
+      - "services/api/app/ai/**"
+      - "services/api/app/services/evidence_calibration.py"
+      - "services/api/app/services/detector_benchmark.py"
+      - "services/api/app/services/revision_metrics.py"
+      - "services/api/scripts/benchmark_semantic.py"
+      - "services/api/scripts/prepare_paws_wiki_benchmark.py"
+      - "services/api/requirements.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-bakeoff-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    name: benchmark-${{ matrix.slug }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - slug: nomic-embed-text
+            model: nomic-embed-text
+          - slug: all-minilm
+            model: all-minilm
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "pyarrow>=17,<23"
+      - name: Install Ollama
+        run: |
+          set -o pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+      - name: Ensure Ollama is reachable
+        run: |
+          if ! curl --fail --silent http://127.0.0.1:11434/api/tags > /tmp/ollama-tags.json; then
+            nohup ollama serve > /tmp/ollama.log 2>&1 &
+            echo $! > /tmp/ollama.pid
+          fi
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:11434/api/tags > /tmp/ollama-tags.json; then
+              cat /tmp/ollama-tags.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/ollama.log 2>/dev/null || true
+          exit 1
+      - name: Pull ${{ matrix.model }}
+        run: ollama pull "${{ matrix.model }}"
+      - name: Download pinned PAWS-Wiki benchmark
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/paws-wiki ../../artifacts/bakeoff/${{ matrix.slug }}/source
+          PAWS_REVISION=161ece9501cf0a11f3e48bd356eaa82de46d6a09
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://huggingface.co/datasets/google-research-datasets/paws/resolve/${PAWS_REVISION}/labeled_final/validation-00000-of-00001.parquet?download=true" \
+            -o /tmp/paws-wiki/validation.parquet
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://huggingface.co/datasets/google-research-datasets/paws/resolve/${PAWS_REVISION}/labeled_final/test-00000-of-00001.parquet?download=true" \
+            -o /tmp/paws-wiki/test.parquet
+          sha256sum /tmp/paws-wiki/validation.parquet /tmp/paws-wiki/test.parquet \
+            > ../../artifacts/bakeoff/${{ matrix.slug }}/source/source-files.sha256
+      - name: Prepare identical deterministic split
+        run: |
+          python -m scripts.prepare_paws_wiki_benchmark \
+            /tmp/paws-wiki/validation.parquet \
+            /tmp/paws-wiki/test.parquet \
+            ../../artifacts/bakeoff/${{ matrix.slug }}/source \
+            --per-class 100 \
+            --seed averis-paws-wiki-v1 \
+            > ../../artifacts/bakeoff/${{ matrix.slug }}/preparation.json
+      - name: Benchmark ${{ matrix.model }}
+        run: |
+          python -m scripts.benchmark_semantic \
+            ../../artifacts/bakeoff/${{ matrix.slug }}/source/calibration.jsonl \
+            ../../artifacts/bakeoff/${{ matrix.slug }}/source/holdout.jsonl \
+            --base-url http://127.0.0.1:11434 \
+            --embedding-model "${{ matrix.model }}" \
+            --timeout 60 \
+            --min-class-size 100 \
+            --batch-size 32 \
+            > ../../artifacts/bakeoff/${{ matrix.slug }}/benchmark.json
+      - name: Record non-promotion boundary
+        run: |
+          MODEL="${{ matrix.model }}" SLUG="${{ matrix.slug }}" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          slug = os.environ["SLUG"]
+          model = os.environ["MODEL"]
+          root = Path("../../artifacts/bakeoff") / slug
+          payload = json.loads((root / "benchmark.json").read_text(encoding="utf-8"))
+          holdout = payload["holdout_dataset"]
+          locked = payload["holdout_locked_threshold_metrics"]
+          decision = {
+              "model": model,
+              "engineering_benchmark_only": True,
+              "holdout_roc_auc": holdout["roc_auc"],
+              "holdout_fpr_at_locked_threshold": locked["false_positive_rate"],
+              "holdout_recall_at_locked_threshold": locked["recall"],
+              "configured_fpr_budget": payload["calibration_target_max_fpr"],
+              "budget_met_on_this_dataset": payload["holdout_fpr_budget_met"],
+              "production_promotion_allowed": False,
+              "reason": (
+                  "PAWS test is being used for model comparison in this bakeoff, so it is model-selection evidence, "
+                  "not an independent final promotion holdout. Production promotion requires a fresh, provenance-tracked "
+                  "academic-domain evaluation set plus human policy review."
+              ),
+          }
+          (root / "decision.json").write_text(json.dumps(decision, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(decision, indent=2))
+          PY
+      - name: Show Ollama log on failure
+        if: failure()
+        run: cat /tmp/ollama.log 2>/dev/null || true
+      - name: Upload ${{ matrix.model }} evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-bakeoff-${{ matrix.slug }}-${{ github.sha }}
+          path: artifacts/bakeoff/${{ matrix.slug }}/
+          if-no-files-found: error
+          retention-days: 30
+
+  compare:
+    name: compare-model-evidence
+    needs: benchmark
+    if: always() && needs.benchmark.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ai-bakeoff-*-${{ github.sha }}
+          path: artifacts/bakeoff-downloads
+      - name: Build comparison summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          rows = []
+          for path in sorted(Path("artifacts/bakeoff-downloads").glob("**/decision.json")):
+              rows.append(json.loads(path.read_text(encoding="utf-8")))
+          if len(rows) < 2:
+              raise SystemExit(f"expected at least two model decisions, found {len(rows)}")
+
+          rows.sort(key=lambda row: row["holdout_roc_auc"], reverse=True)
+          summary = {
+              "models": rows,
+              "comparison_scope": "PAWS-Wiki paraphrase-identification engineering bakeoff",
+              "production_promotion_allowed": False,
+              "next_gate": (
+                  "Benchmark the strongest compact candidate on a fresh academic-domain corpus with documented license/provenance, "
+                  "disjoint calibration/final holdout sets, false-positive analysis and explicit human-review policy."
+              ),
+          }
+          output = Path("artifacts/ai-bakeoff-comparison.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+
+          with Path(__import__('os').environ['GITHUB_STEP_SUMMARY']).open('a', encoding='utf-8') as handle:
+              handle.write("# Averis compact embedding bakeoff\n\n")
+              handle.write("| Model | Holdout ROC AUC | Locked FPR | Locked recall | PAWS budget met |\n")
+              handle.write("|---|---:|---:|---:|:---:|\n")
+              for row in rows:
+                  handle.write(
+                      f"| {row['model']} | {row['holdout_roc_auc']:.4f} | "
+                      f"{row['holdout_fpr_at_locked_threshold']:.3f} | {row['holdout_recall_at_locked_threshold']:.3f} | "
+                      f"{'yes' if row['budget_met_on_this_dataset'] else 'no'} |\n"
+                  )
+              handle.write("\n**Promotion remains disabled.** PAWS is model-selection evidence here, not a fresh academic-domain final holdout.\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-bakeoff-comparison-${{ github.sha }}
+          path: artifacts/ai-bakeoff-comparison.json
+          if-no-files-found: error
+          retention-days: 30

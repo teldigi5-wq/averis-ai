@@ -8,6 +8,7 @@ import "./workspace-ui-v4.css";
 import "./history-ui-v1.css";
 import "./auth-experience-v1.css";
 import "./report-evidence-ui-v1.css";
+import "./enterprise-ui-v10.css";
 import "./print-report.css";
 
 import AuthExperience from "./AuthExperience";
