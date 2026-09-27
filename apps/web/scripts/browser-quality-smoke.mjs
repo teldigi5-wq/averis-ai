@@ -80,6 +80,33 @@ try {
       }));
       const horizontalOverflow = Math.max(layout.scrollWidth, layout.bodyScrollWidth) - layout.viewportWidth;
 
+      const overflowOffenders = await page.evaluate(() => {
+        const viewportWidth = document.documentElement.clientWidth;
+        return [...document.querySelectorAll("body *")]
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            const rightOverflow = Math.max(0, rect.right - viewportWidth);
+            const leftOverflow = Math.max(0, -rect.left);
+            const overflow = Math.max(rightOverflow, leftOverflow);
+            return {
+              overflow: Math.round(overflow * 100) / 100,
+              tag: element.tagName,
+              id: element.id || null,
+              className: typeof element.className === "string" ? element.className.slice(0, 180) : null,
+              width: Math.round(rect.width * 100) / 100,
+              left: Math.round(rect.left * 100) / 100,
+              right: Math.round(rect.right * 100) / 100,
+              text: (element.getAttribute("aria-label") || element.textContent || "")
+                .trim()
+                .replace(/\s+/g, " ")
+                .slice(0, 120),
+            };
+          })
+          .filter((item) => item.overflow > 2)
+          .sort((a, b) => b.overflow - a.overflow)
+          .slice(0, 12);
+      });
+
       const brokenImages = await page.locator("img").evaluateAll((images) =>
         images
           .filter((image) => !image.complete || image.naturalWidth === 0)
@@ -127,6 +154,7 @@ try {
         http_status: status,
         title,
         horizontal_overflow_px: horizontalOverflow,
+        overflow_offenders: overflowOffenders,
         broken_images: brokenImages,
         keyboard_focus: focusState,
         serious_or_critical_accessibility_violations: severeViolations,
@@ -162,6 +190,9 @@ try {
         `[${profile.name}] ${route.path} status=${status} overflow=${horizontalOverflow}px ` +
           `brokenImages=${brokenImages.length} severeA11y=${severeViolations.length} focus=${focusState.tag}`,
       );
+      if (overflowOffenders.length > 0) {
+        console.log(`overflow offenders for [${profile.name}] ${route.path}: ${JSON.stringify(overflowOffenders, null, 2)}`);
+      }
 
       await page.close();
     }
