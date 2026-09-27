@@ -65,14 +65,17 @@ def _quote_context(text: str, sentence: str) -> tuple[bool, str | None]:
         if left.endswith(opener) and right.startswith(closer):
             return True, style
 
-    # Conservative fallback for a matched sentence that includes a complete
-    # quotation plus a trailing citation marker inside the same sentence.
+    # A sentence splitter may keep a complete quotation, its trailing citation,
+    # and following prose in one passage. Recognize a substantial quoted span,
+    # while ignoring short decorative phrases such as “zero trust”.
     for opener, closer, style in pairs:
         first = stripped.find(opener)
         last = stripped.rfind(closer)
         if first >= 0 and last > first:
             quoted = stripped[first + len(opener):last].strip()
-            if quoted and len(quoted) >= max(20, int(len(stripped) * 0.55)):
+            quoted_words = len(quoted.split())
+            sentence_words = max(1, len(stripped.split()))
+            if quoted_words >= 6 and quoted_words / sentence_words >= 0.35:
                 return True, style
 
     return False, None
