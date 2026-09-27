@@ -64,7 +64,19 @@ class _FakeCrossref:
         )
 
 
-def test_attaches_crossref_metadata_to_linked_doi() -> None:
+class _MismatchedCrossref:
+    async def resolve_doi(self, doi: str):
+        return SourceMetadata(
+            provider="crossref",
+            external_id=doi,
+            title="Different record",
+            doi=doi,
+            published_year=2022,
+            authors=("N Silva",),
+        )
+
+
+def _linked_review():
     document = "Continuous verification supports protected resources (Perera, 2024)."
     matches = [
         PassageMatch(
@@ -74,15 +86,29 @@ def test_attaches_crossref_metadata_to_linked_doi() -> None:
         )
     ]
     coverage = analyze_citation_coverage(document, matches)
-    review = link_citations_to_references(
+    return link_citations_to_references(
         coverage.passages,
         "Perera, K. (2024). Zero trust operations. doi:10.1234/example.2024.5",
     )
 
-    verified = asyncio.run(verify_linked_dois(review, crossref=_FakeCrossref()))  # type: ignore[arg-type]
+
+def test_attaches_crossref_metadata_to_linked_doi() -> None:
+    verified = asyncio.run(verify_linked_dois(_linked_review(), crossref=_FakeCrossref()))  # type: ignore[arg-type]
 
     assert verified.doi_verified_reference_count == 1
+    assert verified.doi_metadata_review_count == 0
     reference = verified.links[0].references[0]
     assert reference.verification_status == "verified_doi"
+    assert reference.verification_issues == ()
     assert reference.verified_source is not None
     assert reference.verified_source.title == "Zero trust operations"
+
+
+def test_flags_author_and_year_mismatch_on_resolved_doi() -> None:
+    verified = asyncio.run(verify_linked_dois(_linked_review(), crossref=_MismatchedCrossref()))  # type: ignore[arg-type]
+
+    assert verified.doi_verified_reference_count == 1
+    assert verified.doi_metadata_review_count == 1
+    reference = verified.links[0].references[0]
+    assert reference.verification_status == "verified_doi_metadata_review"
+    assert set(reference.verification_issues) == {"publication_year_mismatch", "first_author_mismatch"}
