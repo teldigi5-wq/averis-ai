@@ -15,8 +15,8 @@ _EVASION_PATTERNS = tuple(
         r"\b(?:bypass|beat|evade|avoid)\s+(?:an?\s+)?(?:ai\s+)?detector\b",
         r"\b(?:bypass|beat|evade)\s+turnitin\b",
         r"\b(?:undetectable|untraceable)\s+(?:ai|gpt|writing|text)\b",
-        r"\blower\s+(?:the\s+)?(?:ai|gpt|detector)\s+score\b",
-        r"\bzero\s+(?:ai|gpt)\s+(?:score|detection)\b",
+        r"\blower\s+(?:the\s+)?(?:(?:ai|gpt)(?:\s+detector)?|detector)\s+score\b",
+        r"\bzero\s+(?:ai|gpt)(?:\s+detector)?\s+(?:score|detection)\b",
     )
 )
 
