@@ -9,6 +9,7 @@ from app.schemas.revision import (
     RevisionAnalyzeResponse,
     SourceEvidenceMetrics,
 )
+from app.schemas.similarity import PassageMatch
 from app.services.auth import AuthContext, require_user
 from app.services.rate_limit import AI_REVISION, enforce_rate_limit
 from app.services.revision_metrics import (
@@ -17,6 +18,7 @@ from app.services.revision_metrics import (
     cosine_percent,
     overlap_review_band,
 )
+from app.services.semantic_evidence import semantic_passage_matches
 from app.services.similarity import compare_texts
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -71,6 +73,7 @@ async def analyze_revision(
 
     semantic_similarity: float | None = None
     semantic_provider: str | None = None
+    semantic_passages: list[PassageMatch] = []
     coach_summary: str | None = None
 
     if settings.ai_revision_enabled and settings.ai_provider.casefold() == "ollama":
@@ -81,8 +84,8 @@ async def analyze_revision(
         )
 
         if source_report is not None and payload.source_text:
-            # Keep v1 inference bounded. The deterministic exact/fuzzy metrics use
-            # the complete supplied text; semantic evidence is a candidate signal.
+            # Whole-text cosine is a broad candidate signal. Sentence-level
+            # semantic evidence below catches stronger paraphrase candidates.
             embeddings = await provider.embed_texts(
                 [payload.text[:12_000], payload.source_text[:12_000]],
                 model=settings.ollama_embedding_model,
@@ -92,14 +95,37 @@ async def analyze_revision(
                 if semantic_similarity is not None:
                     semantic_provider = f"ollama:{settings.ollama_embedding_model}"
 
+            semantic_matches = await semantic_passage_matches(
+                provider,
+                payload.text,
+                payload.source_text,
+                model=settings.ollama_embedding_model,
+            )
+            if semantic_matches is not None:
+                semantic_passages = [
+                    PassageMatch(
+                        document_sentence=match.document_sentence,
+                        source_sentence=match.source_sentence,
+                        score=match.score,
+                    )
+                    for match in semantic_matches
+                ]
+                if semantic_passages and semantic_provider is None:
+                    semantic_provider = f"ollama:{settings.ollama_embedding_model}"
+
         if payload.include_ai_coach:
             source_summary = "No comparison source supplied."
             if source_report is not None:
+                strongest_semantic_passage = max(
+                    (match.score for match in semantic_passages),
+                    default=None,
+                )
                 source_summary = (
                     f"Primary similarity {source_report.similarity_percent}%; exact overlap "
                     f"{source_report.shingle_jaccard}%; fuzzy passage strength "
-                    f"{source_report.sentence_match_score}%; semantic candidate "
-                    f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%."
+                    f"{source_report.sentence_match_score}%; whole-text semantic candidate "
+                    f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%; strongest semantic "
+                    f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%."
                 )
             prompt = (
                 "You are the Averis academic revision coach. Give 3-5 short manual revision actions only. "
@@ -113,7 +139,8 @@ async def analyze_revision(
             )
             coach_summary = await provider.coach(prompt)
 
-    actions = build_revision_actions(writing, source_report, semantic_similarity)
+    strongest_semantic = max((match.score for match in semantic_passages), default=semantic_similarity)
+    actions = build_revision_actions(writing, source_report, strongest_semantic)
 
     source_evidence = None
     if source_report is not None:
@@ -124,11 +151,12 @@ async def analyze_revision(
             lexical_vector_percent=source_report.vector_candidate_score,
             semantic_similarity_percent=semantic_similarity,
             semantic_provider=semantic_provider,
-            overlap_review_band=overlap_review_band(source_report, semantic_similarity),
+            overlap_review_band=overlap_review_band(source_report, strongest_semantic),
             matched_passages=source_report.matched_passages[:8],
+            semantic_passages=semantic_passages,
         )
 
-    ai_active = semantic_similarity is not None or coach_summary is not None
+    ai_active = semantic_similarity is not None or bool(semantic_passages) or coach_summary is not None
     return RevisionAnalyzeResponse(
         writing=writing,
         source_evidence=source_evidence,
@@ -139,7 +167,8 @@ async def analyze_revision(
         coach_summary=coach_summary,
         caution=(
             "Writing-style metrics and AI-generated-text detectors can produce false positives and are not proof of "
-            "authorship. Averis reports these as review signals only. Source-overlap evidence still requires human "
-            "review, citation context, and the relevant institution's rules."
+            "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
+            "plagiarism verdict. Source-overlap evidence still requires human review, citation context, and the relevant "
+            "institution's rules."
         ),
     )
