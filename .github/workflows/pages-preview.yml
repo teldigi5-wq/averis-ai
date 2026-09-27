@@ -55,6 +55,7 @@ jobs:
           test -f out/index.html
           test -f out/multi-source/index.html
           test -f out/revision/index.html
+          test -f out/refine/index.html
           test -f out/privacy/index.html
 
       - name: Upload Pages artifact
