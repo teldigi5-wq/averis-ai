@@ -25,14 +25,18 @@ def test_revision_route_returns_deterministic_metrics_when_ai_flag_is_off() -> N
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["evidence_version"] == "ai-evidence-v2"
+    assert payload["evidence_version"] == "ai-evidence-v3"
     assert payload["ai_enabled"] is False
     assert payload["writing"]["word_count"] > 20
     assert payload["source_evidence"]["exact_overlap_percent"] > 0
     assert payload["source_evidence"]["semantic_calibrated"] is False
     assert payload["source_evidence"]["semantic_calibration_id"] is None
     assert payload["source_evidence"]["overlap_review_band"] in {"low review", "review", "high review"}
+    assert payload["citation_review"] is not None
+    assert payload["citation_review"]["matched_passage_count"] >= 1
+    assert payload["citation_review"]["uncited_match_count"] >= 1
     assert payload["revision_actions"]
+    assert any("citation" in action.casefold() or "attribution" in action.casefold() for action in payload["revision_actions"])
     assert "not proof of authorship" in payload["caution"].lower()
     assert "uncalibrated semantic scores do not change review bands" in payload["caution"].lower()
 
