@@ -43,10 +43,11 @@ export default function AuthExperience() {
     let sawWorkingState = false;
 
     const clearFeedback = () => {
-      if (phase === "error" || phase === "notice") {
-        setPhase("idle");
+      setPhase((current) => {
+        if (current !== "error" && current !== "notice") return current;
         setMessage("");
-      }
+        return "idle";
+      });
     };
 
     const onSubmit = () => {
@@ -57,8 +58,6 @@ export default function AuthExperience() {
       setPhase("submitting");
       setMessage(modeRef.current === "signup" ? "Creating your secure Averis account…" : "Verifying your account…");
     };
-
-    const onInput = () => clearFeedback();
 
     const finishObserver = new MutationObserver(async () => {
       const working = submitButton.disabled && /working/i.test(submitButton.textContent ?? "");
@@ -73,7 +72,7 @@ export default function AuthExperience() {
       if (data.session?.user) return;
 
       attemptRef.current = false;
-      panel.dataset.authState = "";
+      delete panel.dataset.authState;
 
       if (modeRef.current === "signup" && activeMode(panel) === "signin") {
         setPhase("notice");
@@ -90,16 +89,16 @@ export default function AuthExperience() {
     });
 
     form.addEventListener("submit", onSubmit, true);
-    form.addEventListener("input", onInput, true);
+    form.addEventListener("input", clearFeedback, true);
     finishObserver.observe(submitButton, { attributes: true, childList: true, characterData: true, subtree: true });
 
     return () => {
       form.removeEventListener("submit", onSubmit, true);
-      form.removeEventListener("input", onInput, true);
+      form.removeEventListener("input", clearFeedback, true);
       finishObserver.disconnect();
       delete panel.dataset.authState;
     };
-  }, [panel, phase]);
+  }, [panel]);
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) return;
