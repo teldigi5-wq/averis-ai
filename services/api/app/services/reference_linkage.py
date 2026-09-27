@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import re
 
 from app.services.citation_context import CitationPassageReview
 from app.services.crossref import CrossrefClient, CrossrefLookupError
@@ -21,6 +22,7 @@ class LinkedReference:
     year: str | None
     author_key: str | None
     verification_status: str
+    verification_issues: tuple[str, ...] = ()
     verified_source: SourceMetadata | None = None
 
 
@@ -39,9 +41,32 @@ class ReferenceLinkageReview:
     linked_passage_count: int
     unlinked_citation_count: int
     doi_verified_reference_count: int
+    doi_metadata_review_count: int
     verification_unavailable_count: int
     links: tuple[CitationReferenceLink, ...]
     scope_note: str
+
+
+def _normalize_key(value: str) -> str:
+    return re.sub(r"[^\w'’\-]", "", value, flags=re.UNICODE).casefold()
+
+
+def _source_author_key(source: SourceMetadata) -> str | None:
+    if not source.authors:
+        return None
+    tokens = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ'’\-]+", source.authors[0], re.UNICODE)
+    return _normalize_key(tokens[-1]) if tokens else None
+
+
+def _metadata_issues(reference: LinkedReference, source: SourceMetadata) -> tuple[str, ...]:
+    issues: list[str] = []
+    if reference.year and source.published_year and reference.year[:4] != str(source.published_year):
+        issues.append("publication_year_mismatch")
+
+    source_author = _source_author_key(source)
+    if reference.author_key and source_author and reference.author_key != source_author:
+        issues.append("first_author_mismatch")
+    return tuple(issues)
 
 
 def _local_reference(reference: ParsedReference) -> LinkedReference:
@@ -138,12 +163,13 @@ def link_citations_to_references(
         linked_passage_count=linked_passages,
         unlinked_citation_count=unlinked_citations,
         doi_verified_reference_count=0,
+        doi_metadata_review_count=0,
         verification_unavailable_count=0,
         links=tuple(links),
         scope_note=(
             "Citation-to-reference linkage maps common author-year or numeric markers to the supplied bibliography. "
-            "A link is not proof that the cited work supports the sentence, and references without verified DOI metadata "
-            "remain local-only evidence until separately checked."
+            "A link is not proof that the cited work supports the sentence. DOI verification confirms a Crossref record, "
+            "while author/year mismatches remain explicit review findings."
         ),
     )
 
@@ -160,9 +186,7 @@ async def verify_linked_dois(
     as verification-unavailable evidence so the student can retry Reference Audit.
     """
     remaining = max(0, max_lookups)
-    cache: dict[str, tuple[str, SourceMetadata | None]] = {}
-    verified = 0
-    unavailable = 0
+    cache: dict[str, tuple[str, SourceMetadata | None, tuple[str, ...]]] = {}
     updated_links: list[CitationReferenceLink] = []
 
     for link in review.links:
@@ -174,28 +198,27 @@ async def verify_linked_dois(
 
             if reference.doi not in cache:
                 if remaining <= 0:
-                    cache[reference.doi] = ("not_checked_limit", None)
+                    cache[reference.doi] = ("not_checked_limit", None, ())
                 else:
                     remaining -= 1
                     try:
                         source = await crossref.resolve_doi(reference.doi)
                     except CrossrefLookupError:
-                        cache[reference.doi] = ("verification_unavailable", None)
+                        cache[reference.doi] = ("verification_unavailable", None, ())
                     else:
                         if source is None:
-                            cache[reference.doi] = ("doi_not_found", None)
+                            cache[reference.doi] = ("doi_not_found", None, ("doi_not_found_in_crossref",))
                         else:
-                            cache[reference.doi] = ("verified_doi", source)
+                            issues = _metadata_issues(reference, source)
+                            status = "verified_doi" if not issues else "verified_doi_metadata_review"
+                            cache[reference.doi] = (status, source, issues)
 
-            status, source = cache[reference.doi]
-            if status == "verified_doi":
-                verified += 1
-            elif status == "verification_unavailable":
-                unavailable += 1
+            status, source, issues = cache[reference.doi]
             updated_references.append(
                 replace(
                     reference,
                     verification_status=status,
+                    verification_issues=issues,
                     verified_source=source,
                 )
             )
@@ -207,7 +230,13 @@ async def verify_linked_dois(
         (reference.index, reference.doi)
         for link in updated_links
         for reference in link.references
-        if reference.verification_status == "verified_doi"
+        if reference.verification_status in {"verified_doi", "verified_doi_metadata_review"}
+    }
+    metadata_review_keys = {
+        (reference.index, reference.doi)
+        for link in updated_links
+        for reference in link.references
+        if reference.verification_status == "verified_doi_metadata_review"
     }
     unavailable_keys = {
         (reference.index, reference.doi)
@@ -219,6 +248,7 @@ async def verify_linked_dois(
     return replace(
         review,
         doi_verified_reference_count=len(verified_keys),
+        doi_metadata_review_count=len(metadata_review_keys),
         verification_unavailable_count=len(unavailable_keys),
         links=tuple(updated_links),
     )
