@@ -19,5 +19,6 @@ ai-smoke:
 	cd services/api && python scripts/certify_ollama.py --check-coach
 
 ai-benchmark:
-	@test -n "$(DATASET)" || (echo "Set DATASET=/path/to/labeled-pairs.jsonl" && exit 2)
-	cd services/api && python scripts/benchmark_semantic.py "$(DATASET)" --progress
+	@test -n "$(CALIBRATION_DATASET)" || (echo "Set CALIBRATION_DATASET=/path/to/calibration.jsonl" && exit 2)
+	@test -n "$(HOLDOUT_DATASET)" || (echo "Set HOLDOUT_DATASET=/path/to/holdout.jsonl" && exit 2)
+	cd services/api && python scripts/benchmark_semantic.py "$(CALIBRATION_DATASET)" "$(HOLDOUT_DATASET)" --progress
