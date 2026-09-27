@@ -1,0 +1,1 @@
+Averis 2.0 implementation work is intentionally developed on a separate branch and PR stacked on this design-foundation branch. This file exists only to document that boundary.
