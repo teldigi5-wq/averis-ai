@@ -6,14 +6,29 @@ This file is the high-fidelity visual companion to the Averis 2.0 product archit
 
 ## Current screen set
 
+### Foundation
 - Design System
+
+### Desktop core flow
 - Dashboard
 - New Review
+- Processing
+- Results Summary
 - Evidence Viewer
 - Source Intelligence
 - Citation Intelligence
+
+### Desktop secondary/account
+- History
+- Privacy & Security
+- Settings
+- Help
+
+### Mobile core flow
 - Mobile Dashboard
 - Mobile New Review
+- Mobile Results
+- Mobile Evidence Viewer
 
 ## Visual direction
 
@@ -27,6 +42,25 @@ The visual goal is not to make the existing beta prettier. It is to make Averis 
 
 The UI should show the passage, source, provenance, confidence, controls, and next review action without presenting an automatic misconduct verdict.
 
+## Core desktop journey represented in Figma
+
+1. Dashboard
+2. New Review
+3. Processing
+4. Results Summary
+5. Evidence Viewer
+6. Source Intelligence
+7. Citation Intelligence
+8. History
+9. Privacy / Settings / Help
+
+## Mobile journey represented in Figma
+
+1. Dashboard
+2. New Review
+3. Results Summary
+4. Evidence Viewer
+
 ## Implementation order
 
 1. Design tokens and application shell
@@ -37,8 +71,8 @@ The UI should show the passage, source, provenance, confidence, controls, and ne
 6. Evidence Viewer
 7. Source Intelligence
 8. Citation Intelligence
-9. History / Privacy / Settings
-10. Mobile shell and mobile evidence bottom sheet
+9. History / Privacy / Settings / Help
+10. Mobile shell and mobile review/evidence flow
 
 ## Safety / scope boundary
 
