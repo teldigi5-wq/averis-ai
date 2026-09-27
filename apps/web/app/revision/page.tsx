@@ -19,6 +19,16 @@ type CitationPassageReview = {
   citation_marker: string | null;
 };
 
+type QuotePassageContext = {
+  document_sentence: string;
+  match_score: number;
+  citation_detected: boolean;
+  citation_marker: string | null;
+  quote_detected: boolean;
+  quote_style: string | null;
+  context_status: string;
+};
+
 type LinkedReference = {
   index: number;
   raw: string;
@@ -76,6 +86,17 @@ type RevisionReport = {
     passages: CitationPassageReview[];
     scope_note: string;
   };
+  quote_review: null | {
+    matched_passage_count: number;
+    quoted_passage_count: number;
+    quoted_with_citation_count: number;
+    quoted_without_citation_count: number;
+    unquoted_with_citation_count: number;
+    unquoted_without_citation_count: number;
+    high_match_unquoted_count: number;
+    passages: QuotePassageContext[];
+    scope_note: string;
+  };
   reference_linkage: null | {
     supplied_reference_count: number;
     linked_passage_count: number;
@@ -110,6 +131,13 @@ function verificationLabel(status: string) {
   if (status === "verification_unavailable") return "VERIFY RETRY";
   if (status === "not_checked_limit") return "NOT CHECKED";
   return "LOCAL LINK";
+}
+
+function quoteContextLabel(status: string) {
+  if (status === "quoted_with_marker") return "QUOTED + MARKER";
+  if (status === "quoted_without_marker") return "QUOTED · CHECK CITATION";
+  if (status === "unquoted_with_marker") return "CITED PARAPHRASE CHECK";
+  return "UNQUOTED · CHECK ATTRIBUTION";
 }
 
 export default function RevisionPage() {
@@ -200,7 +228,7 @@ export default function RevisionPage() {
         <div>
           <p className={styles.eyebrow}>AI EVIDENCE LAYER · REVISION COACH</p>
           <h1>Fix weak paraphrasing, copied wording, missing attribution, and reference gaps with evidence.</h1>
-          <p className={styles.lede}>Averis combines source-overlap, citation context, bibliography linkage, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
+          <p className={styles.lede}>Averis combines source overlap, quotation context, citation context, bibliography linkage, writing-style, and optional local semantic evidence. It helps you revise honestly; it does not promise to hide AI use or beat academic-integrity detectors.</p>
         </div>
         <div className={styles.boundaryCard}>
           <span>ACADEMIC-INTEGRITY BOUNDARY</span>
@@ -221,7 +249,7 @@ export default function RevisionPage() {
         <article className={styles.panel}>
           <div className={styles.panelHead}><span>02</span><div><small>OPTIONAL SOURCE EVIDENCE</small><h2>Paste the source you are worried about</h2></div></div>
           <input value={sourceName} maxLength={250} onChange={(event) => setSourceName(event.target.value)} aria-label="Comparison source name" />
-          <textarea value={source} maxLength={40000} onChange={(event) => { setSource(event.target.value); setReport(null); }} placeholder="Paste a source to measure exact, fuzzy, semantic, and citation-context evidence…" />
+          <textarea value={source} maxLength={40000} onChange={(event) => { setSource(event.target.value); setReport(null); }} placeholder="Paste a source to measure exact, fuzzy, semantic, quotation, and citation-context evidence…" />
           <div className={styles.metaRow}><span>Optional</span><span>No extra scan credit</span></div>
         </article>
 
@@ -232,7 +260,7 @@ export default function RevisionPage() {
         </article>
 
         <div className={styles.runRow}>
-          <div><b>Evidence chain</b><span>Exact overlap · fuzzy passages · citation proximity · bibliography linkage · DOI metadata · semantic candidates · writing metrics</span></div>
+          <div><b>Evidence chain</b><span>Exact overlap · fuzzy passages · quotation context · citation proximity · bibliography linkage · DOI metadata · semantic candidates · writing metrics</span></div>
           <button type="submit" disabled={busy || draft.trim().length < 50}>{busy ? "Analyzing evidence…" : "Run originality & writing review"}</button>
         </div>
       </form>
@@ -298,6 +326,32 @@ export default function RevisionPage() {
                 </div>
               )}
               <p className={styles.scopeNote}>{report.citation_review.scope_note}</p>
+            </section>
+          )}
+
+          {report.quote_review && report.quote_review.matched_passage_count > 0 && (
+            <section className={styles.panel}>
+              <div className={styles.sectionTitle}>
+                <div><p className={styles.eyebrow}>QUOTATION CONTEXT</p><h2>Separate direct-quote context from paraphrase review</h2></div>
+                <span className={styles.safeChip}>{report.quote_review.quoted_without_citation_count > 0 || report.quote_review.high_match_unquoted_count > 0 ? "CHECK WORDING" : "CONTEXT RECORDED"}</span>
+              </div>
+              <div className={styles.metricGrid}>
+                <div><span>QUOTED MATCHES</span><strong>{report.quote_review.quoted_passage_count}</strong><small>recognized quotation context</small></div>
+                <div><span>QUOTED + MARKER</span><strong>{report.quote_review.quoted_with_citation_count}</strong><small>quote with nearby citation form</small></div>
+                <div><span>QUOTED · NO MARKER</span><strong>{report.quote_review.quoted_without_citation_count}</strong><small>check attribution requirements</small></div>
+                <div><span>HIGH MATCH · UNQUOTED</span><strong>{report.quote_review.high_match_unquoted_count}</strong><small>85%+ passage match, quote not detected</small></div>
+              </div>
+              <div className={styles.matches}>
+                {report.quote_review.passages.filter((item) => item.quote_detected || item.match_score >= 85).slice(0, 6).map((item, index) => (
+                  <article key={`quote-${index}-${item.document_sentence}`}>
+                    <div><span>WORDING CONTEXT {String(index + 1).padStart(2, "0")}</span><strong>{Math.round(item.match_score)}%</strong></div>
+                    <small>{quoteContextLabel(item.context_status)}</small>
+                    <p>{item.document_sentence}</p>
+                    {item.citation_marker && <small>Nearby marker: {item.citation_marker}</small>}
+                  </article>
+                ))}
+              </div>
+              <p className={styles.scopeNote}>{report.quote_review.scope_note}</p>
             </section>
           )}
 
