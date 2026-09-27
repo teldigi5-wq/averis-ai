@@ -69,7 +69,7 @@ def roc_curve(labels: list[int], scores: list[float]) -> list[RocPoint]:
 def roc_auc(labels: list[int], scores: list[float]) -> float:
     points = roc_curve(labels, scores)
     area = 0.0
-    for left, right in zip(points, points[1:], strict=True):
+    for left, right in zip(points, points[1:]):
         width = right.false_positive_rate - left.false_positive_rate
         height = (left.true_positive_rate + right.true_positive_rate) / 2.0
         area += width * height
