@@ -1,0 +1,1 @@
+Reference-linked Revision v4 is intentionally stacked on Citation-aware Revision v3. The branch must remain unmerged until its exact-head CI and UI QA gates are complete.
