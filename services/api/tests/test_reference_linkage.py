@@ -1,4 +1,4 @@
-import pytest
+import asyncio
 
 from app.schemas.similarity import PassageMatch
 from app.services.citation_context import analyze_citation_coverage
@@ -64,8 +64,7 @@ class _FakeCrossref:
         )
 
 
-@pytest.mark.asyncio
-async def test_attaches_crossref_metadata_to_linked_doi() -> None:
+def test_attaches_crossref_metadata_to_linked_doi() -> None:
     document = "Continuous verification supports protected resources (Perera, 2024)."
     matches = [
         PassageMatch(
@@ -80,7 +79,7 @@ async def test_attaches_crossref_metadata_to_linked_doi() -> None:
         "Perera, K. (2024). Zero trust operations. doi:10.1234/example.2024.5",
     )
 
-    verified = await verify_linked_dois(review, crossref=_FakeCrossref())  # type: ignore[arg-type]
+    verified = asyncio.run(verify_linked_dois(review, crossref=_FakeCrossref()))  # type: ignore[arg-type]
 
     assert verified.doi_verified_reference_count == 1
     reference = verified.links[0].references[0]
