@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import styles from "./workspace-switcher.module.css";
@@ -10,6 +11,17 @@ export default function WorkspaceSwitcher() {
   const multiSource = pathname === "/multi-source" || pathname.endsWith("/multi-source");
   const privacy = pathname === "/privacy" || pathname.endsWith("/privacy");
   const main = !multiSource && !privacy;
+
+  useEffect(() => {
+    const basePath = document.documentElement.dataset.basePath;
+    if (!basePath) return;
+
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="/"]').forEach((anchor) => {
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("//") || href === basePath || href.startsWith(`${basePath}/`)) return;
+      anchor.setAttribute("href", href === "/" ? `${basePath}/` : `${basePath}${href}`);
+    });
+  }, [pathname]);
 
   return (
     <nav className={styles.switcher} aria-label="Averis workspace switcher">
