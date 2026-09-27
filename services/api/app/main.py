@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import ai, documents, health, references, similarity, sources
+from app.api.routes import ai, documents, health, references, revision_preflight, similarity, sources
 from app.core.config import get_settings
 from app.services.observability import emit_request_log, start_request_observation
 
@@ -58,3 +58,4 @@ app.include_router(similarity.router, prefix="/api/v1")
 app.include_router(sources.router, prefix="/api/v1")
 app.include_router(references.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")
+app.include_router(revision_preflight.router, prefix="/api/v1")
