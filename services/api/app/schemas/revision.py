@@ -49,6 +49,7 @@ class LinkedReferenceEvidence(BaseModel):
     year: str | None = None
     author_key: str | None = None
     verification_status: str
+    verification_issues: list[str] = Field(default_factory=list)
     verified_title: str | None = None
     verified_doi: str | None = None
     verified_year: int | None = None
@@ -68,6 +69,7 @@ class ReferenceLinkageMetrics(BaseModel):
     linked_passage_count: int
     unlinked_citation_count: int
     doi_verified_reference_count: int
+    doi_metadata_review_count: int
     verification_unavailable_count: int
     links: list[CitationReferenceLinkEvidence] = Field(default_factory=list)
     scope_note: str
