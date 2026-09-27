@@ -91,12 +91,13 @@
 
 ## M8 — Production hardening
 - [x] Vercel project-root ignored-build protection
+- [x] hardened ignored-build fallback for stale/missing previous deployment SHAs
 - [x] Supabase-backed distributed per-user rate limiting
 - [x] adversarial document-parser hardening (magic/container validation, filename safety, resource budgets)
 - [x] privacy controls and self-service export/delete account workflow
 - [x] privacy-safe request IDs and structured API request logging
 - [x] repository secret-hygiene CI gate and `.vercel`/environment ignore policy
-- [ ] verify ignored-build behavior for merged production deployments
+- [ ] verify recovered web production deployment and ignored-build behavior end to end
 - [ ] sandboxed malware scanning/quarantine for higher-risk production profiles
 - [ ] object-storage lifecycle policy when original-file storage exists
 - [ ] provider encryption/secret-rotation runbook

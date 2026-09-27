@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "git diff --quiet \"${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}\" \"${VERCEL_GIT_COMMIT_SHA:-HEAD}\" -- ./",
+  "ignoreCommand": "bash ../../scripts/vercel/ignored_build.sh .",
   "functions": {
     "app/main.py": {
       "maxDuration": 60
