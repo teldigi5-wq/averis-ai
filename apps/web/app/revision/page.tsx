@@ -33,6 +33,8 @@ type RevisionReport = {
     lexical_vector_percent: number | null;
     semantic_similarity_percent: number | null;
     semantic_provider: string | null;
+    semantic_calibrated: boolean;
+    semantic_calibration_id: string | null;
     overlap_review_band: string;
     matched_passages: PassageMatch[];
     semantic_passages: PassageMatch[];
@@ -199,8 +201,9 @@ export default function RevisionPage() {
                   <div><span>EXACT OVERLAP</span><strong>{report.source_evidence.exact_overlap_percent}%</strong><small>word-shingle Jaccard</small></div>
                   <div><span>FUZZY PASSAGES</span><strong>{report.source_evidence.fuzzy_passage_percent}%</strong><small>sentence evidence</small></div>
                   <div><span>MINHASH</span><strong>{report.source_evidence.minhash_candidate_percent ?? "—"}</strong><small>candidate signal</small></div>
-                  <div><span>SEMANTIC</span><strong>{report.source_evidence.semantic_similarity_percent ?? "—"}{report.source_evidence.semantic_similarity_percent != null ? "%" : ""}</strong><small>{report.source_evidence.semantic_provider ?? "AI model unavailable"}</small></div>
+                  <div><span>SEMANTIC</span><strong>{report.source_evidence.semantic_similarity_percent ?? "—"}{report.source_evidence.semantic_similarity_percent != null ? "%" : ""}</strong><small>{report.source_evidence.semantic_similarity_percent == null ? "AI model unavailable" : report.source_evidence.semantic_calibrated ? `calibrated · ${report.source_evidence.semantic_calibration_id}` : "candidate only · not calibrated"}</small></div>
                 </div>
+                {report.source_evidence.semantic_similarity_percent != null && !report.source_evidence.semantic_calibrated && <p className={styles.scopeNote}>Semantic scores are shown for inspection only. They do not raise or lower the review band until a labeled benchmark supplies certified thresholds.</p>}
               </article>
             )}
           </section>
@@ -213,7 +216,7 @@ export default function RevisionPage() {
 
           {report.source_evidence && report.source_evidence.semantic_passages.length > 0 && (
             <section className={styles.panel}>
-              <div className={styles.sectionTitle}><div><p className={styles.eyebrow}>SEMANTIC PARAPHRASE CANDIDATES</p><h2>Meaning-level matches from the local embedding model</h2></div><span className={styles.safeChip}>REVIEW EVIDENCE</span></div>
+              <div className={styles.sectionTitle}><div><p className={styles.eyebrow}>SEMANTIC PARAPHRASE CANDIDATES</p><h2>Meaning-level matches from the local embedding model</h2></div><span className={styles.safeChip}>{report.source_evidence.semantic_calibrated ? "CALIBRATED EVIDENCE" : "CANDIDATE EVIDENCE"}</span></div>
               <div className={styles.matches}>{report.source_evidence.semantic_passages.map((match, index) => <article key={`semantic-${index}-${match.document_sentence}`}><div><span>SEMANTIC {String(index + 1).padStart(2, "0")}</span><strong>{Math.round(match.score)}%</strong></div><small>YOUR DRAFT</small><p>{match.document_sentence}</p><small>SOURCE</small><p>{match.source_sentence}</p></article>)}</div>
               <p className={styles.scopeNote}>Semantic cosine scores help surface paraphrases that may not share the same words. They are candidate evidence, not a plagiarism verdict.</p>
             </section>
