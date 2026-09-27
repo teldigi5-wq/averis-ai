@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title">
+  <title id="title">Averis</title>
+  <defs>
+    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#91ffff"/><stop offset=".42" stop-color="#1dd8ef"/><stop offset="1" stop-color="#1456e7"/></linearGradient>
+    <linearGradient id="b" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#238fff"/><stop offset=".6" stop-color="#0754cd"/><stop offset="1" stop-color="#1ce8ef"/></linearGradient>
+    <filter id="g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="x"/><feMerge><feMergeNode in="x"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <path d="M15 157 69 29c8-19 28-25 45-15 8 5 14 12 18 22l47 111-30 13-37-88c-8-19-24-19-32 0L44 160z" fill="url(#a)" filter="url(#g)"/>
+  <path d="M62 132c31-8 49-33 57-62 9-33 26-32 42-6l20 38c-25-15-45-12-59 13-13 23-34 39-63 47z" fill="url(#b)"/>
+  <path d="m78 124 8 16 16 8-16 8-8 16-8-16-16-8 16-8z" fill="#74fbff" filter="url(#g)"/>
+</svg>
