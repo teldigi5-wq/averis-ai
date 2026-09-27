@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 
 from fastapi import APIRouter, Depends
 
@@ -22,10 +23,10 @@ router = APIRouter(prefix="/ai/revision", tags=["ai"])
 
 _AUTHOR_YEAR = re.compile(r"\([^()]{0,90}\b(?:19|20)\d{2}[a-z]?[^()]{0,45}\)")
 _NUMERIC_CITATION = re.compile(r"\[(?:\d{1,4}\s*(?:[-–,;]\s*\d{1,4}\s*)*)\]")
-_NUMBER = re.compile(r"\b\d+(?:\.\d+)?%?\b")
+_NUMBER = re.compile(r"(?<!\w)\d+(?:\.\d+)?%?(?!\w)")
 
 
-def _dedupe(values: list[str]) -> list[str]:
+def _dedupe(values: Iterable[str]) -> list[str]:
     result: list[str] = []
     for value in values:
         normalized = value.strip()
