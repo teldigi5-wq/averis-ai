@@ -5,6 +5,7 @@ import "./professional-ui-v1.css";
 import "./professional-ui-v2.css";
 import "./brand-ui-v3.css";
 import "./workspace-ui-v4.css";
+import "./history-ui-v1.css";
 import "./print-report.css";
 
 import WorkspaceSwitcher from "./WorkspaceSwitcher";

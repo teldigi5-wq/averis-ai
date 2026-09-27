@@ -1,0 +1,178 @@
+/* Averis account/history UX v1 — compact private-history presentation.
+ * Presentation only: no history retention, deletion, credits, auth or privacy behavior changes.
+ */
+
+.productShell .historyPanel {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(156, 181, 200, .13);
+}
+
+.productShell .historyPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: rgba(120, 169, 232, .52);
+  pointer-events: none;
+}
+
+.productShell .historyPanel:has(.historyRow)::before {
+  background: linear-gradient(180deg, rgba(97, 214, 204, .84), rgba(120, 169, 232, .58));
+}
+
+.productShell .historyPanel .panelHead {
+  align-items: flex-start;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(156, 181, 200, .09);
+}
+
+.productShell .historyPanel .dangerButton {
+  min-height: 36px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border-color: rgba(239, 133, 148, .18);
+  color: #dba3ad;
+  background: rgba(239, 133, 148, .025);
+}
+
+.productShell .historyPanel .dangerButton:not(:disabled):hover {
+  border-color: rgba(239, 133, 148, .32);
+  color: #f1b8c1;
+  background: rgba(239, 133, 148, .055);
+}
+
+.productShell .historyList {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.productShell .historyRow {
+  position: relative;
+  grid-template-columns: minmax(0, 1.5fr) minmax(130px, .8fr) minmax(88px, .45fr) minmax(72px, .3fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 13px;
+  border: 1px solid rgba(156, 181, 200, .10);
+  border-radius: 10px;
+  background: #09151f;
+  transition: border-color .16s ease, background-color .16s ease, transform .16s ease;
+}
+
+.productShell .historyRow:hover {
+  border-color: rgba(97, 214, 204, .17);
+  background: #0a1722;
+}
+
+.productShell .historyRow > div {
+  min-width: 0;
+  gap: 4px;
+}
+
+.productShell .historyRow > div:first-child strong {
+  color: #e3eef2;
+  font-size: 11px;
+}
+
+.productShell .historyRow span {
+  color: #6d8492;
+  font-size: 7px;
+  font-weight: 780;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.productShell .historyRow strong {
+  color: #c2d3db;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.productShell .historyRow > div:nth-child(3) strong {
+  color: #9fe3dc;
+}
+
+.productShell .historyRow > div:last-child strong {
+  color: #9eb7c5;
+}
+
+.productShell .historyPanel .scopeNote {
+  margin-top: 13px;
+  padding: 11px 12px;
+  border: 1px solid rgba(120, 169, 232, .09);
+  border-radius: 9px;
+  background: rgba(120, 169, 232, .025);
+  color: #718896;
+  line-height: 1.55;
+}
+
+.productShell .historyPanel .emptyState {
+  min-height: 200px;
+  border: 1px dashed rgba(156, 181, 200, .10);
+  border-radius: 10px;
+  background: #09151f;
+}
+
+/* Keep account context readable when the workspace collapses on smaller screens. */
+@media (max-width: 900px) {
+  .productShell .historyRow {
+    grid-template-columns: minmax(0, 1.35fr) minmax(120px, .75fr) minmax(80px, .4fr) minmax(64px, .28fr) !important;
+  }
+
+  .productShell .historyRow > div:last-child {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .productShell .historyPanel .panelHead {
+    gap: 10px;
+  }
+
+  .productShell .historyRow {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px 12px;
+    padding: 12px !important;
+  }
+
+  .productShell .historyRow > div,
+  .productShell .historyRow > div:nth-child(2),
+  .productShell .historyRow > div:last-child {
+    display: flex !important;
+  }
+
+  .productShell .historyRow > div:first-child {
+    grid-column: 1 / -1;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(156, 181, 200, .07);
+  }
+
+  .productShell .historyPanel .dangerButton {
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 460px) {
+  .productShell .historyPanel .panelHead {
+    flex-direction: column;
+  }
+
+  .productShell .historyPanel .dangerButton {
+    width: 100%;
+  }
+
+  .productShell .historyRow {
+    grid-template-columns: 1fr !important;
+  }
+
+  .productShell .historyRow > div:first-child {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .productShell .historyRow {
+    transition-duration: .01ms !important;
+  }
+}
