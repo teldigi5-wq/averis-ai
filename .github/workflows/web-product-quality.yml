@@ -1,0 +1,84 @@
+name: Web Product Quality
+
+on:
+  push:
+    branches:
+      - feat/browser-quality-gate-v12
+    paths:
+      - ".github/workflows/web-product-quality.yml"
+      - "apps/web/**"
+  pull_request:
+    paths:
+      - ".github/workflows/web-product-quality.yml"
+      - "apps/web/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-product-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  signed-out-browser-quality:
+    name: signed-out-browser-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install web dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build GitHub Pages export
+        env:
+          GITHUB_PAGES: "true"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: npm run build
+      - name: Install browser quality tools without changing product dependencies
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@latest axe-core@latest
+          npx playwright install --with-deps chromium
+      - name: Mount static export at the production base path
+        run: |
+          rm -rf /tmp/averis-site
+          mkdir -p /tmp/averis-site/averis-ai
+          cp -a out/. /tmp/averis-site/averis-ai/
+      - name: Start static preview server
+        run: |
+          python3 -m http.server 4173 --directory /tmp/averis-site > /tmp/averis-web.log 2>&1 &
+          echo $! > /tmp/averis-web.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/averis-ai/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/averis-web.log || true
+          exit 1
+      - name: Run accessibility, overflow, asset and keyboard smoke
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/browser-quality-smoke.mjs
+      - name: Show preview server log on failure
+        if: failure()
+        run: cat /tmp/averis-web.log || true
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f /tmp/averis-web.pid ]; then
+            kill "$(cat /tmp/averis-web.pid)" 2>/dev/null || true
+          fi
+      - name: Upload browser quality evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-product-quality-${{ github.sha }}
+          path: artifacts/web-quality/
+          if-no-files-found: error
+          retention-days: 30
