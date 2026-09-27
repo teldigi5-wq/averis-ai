@@ -9,6 +9,8 @@ from app.schemas.revision import (
     CitationPassageReview,
     CitationReferenceLinkEvidence,
     LinkedReferenceEvidence,
+    QuoteContextMetrics,
+    QuotePassageContext,
     ReferenceLinkageMetrics,
     RevisionAnalyzeRequest,
     RevisionAnalyzeResponse,
@@ -18,6 +20,7 @@ from app.schemas.similarity import PassageMatch
 from app.services.auth import AuthContext, require_user
 from app.services.citation_context import analyze_citation_coverage
 from app.services.crossref import CrossrefClient
+from app.services.quote_context import analyze_quote_context
 from app.services.rate_limit import AI_REVISION, enforce_rate_limit
 from app.services.reference_linkage import (
     ReferenceLinkageReview,
@@ -93,7 +96,7 @@ async def ai_status() -> dict[str, object]:
             "semantic_calibrated": bool(thresholds),
             "semantic_calibration_id": settings.ai_semantic_calibration_id if thresholds else None,
             "reachable": False,
-            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v4.",
+            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v5.",
         }
 
     provider = OllamaProvider(
@@ -140,6 +143,7 @@ async def analyze_revision(
         )
 
     citation_review = None
+    quote_review = None
     raw_citation_review = None
     if source_report is not None:
         raw_citation_review = analyze_citation_coverage(
@@ -161,6 +165,33 @@ async def analyze_revision(
                 for item in raw_citation_review.passages
             ],
             scope_note=raw_citation_review.scope_note,
+        )
+
+        raw_quote_review = analyze_quote_context(
+            payload.text,
+            raw_citation_review.passages,
+        )
+        quote_review = QuoteContextMetrics(
+            matched_passage_count=raw_quote_review.matched_passage_count,
+            quoted_passage_count=raw_quote_review.quoted_passage_count,
+            quoted_with_citation_count=raw_quote_review.quoted_with_citation_count,
+            quoted_without_citation_count=raw_quote_review.quoted_without_citation_count,
+            unquoted_with_citation_count=raw_quote_review.unquoted_with_citation_count,
+            unquoted_without_citation_count=raw_quote_review.unquoted_without_citation_count,
+            high_match_unquoted_count=raw_quote_review.high_match_unquoted_count,
+            passages=[
+                QuotePassageContext(
+                    document_sentence=item.document_sentence,
+                    match_score=item.match_score,
+                    citation_detected=item.citation_detected,
+                    citation_marker=item.citation_marker,
+                    quote_detected=item.quote_detected,
+                    quote_style=item.quote_style,
+                    context_status=item.context_status,
+                )
+                for item in raw_quote_review.passages
+            ],
+            scope_note=raw_quote_review.scope_note,
         )
 
     reference_linkage = None
@@ -239,6 +270,13 @@ async def analyze_revision(
                     if citation_review is not None and citation_review.matched_passage_count
                     else "no fuzzy matched passage was available for citation-proximity review"
                 )
+                quote_note = (
+                    f"{quote_review.quoted_passage_count} matched passages appear quoted, "
+                    f"{quote_review.quoted_without_citation_count} quoted matches have no nearby recognized citation marker, and "
+                    f"{quote_review.high_match_unquoted_count} high-overlap matches are unquoted"
+                    if quote_review is not None
+                    else "quote context unavailable"
+                )
                 reference_note = (
                     f"{reference_linkage.linked_passage_count} matched passages linked to supplied bibliography entries, "
                     f"{reference_linkage.unlinked_citation_count} citation markers unresolved, "
@@ -253,7 +291,7 @@ async def analyze_revision(
                     f"{source_report.sentence_match_score}%; whole-text semantic candidate "
                     f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%; strongest semantic "
                     f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%; "
-                    f"{citation_note}; {reference_note}; {calibration_note}."
+                    f"{citation_note}; {quote_note}; {reference_note}; {calibration_note}."
                 )
             prompt = (
                 "You are the Averis academic revision coach. Give 3-5 short manual revision actions only. "
@@ -275,6 +313,27 @@ async def analyze_revision(
         semantic_review_threshold=semantic_review_threshold,
         semantic_high_review_threshold=semantic_high_review_threshold,
     )
+
+    if quote_review is not None and quote_review.quoted_without_citation_count > 0:
+        actions = [
+            (
+                f"Review {quote_review.quoted_without_citation_count} quoted matched passage"
+                f"{'s' if quote_review.quoted_without_citation_count != 1 else ''} with no nearby recognized citation marker. "
+                "Keep quotation marks only where direct quotation is intended and add the required source attribution."
+            ),
+            *actions,
+        ]
+
+    if quote_review is not None and quote_review.high_match_unquoted_count > 0:
+        actions = [
+            (
+                f"Review {quote_review.high_match_unquoted_count} high-overlap matched passage"
+                f"{'s' if quote_review.high_match_unquoted_count != 1 else ''} that are not inside a recognized quotation. "
+                "If the wording is intentionally copied, quote and cite it; otherwise paraphrase from your own understanding and keep the source attribution."
+            ),
+            *actions,
+        ]
+
     if citation_review is not None and citation_review.uncited_match_count > 0:
         citation_action = (
             f"Review {citation_review.uncited_match_count} matched passage"
@@ -340,6 +399,7 @@ async def analyze_revision(
         writing=writing,
         source_evidence=source_evidence,
         citation_review=citation_review,
+        quote_review=quote_review,
         reference_linkage=reference_linkage,
         revision_actions=actions,
         ai_enabled=ai_active,
@@ -349,9 +409,10 @@ async def analyze_revision(
         caution=(
             "Writing-style metrics and AI-generated-text detectors can produce false positives and are not proof of "
             "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
-            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Citation proximity and local "
-            "bibliography linkage do not prove that a citation supports a passage. Crossref DOI verification confirms "
-            "a source record exists; author/year differences are surfaced separately and still require review. Human "
-            "review, citation context, and the relevant institution's rules still apply."
+            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Quote detection recognizes "
+            "common quotation marks but does not prove that quotation or paraphrasing rules were satisfied. Citation "
+            "proximity and local bibliography linkage do not prove that a citation supports a passage. Crossref DOI "
+            "verification confirms a source record exists; author/year differences are surfaced separately and still "
+            "require review. Human review, citation context, and the relevant institution's rules still apply."
         ),
     )
