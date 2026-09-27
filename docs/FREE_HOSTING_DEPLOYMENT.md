@@ -5,23 +5,25 @@ This document describes the current no-recurring-subscription deployment path fo
 ## Preferred beta architecture
 
 - Web: GitHub Pages static export from `apps/web`
-- API: Railway from `services/api`
+- API: Back4app Web Deployment from `services/api`
 - Auth/data: existing Supabase project
-- Temporary API fallback while Railway is not connected: existing `https://averis-api.vercel.app`
+- Temporary API fallback until the container is live: existing `https://averis-api.vercel.app`
 
 No service-role key belongs in the frontend. The original student upload remains processed in memory by the current beta flow and is not intentionally persisted by this hosting change.
 
-## 1. Railway API
+## 1. Back4app API
 
-`services/api/railway.json` defines the backend build/start/health configuration.
+Back4app Web Deployment is the current preferred no-card fallback because it supports a free Docker container deployed from GitHub.
 
-For the Railway service use:
+`services/api/Dockerfile` defines the backend container and `services/api/.dockerignore` keeps the build context minimal.
+
+For the Back4app container use:
 
 - repository: `teldigi5-wq/averis-ai`
 - branch: the exact branch/SHA being certified
-- root directory: `/services/api`
-- config path: `/services/api/railway.json`
-- health check: `/health`
+- root directory: `services/api`
+- Dockerfile: `Dockerfile`
+- exposed application port: the platform-provided `PORT` value, with local fallback `8080`
 
 Set these runtime variables:
 
@@ -35,12 +37,12 @@ Do not add a Supabase service-role key.
 
 After deployment verify:
 
-- `https://<railway-host>/health`
-- `https://<railway-host>/readiness`
+- `https://<back4app-host>/health`
+- `https://<back4app-host>/readiness`
 
 Readiness must report `status=ready`, `saas_mode=true`, `supabase_configured=true`, and `original_upload_retained=false`.
 
-Railway's zero-dollar/free-credit tier is intended only for low-usage beta validation. If the included usage allowance is exhausted, do not enable paid usage automatically; keep the pre-revenue recurring-cost boundary at Rs. 0.
+Keep the free plan only. Do not enable a paid container or paid add-on automatically.
 
 ## 2. GitHub Pages web
 
@@ -62,9 +64,11 @@ For the Pages build use:
 
 Do not put a service-role key or any server secret in a `NEXT_PUBLIC_*` variable.
 
-## 3. Netlify / Render fallbacks
+## 3. Railway / Render / Netlify fallbacks
 
-The repository still contains `netlify.toml` and `render.yaml` as portable fallbacks. Render service creation was not used for the current beta because the connected Render account required a payment card even for service creation. No card or paid plan is required by the Averis codebase itself.
+The repository still contains `services/api/railway.json`, `render.yaml`, and `netlify.toml` as portable fallbacks.
+
+The connected Railway account cannot create new projects because its trial has expired and Railway requires selecting a plan before further use. The connected Render account rejected a Free service creation with HTTP 402 because payment information was required for that account. Neither provider is used for this beta path while the Rs. 0 pre-revenue boundary is active.
 
 ## 4. CORS
 
