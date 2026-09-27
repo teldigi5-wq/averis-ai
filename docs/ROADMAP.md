@@ -93,10 +93,10 @@
 - [x] Vercel project-root ignored-build protection
 - [x] Supabase-backed distributed per-user rate limiting
 - [x] adversarial document-parser hardening (magic/container validation, filename safety, resource budgets)
+- [x] privacy controls and self-service export/delete account workflow
 - [ ] verify ignored-build behavior after Hobby cooldown
 - [ ] sandboxed malware scanning/quarantine for higher-risk production profiles
 - [ ] object-storage lifecycle policy
 - [ ] encryption and secrets management
-- [ ] privacy controls and export/delete account workflow
 - [ ] observability
 - [ ] paid deployment profiles after revenue

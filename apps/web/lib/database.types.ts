@@ -96,6 +96,16 @@ export type Database = {
           scan_id: string;
         }[];
       };
+      export_my_account_data: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      delete_my_account: {
+        Args: {
+          p_confirmation: string;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       [_ in never]: never;

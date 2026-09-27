@@ -1,0 +1,140 @@
+.page {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 54px 0 110px;
+}
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, .7fr);
+  gap: 22px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+.hero h1,
+.card h1,
+.scopeCard h2 {
+  margin: 8px 0 10px;
+  max-width: 760px;
+}
+.hero h1 { font-size: clamp(36px, 6vw, 72px); line-height: .98; letter-spacing: -.055em; }
+.lede { max-width: 760px; color: var(--muted); font-size: 15px; line-height: 1.7; }
+.eyebrow { margin: 0; color: var(--accent); font-size: 10px; font-weight: 900; letter-spacing: .16em; }
+.identityCard,
+.card,
+.scopeCard {
+  border: 1px solid var(--line);
+  background: rgba(8, 21, 32, .76);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .22);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.identityCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 18px;
+}
+.identityCard span,
+.cardHead small { color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .14em; }
+.identityCard strong { overflow-wrap: anywhere; font-size: 15px; }
+.identityCard small { color: var(--muted); overflow-wrap: anywhere; font-size: 9px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card,
+.scopeCard { border-radius: 20px; padding: 24px; }
+.card p,
+.card li,
+.scopeCard span { color: var(--muted); line-height: 1.65; }
+.card ul { margin: 16px 0 22px; padding-left: 18px; }
+.card li + li { margin-top: 6px; }
+.cardHead { display: flex; gap: 10px; align-items: center; }
+.cardHead > span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+}
+.cardHead h2 { margin: 2px 0 0; font-size: 22px; }
+.card button,
+.linkButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  padding: 11px 15px;
+  border: 1px solid rgba(87, 230, 213, .3);
+  border-radius: 11px;
+  color: #082019;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  font-weight: 900;
+  text-decoration: none;
+}
+.card button:disabled { opacity: .45; cursor: not-allowed; }
+.dangerCard { border-color: rgba(255, 107, 129, .24); }
+.warningBox {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 107, 129, .24);
+  border-radius: 12px;
+  background: rgba(255, 107, 129, .06);
+}
+.warningBox strong { color: #ffd3da; }
+.warningBox span { color: #cba8ae; font-size: 12px; line-height: 1.5; }
+.confirmLabel { display: flex; flex-direction: column; gap: 7px; margin: 16px 0; }
+.confirmLabel span { color: var(--muted); font-size: 11px; }
+.confirmLabel input {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(0, 0, 0, .18);
+  outline: none;
+}
+.confirmLabel input:focus { border-color: rgba(255, 107, 129, .45); }
+.deleteButton {
+  color: #fff !important;
+  border-color: rgba(255, 107, 129, .44) !important;
+  background: linear-gradient(135deg, #a52f49, #d84461) !important;
+}
+.scopeCard { margin-top: 18px; }
+.scopeGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.scopeGrid > div { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, .02); }
+.scopeGrid b { display: block; margin-bottom: 5px; }
+.scopeGrid span { display: block; font-size: 12px; }
+.messageError,
+.messageNotice { margin: 0 0 18px; padding: 12px 14px; border-radius: 11px; font-size: 12px; }
+.messageError { border: 1px solid rgba(255, 107, 129, .3); color: #ffd3da; background: rgba(255, 107, 129, .08); }
+.messageNotice { border: 1px solid rgba(87, 230, 213, .25); color: #d7fff8; background: rgba(87, 230, 213, .07); }
+.brandMark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 11px;
+  color: #082019;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  font-weight: 900;
+}
+
+@media (max-width: 800px) {
+  .hero,
+  .grid { grid-template-columns: 1fr; }
+  .scopeGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .page { width: min(100% - 20px, 1180px); padding-top: 28px; }
+  .card,
+  .scopeCard { padding: 18px; }
+  .hero h1 { font-size: clamp(34px, 13vw, 52px); }
+}
