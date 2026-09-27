@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" role="img" aria-labelledby="title desc">
+  <title id="title">Averis</title>
+  <desc id="desc">Averis Academic Integrity Intelligence</desc>
+  <defs>
+    <linearGradient id="ribbonA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8efcff"/>
+      <stop offset="0.34" stop-color="#22d8f2"/>
+      <stop offset="0.7" stop-color="#1687f8"/>
+      <stop offset="1" stop-color="#0a4bcc"/>
+    </linearGradient>
+    <linearGradient id="ribbonB" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a90ff"/>
+      <stop offset="0.5" stop-color="#0752c9"/>
+      <stop offset="1" stop-color="#19e6ef"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.42" stop-color="#f6fbff"/>
+      <stop offset="0.78" stop-color="#cbe5ff"/>
+      <stop offset="1" stop-color="#7db7f7"/>
+    </linearGradient>
+    <linearGradient id="tag" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d6efff"/>
+      <stop offset="0.5" stop-color="#7edcff"/>
+      <stop offset="1" stop-color="#c7e2ff"/>
+    </linearGradient>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(4 8)">
+    <path d="M24 146 75 28c8-18 26-24 42-15 8 4 14 11 18 20l57 122-28 11-47-101c-7-15-20-15-27 0L51 154z" fill="url(#ribbonA)" filter="url(#softGlow)"/>
+    <path d="M76 120c27-7 44-30 51-55 9-31 24-30 38-7l25 45c-24-17-43-17-58 10-13 24-34 40-63 48z" fill="url(#ribbonB)" opacity=".98"/>
+    <path d="m88 117 9 18 19 9-19 9-9 19-9-19-19-9 19-9z" fill="#6ff8ff" filter="url(#softGlow)"/>
+  </g>
+  <g transform="translate(208 34)">
+    <text x="0" y="84" fill="url(#metal)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="104" font-weight="760" letter-spacing="-7">Averis</text>
+    <circle cx="381" cy="2" r="14" fill="#25d8ef" filter="url(#softGlow)"/>
+    <text x="8" y="126" fill="url(#tag)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="650" letter-spacing="8">ACADEMIC INTEGRITY INTELLIGENCE</text>
+  </g>
+</svg>
