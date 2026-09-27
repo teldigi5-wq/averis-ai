@@ -21,7 +21,7 @@ The student subscription has an F1 Free Linux App Service plan in Malaysia West:
 - web app: `averis-api-beta-db36dd7d`
 - public API: `https://averis-api-beta-db36dd7d.azurewebsites.net`
 
-The certified API deployment originated from branch `feat/professional-ui-brand-v1` at SHA `7b2c12f502a94aab8f9a41caba30a3534c9d551d`.
+The currently running API deployment originated from branch `feat/professional-ui-brand-v1` at SHA `7b2c12f502a94aab8f9a41caba30a3534c9d551d`. Later branch commits currently change only deployment/web-certification documentation or workflow wiring; the deployed API source remains the certified API code from that SHA until the next exact-head API redeploy.
 
 Runtime settings:
 
