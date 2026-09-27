@@ -27,12 +27,15 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 @router.get("/status")
 async def ai_status() -> dict[str, object]:
     settings = get_settings()
+    thresholds = settings.semantic_review_thresholds
     if settings.ai_provider.casefold() != "ollama":
         return {
             "provider": settings.ai_provider,
             "revision_enabled": settings.ai_revision_enabled,
+            "semantic_calibrated": bool(thresholds),
+            "semantic_calibration_id": settings.ai_semantic_calibration_id if thresholds else None,
             "reachable": False,
-            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v1.",
+            "note": "Only the local Ollama adapter is implemented for AI Evidence Layer v2.",
         }
 
     provider = OllamaProvider(
@@ -45,6 +48,10 @@ async def ai_status() -> dict[str, object]:
         **health,
         "revision_enabled": settings.ai_revision_enabled,
         "embedding_model": settings.ollama_embedding_model,
+        "semantic_calibrated": bool(thresholds),
+        "semantic_calibration_id": settings.ai_semantic_calibration_id if thresholds else None,
+        "semantic_review_threshold": thresholds[0] if thresholds else None,
+        "semantic_high_review_threshold": thresholds[1] if thresholds else None,
         "boundary": "AI output is assistive evidence/revision guidance, not an authorship or misconduct verdict.",
     }
 
@@ -61,6 +68,9 @@ async def analyze_revision(
     """
     await enforce_rate_limit(auth, AI_REVISION)
     settings = get_settings()
+    semantic_thresholds = settings.semantic_review_thresholds
+    semantic_review_threshold = semantic_thresholds[0] if semantic_thresholds else None
+    semantic_high_review_threshold = semantic_thresholds[1] if semantic_thresholds else None
 
     writing = analyze_writing_style(payload.text)
     source_report = None
@@ -120,12 +130,18 @@ async def analyze_revision(
                     (match.score for match in semantic_passages),
                     default=None,
                 )
+                calibration_note = (
+                    f"semantic thresholds certified under {settings.ai_semantic_calibration_id}"
+                    if semantic_thresholds
+                    else "semantic scores are uncalibrated candidate evidence and must not change review bands"
+                )
                 source_summary = (
                     f"Primary similarity {source_report.similarity_percent}%; exact overlap "
                     f"{source_report.shingle_jaccard}%; fuzzy passage strength "
                     f"{source_report.sentence_match_score}%; whole-text semantic candidate "
                     f"{semantic_similarity if semantic_similarity is not None else 'unavailable'}%; strongest semantic "
-                    f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%."
+                    f"passage {strongest_semantic_passage if strongest_semantic_passage is not None else 'unavailable'}%; "
+                    f"{calibration_note}."
                 )
             prompt = (
                 "You are the Averis academic revision coach. Give 3-5 short manual revision actions only. "
@@ -140,7 +156,13 @@ async def analyze_revision(
             coach_summary = await provider.coach(prompt)
 
     strongest_semantic = max((match.score for match in semantic_passages), default=semantic_similarity)
-    actions = build_revision_actions(writing, source_report, strongest_semantic)
+    actions = build_revision_actions(
+        writing,
+        source_report,
+        strongest_semantic,
+        semantic_review_threshold=semantic_review_threshold,
+        semantic_high_review_threshold=semantic_high_review_threshold,
+    )
 
     source_evidence = None
     if source_report is not None:
@@ -151,7 +173,14 @@ async def analyze_revision(
             lexical_vector_percent=source_report.vector_candidate_score,
             semantic_similarity_percent=semantic_similarity,
             semantic_provider=semantic_provider,
-            overlap_review_band=overlap_review_band(source_report, strongest_semantic),
+            semantic_calibrated=bool(semantic_thresholds),
+            semantic_calibration_id=settings.ai_semantic_calibration_id if semantic_thresholds else None,
+            overlap_review_band=overlap_review_band(
+                source_report,
+                strongest_semantic,
+                semantic_review_threshold=semantic_review_threshold,
+                semantic_high_review_threshold=semantic_high_review_threshold,
+            ),
             matched_passages=source_report.matched_passages[:8],
             semantic_passages=semantic_passages,
         )
@@ -168,7 +197,7 @@ async def analyze_revision(
         caution=(
             "Writing-style metrics and AI-generated-text detectors can produce false positives and are not proof of "
             "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
-            "plagiarism verdict. Source-overlap evidence still requires human review, citation context, and the relevant "
-            "institution's rules."
+            "plagiarism verdict; uncalibrated semantic scores do not change review bands. Source-overlap evidence still "
+            "requires human review, citation context, and the relevant institution's rules."
         ),
     )

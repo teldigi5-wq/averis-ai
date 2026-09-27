@@ -106,15 +106,33 @@ def analyze_writing_style(text: str) -> WritingStyleMetrics:
     )
 
 
-def overlap_review_band(report: SimilarityReport, semantic_similarity: float | None = None) -> str:
-    strongest = max(
-        report.shingle_jaccard,
-        report.sentence_match_score,
-        semantic_similarity or 0.0,
+def overlap_review_band(
+    report: SimilarityReport,
+    semantic_similarity: float | None = None,
+    *,
+    semantic_review_threshold: float | None = None,
+    semantic_high_review_threshold: float | None = None,
+) -> str:
+    """Return a review band from deterministic evidence plus calibrated semantics.
+
+    Semantic scores are ignored for banding unless both benchmark-derived
+    thresholds are supplied. This prevents an arbitrary cosine number from
+    silently becoming a plagiarism policy.
+    """
+    semantic_high = (
+        semantic_similarity is not None
+        and semantic_high_review_threshold is not None
+        and semantic_similarity >= semantic_high_review_threshold
     )
-    if report.shingle_jaccard >= 35 or report.similarity_percent >= 45 or strongest >= 82:
+    semantic_review = (
+        semantic_similarity is not None
+        and semantic_review_threshold is not None
+        and semantic_similarity >= semantic_review_threshold
+    )
+
+    if report.shingle_jaccard >= 35 or report.similarity_percent >= 45 or report.sentence_match_score >= 82 or semantic_high:
         return "high review"
-    if report.shingle_jaccard >= 12 or report.similarity_percent >= 20 or strongest >= 65:
+    if report.shingle_jaccard >= 12 or report.similarity_percent >= 20 or report.sentence_match_score >= 65 or semantic_review:
         return "review"
     return "low review"
 
@@ -123,11 +141,19 @@ def build_revision_actions(
     writing: WritingStyleMetrics,
     report: SimilarityReport | None,
     semantic_similarity: float | None,
+    *,
+    semantic_review_threshold: float | None = None,
+    semantic_high_review_threshold: float | None = None,
 ) -> list[str]:
     actions: list[str] = []
 
     if report is not None:
-        band = overlap_review_band(report, semantic_similarity)
+        band = overlap_review_band(
+            report,
+            semantic_similarity,
+            semantic_review_threshold=semantic_review_threshold,
+            semantic_high_review_threshold=semantic_high_review_threshold,
+        )
         if band == "high review":
             actions.append(
                 "Review the strongest matched passages first. Quote and cite wording that must stay exact, and rewrite the rest from your own understanding before checking it again."
