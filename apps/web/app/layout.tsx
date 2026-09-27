@@ -12,6 +12,7 @@ import "./enterprise-ui-v10.css";
 import "./browser-quality-v12.css";
 import "./print-report.css";
 import "./enterprise-rebuild-v14.css";
+import "./enterprise-a11y-v14.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
