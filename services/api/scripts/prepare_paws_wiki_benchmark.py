@@ -5,22 +5,33 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+from typing import Iterable
 
 
-SOURCE_URL = "https://storage.googleapis.com/paws/english/paws_wiki_labeled_final.tar.gz"
+DATASET_ID = "google-research-datasets/paws"
+DATASET_REVISION = "161ece9501cf0a11f3e48bd356eaa82de46d6a09"
 LICENSE_URL = "https://github.com/google-research-datasets/paws/blob/master/LICENSE"
 
 
-def find_split(root: Path, filename: str) -> Path:
-    candidates = sorted(path for path in root.rglob(filename) if path.is_file())
-    if not candidates:
-        raise ValueError(f"could not find {filename} below {root}")
-    preferred = [path for path in candidates if "final" in {part.casefold() for part in path.parts}]
-    if len(preferred) == 1:
-        return preferred[0]
-    if len(candidates) == 1:
-        return candidates[0]
-    raise ValueError(f"found multiple {filename} files below {root}; cannot choose deterministically")
+def _normalize_row(row: dict[str, object]) -> dict[str, str] | None:
+    label = str(row.get("label", "")).strip()
+    left = str(row.get("sentence1", "")).strip()
+    right = str(row.get("sentence2", "")).strip()
+    if label not in {"0", "1"} or not left or not right:
+        return None
+    return {
+        "id": str(row.get("id", "")).strip(),
+        "sentence1": left,
+        "sentence2": right,
+        "label": label,
+    }
+
+
+def _valid_rows(rows: Iterable[dict[str, object]], path: Path) -> list[dict[str, str]]:
+    normalized = [item for row in rows if (item := _normalize_row(row)) is not None]
+    if not normalized:
+        raise ValueError(f"no valid labeled pairs found in {path}")
+    return normalized
 
 
 def load_tsv(path: Path) -> list[dict[str, str]]:
@@ -29,24 +40,34 @@ def load_tsv(path: Path) -> list[dict[str, str]]:
         required = {"id", "sentence1", "sentence2", "label"}
         if reader.fieldnames is None or not required.issubset(reader.fieldnames):
             raise ValueError(f"{path} must contain columns: {', '.join(sorted(required))}")
-        rows: list[dict[str, str]] = []
-        for row in reader:
-            label = str(row.get("label", "")).strip()
-            left = str(row.get("sentence1", "")).strip()
-            right = str(row.get("sentence2", "")).strip()
-            if label not in {"0", "1"} or not left or not right:
-                continue
-            rows.append(
-                {
-                    "id": str(row.get("id", "")).strip(),
-                    "sentence1": left,
-                    "sentence2": right,
-                    "label": label,
-                }
-            )
-    if not rows:
-        raise ValueError(f"no valid labeled pairs found in {path}")
-    return rows
+        return _valid_rows((dict(row) for row in reader), path)
+
+
+def load_parquet(path: Path) -> list[dict[str, str]]:
+    try:
+        import pyarrow.parquet as pq
+    except ImportError as exc:
+        raise ValueError("reading PAWS parquet files requires pyarrow") from exc
+
+    table = pq.read_table(path, columns=["id", "sentence1", "sentence2", "label"])
+    return _valid_rows(table.to_pylist(), path)
+
+
+def load_rows(path: Path) -> list[dict[str, str]]:
+    suffix = path.suffix.casefold()
+    if suffix in {".tsv", ".txt"}:
+        return load_tsv(path)
+    if suffix == ".parquet":
+        return load_parquet(path)
+    raise ValueError(f"unsupported PAWS input format for {path}; expected .tsv or .parquet")
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def sample_key(row: dict[str, str], *, seed: str) -> str:
@@ -74,6 +95,8 @@ def write_jsonl(path: Path, rows: list[dict[str, str]], *, split_name: str) -> N
                 "source": "PAWS-Wiki Labeled (Final)",
                 "source_split": split_name,
                 "source_id": row["id"],
+                "dataset_id": DATASET_ID,
+                "dataset_revision": DATASET_REVISION,
             }
             handle.write(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
 
@@ -87,9 +110,10 @@ def class_counts(rows: list[dict[str, str]]) -> dict[str, int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Prepare deterministic balanced PAWS-Wiki dev/test samples for Averis semantic engineering evaluation."
+        description="Prepare deterministic balanced PAWS-Wiki validation/test samples for Averis semantic engineering evaluation."
     )
-    parser.add_argument("extracted_root", help="Directory containing the extracted PAWS-Wiki Labeled (Final) archive")
+    parser.add_argument("calibration_input", help="PAWS labeled_final validation split (.parquet or .tsv)")
+    parser.add_argument("holdout_input", help="PAWS labeled_final test split (.parquet or .tsv)")
     parser.add_argument("output_dir", help="Destination for calibration.jsonl and holdout.jsonl")
     parser.add_argument("--per-class", type=int, default=100)
     parser.add_argument("--seed", default="averis-paws-wiki-v1")
@@ -98,37 +122,50 @@ def main() -> int:
     if args.per_class < 1:
         parser.error("--per-class must be at least 1")
 
-    root = Path(args.extracted_root).resolve()
+    calibration_input = Path(args.calibration_input).resolve()
+    holdout_input = Path(args.holdout_input).resolve()
     output = Path(args.output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
 
+    if calibration_input == holdout_input:
+        parser.error("calibration_input and holdout_input must be different files")
+
     try:
-        dev_path = find_split(root, "dev.tsv")
-        test_path = find_split(root, "test.tsv")
-        dev_rows = balanced_sample(load_tsv(dev_path), per_class=args.per_class, seed=f"{args.seed}:dev")
-        test_rows = balanced_sample(load_tsv(test_path), per_class=args.per_class, seed=f"{args.seed}:test")
+        calibration_rows = balanced_sample(
+            load_rows(calibration_input),
+            per_class=args.per_class,
+            seed=f"{args.seed}:validation",
+        )
+        holdout_rows = balanced_sample(
+            load_rows(holdout_input),
+            per_class=args.per_class,
+            seed=f"{args.seed}:test",
+        )
     except (ValueError, OSError) as exc:
         parser.error(str(exc))
         return 2
 
     calibration_path = output / "calibration.jsonl"
     holdout_path = output / "holdout.jsonl"
-    write_jsonl(calibration_path, dev_rows, split_name="dev")
-    write_jsonl(holdout_path, test_rows, split_name="test")
+    write_jsonl(calibration_path, calibration_rows, split_name="validation")
+    write_jsonl(holdout_path, holdout_rows, split_name="test")
 
     print(
         json.dumps(
             {
                 "dataset": "PAWS-Wiki Labeled (Final)",
+                "dataset_id": DATASET_ID,
+                "dataset_revision": DATASET_REVISION,
                 "task": "human-labeled paraphrase identification engineering benchmark",
-                "source_url": SOURCE_URL,
                 "license_url": LICENSE_URL,
                 "seed": args.seed,
                 "per_class_per_split": args.per_class,
-                "calibration_source_split": "dev",
+                "calibration_source_split": "validation",
                 "holdout_source_split": "test",
-                "calibration_counts": class_counts(dev_rows),
-                "holdout_counts": class_counts(test_rows),
+                "calibration_input_sha256": file_sha256(calibration_input),
+                "holdout_input_sha256": file_sha256(holdout_input),
+                "calibration_counts": class_counts(calibration_rows),
+                "holdout_counts": class_counts(holdout_rows),
                 "calibration_output": str(calibration_path),
                 "holdout_output": str(holdout_path),
                 "boundary": (
