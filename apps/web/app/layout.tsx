@@ -6,8 +6,10 @@ import "./professional-ui-v2.css";
 import "./brand-ui-v3.css";
 import "./workspace-ui-v4.css";
 import "./history-ui-v1.css";
+import "./auth-experience-v1.css";
 import "./print-report.css";
 
+import AuthExperience from "./AuthExperience";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const githubPages = process.env.GITHUB_PAGES === "true";
@@ -31,6 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" data-base-path={basePath || undefined}>
       <body>
         {children}
+        <AuthExperience />
         <WorkspaceSwitcher />
       </body>
     </html>
