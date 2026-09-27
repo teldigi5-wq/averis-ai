@@ -4,31 +4,60 @@
  */
 
 @media (max-width: 820px) {
-  .productShell {
+  main:has(.topActions .ghostButton) .productShell {
     grid-template-columns: minmax(0, 1fr) !important;
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
-  .productShell > .toolRail,
-  .productShell > .toolCanvas,
-  .productShell .workspace,
-  .productShell .workspaceGrid,
-  .productShell .metricGrid,
-  .productShell .controlGrid,
-  .productShell .referenceSummaryGrid {
-    min-width: 0;
-    max-width: 100%;
+  main:has(.topActions .ghostButton) .productShell > .toolRail,
+  main:has(.topActions .ghostButton) .productShell > .toolCanvas,
+  main:has(.topActions .ghostButton) .productShell .workspace,
+  main:has(.topActions .ghostButton) .productShell .workspaceGrid,
+  main:has(.topActions .ghostButton) .productShell .metricGrid,
+  main:has(.topActions .ghostButton) .productShell .controlGrid,
+  main:has(.topActions .ghostButton) .productShell .referenceSummaryGrid {
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
-  .productShell > .toolRail,
-  .productShell > .toolCanvas {
-    width: 100%;
+  main:has(.topActions .ghostButton) .productShell > .toolRail,
+  main:has(.topActions .ghostButton) .productShell > .toolCanvas {
+    width: 100% !important;
   }
 
-  .productShell .toolNav {
-    min-width: 0;
-    max-width: 100%;
+  main:has(.topActions .ghostButton) .productShell .toolNav {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 680px) {
+  /*
+   * The enterprise shell contains horizontally scrollable internal nav, so the
+   * outer grid must be explicitly bound to the viewport rather than its
+   * min-content contribution. This is a layout correction, not clipping.
+   */
+  main:has(.topActions .ghostButton) .productShell,
+  main:has(.topActions .ghostButton) .productShell > .toolRail,
+  main:has(.topActions .ghostButton) .productShell > .toolCanvas,
+  main:has(.topActions .ghostButton) .productShell .workspace,
+  main:has(.topActions .ghostButton) .productShell .workspaceGrid,
+  main:has(.topActions .ghostButton) .productShell .metricGrid,
+  main:has(.topActions .ghostButton) .productShell .evidenceControlsPanel,
+  main:has(.topActions .ghostButton) .productShell .panel,
+  main:has(.topActions .ghostButton) .productShell .metricCard {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  main:has(.topActions .ghostButton) .productShell .toolNav {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
   }
 }
