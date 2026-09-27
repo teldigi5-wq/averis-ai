@@ -33,6 +33,7 @@ class SourceEvidenceMetrics(BaseModel):
     semantic_provider: str | None = None
     overlap_review_band: str
     matched_passages: list[PassageMatch] = Field(default_factory=list)
+    semantic_passages: list[PassageMatch] = Field(default_factory=list)
 
 
 class RevisionAnalyzeResponse(BaseModel):
