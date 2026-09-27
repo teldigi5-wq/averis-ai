@@ -14,22 +14,6 @@ from app.services.evidence_calibration import calibrate_and_evaluate_holdout
 from app.services.revision_metrics import cosine_percent
 
 
-async def score_pair(
-    provider: OllamaProvider,
-    left: str,
-    right: str,
-    *,
-    model: str,
-) -> float:
-    embeddings = await provider.embed_texts([left, right], model=model)
-    if embeddings is None or len(embeddings) != 2:
-        raise RuntimeError("embedding runtime unavailable while scoring benchmark pair")
-    score = cosine_percent(embeddings[0], embeddings[1])
-    if score is None:
-        raise RuntimeError("embedding runtime returned incompatible vectors")
-    return score
-
-
 def load_rows(path: Path) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     with path.open("r", encoding="utf-8") as handle:
@@ -105,19 +89,29 @@ async def score_rows(
     *,
     model: str,
     name: str,
+    batch_size: int,
     progress: bool,
 ) -> list[float]:
     scores: list[float] = []
-    for index, row in enumerate(rows, start=1):
-        score = await score_pair(
-            provider,
-            str(row["left"]),
-            str(row["right"]),
-            model=model,
-        )
-        scores.append(score)
+    for start in range(0, len(rows), batch_size):
+        batch = rows[start : start + batch_size]
+        texts = [text for row in batch for text in (str(row["left"]), str(row["right"]))]
+        embeddings = await provider.embed_texts(texts, model=model)
+        if embeddings is None or len(embeddings) != len(texts):
+            raise RuntimeError(
+                f"embedding runtime returned {0 if embeddings is None else len(embeddings)} vectors "
+                f"for {len(texts)} benchmark texts"
+            )
+
+        for offset in range(0, len(embeddings), 2):
+            score = cosine_percent(embeddings[offset], embeddings[offset + 1])
+            if score is None:
+                raise RuntimeError("embedding runtime returned incompatible vectors")
+            scores.append(score)
+
         if progress:
-            print(f"{name}: scored {index}/{len(rows)}", flush=True)
+            completed = min(start + len(batch), len(rows))
+            print(f"{name}: scored {completed}/{len(rows)}", flush=True)
     return scores
 
 
@@ -161,6 +155,7 @@ async def run(args: argparse.Namespace) -> int:
         calibration_rows,
         model=args.embedding_model,
         name="calibration",
+        batch_size=args.batch_size,
         progress=args.progress,
     )
     holdout_scores = await score_rows(
@@ -168,6 +163,7 @@ async def run(args: argparse.Namespace) -> int:
         holdout_rows,
         model=args.embedding_model,
         name="holdout",
+        batch_size=args.batch_size,
         progress=args.progress,
     )
 
@@ -184,6 +180,7 @@ async def run(args: argparse.Namespace) -> int:
     payload = {
         "provider": "ollama",
         "embedding_model": args.embedding_model,
+        "batch_size": args.batch_size,
         "calibration_dataset": {
             "path": str(calibration_path),
             "sha256": dataset_sha256(calibration_path),
@@ -226,6 +223,7 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--max-fpr", type=float, default=0.05)
     parser.add_argument("--min-class-size", type=int, default=100)
+    parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--progress", action="store_true")
     args = parser.parse_args()
 
@@ -233,6 +231,8 @@ def main() -> int:
         parser.error("--max-fpr must be between 0 and 1")
     if args.min_class_size < 1:
         parser.error("--min-class-size must be at least 1")
+    if args.batch_size < 1 or args.batch_size > 256:
+        parser.error("--batch-size must be between 1 and 256")
 
     try:
         return asyncio.run(run(args))
