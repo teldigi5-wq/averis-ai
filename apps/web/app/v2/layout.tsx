@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { Averis2AccountProvider } from "./Averis2AccountProvider";
 import Averis2Shell from "./Averis2Shell";
 
 export const metadata: Metadata = {
@@ -9,5 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function Averis2Layout({ children }: Readonly<{ children: ReactNode }>) {
-  return <Averis2Shell>{children}</Averis2Shell>;
+  return (
+    <Averis2AccountProvider>
+      <Averis2Shell>{children}</Averis2Shell>
+    </Averis2AccountProvider>
+  );
 }
