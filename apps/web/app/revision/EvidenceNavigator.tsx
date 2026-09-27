@@ -6,12 +6,14 @@ import styles from "./evidence-navigation.module.css";
 
 type Priority = "high_attention" | "attention" | "contextualized";
 type PriorityFilter = "all" | Priority;
+type EvidenceCategory = "wording" | "attribution" | "references";
 
 type MatrixItem = {
   key: string;
   priority: Priority;
   label: string;
   snippet: string;
+  categories: EvidenceCategory[];
 };
 
 type SectionTarget = {
@@ -33,6 +35,15 @@ function priorityFromText(text: string): Priority {
   if (text.includes("HIGH ATTENTION")) return "high_attention";
   if (text.includes("ATTENTION")) return "attention";
   return "contextualized";
+}
+
+function categoriesFromText(text: string): EvidenceCategory[] {
+  const value = text.toLowerCase();
+  const categories: EvidenceCategory[] = [];
+  if (value.includes("high-overlap") || value.includes("quoted wording") || value.includes("quotation")) categories.push("wording");
+  if (value.includes("citation marker") || value.includes("attribution")) categories.push("attribution");
+  if (value.includes("bibliography") || value.includes("doi metadata") || value.includes("reference verification") || value.includes("reference link")) categories.push("references");
+  return categories;
 }
 
 function priorityLabel(priority: Priority) {
@@ -99,6 +110,7 @@ export default function EvidenceNavigator() {
           priority,
           label: `Passage ${String(index + 1).padStart(2, "0")}`,
           snippet: paragraph.length > 118 ? `${paragraph.slice(0, 118)}…` : paragraph,
+          categories: categoriesFromText(text),
         });
       });
 
@@ -117,7 +129,7 @@ export default function EvidenceNavigator() {
       });
       cardsRef.current = nextCards;
 
-      const nextSignature = nextItems.map((item) => `${item.key}:${item.priority}`).join("|");
+      const nextSignature = nextItems.map((item) => `${item.key}:${item.priority}:${item.categories.join(",")}`).join("|");
       if (nextSignature !== signatureRef.current) {
         signatureRef.current = nextSignature;
         setItems(nextItems);
@@ -156,6 +168,12 @@ export default function EvidenceNavigator() {
     contextualized: items.filter((item) => item.priority === "contextualized").length,
   }), [items]);
 
+  const categoryCounts = useMemo(() => ({
+    wording: items.filter((item) => item.priority !== "contextualized" && item.categories.includes("wording")).length,
+    attribution: items.filter((item) => item.priority !== "contextualized" && item.categories.includes("attribution")).length,
+    references: items.filter((item) => item.priority !== "contextualized" && item.categories.includes("references")).length,
+  }), [items]);
+
   const filteredItems = useMemo(
     () => items.filter((item) => filter === "all" || item.priority === filter),
     [items, filter],
@@ -164,6 +182,14 @@ export default function EvidenceNavigator() {
   const reviewedCount = items.filter((item) => reviewed[item.key]).length;
   const progress = items.length ? Math.round((reviewedCount / items.length) * 100) : 0;
   const checklistCount = Object.values(checklist).filter(Boolean).length;
+  const unresolvedPriority = counts.high_attention + counts.attention;
+
+  const readiness = useMemo(() => {
+    if (counts.high_attention > 0) return { label: "Priority evidence remains", tone: "priority" };
+    if (counts.attention > 0) return { label: "Context review remains", tone: "attention" };
+    if (reviewedCount < items.length || checklistCount < 3) return { label: "Human review incomplete", tone: "incomplete" };
+    return { label: "Review workflow complete", tone: "complete" };
+  }, [counts.high_attention, counts.attention, reviewedCount, items.length, checklistCount]);
 
   function jumpToItem(item: MatrixItem) {
     const card = cardsRef.current.get(item.key) ?? null;
@@ -194,6 +220,31 @@ export default function EvidenceNavigator() {
     if (section) setAnnouncement(`Moved to ${section.label} evidence.`);
   }
 
+  async function copyReviewSummary() {
+    const unresolved = items.filter((item) => item.priority !== "contextualized" && !reviewed[item.key]);
+    const lines = [
+      "Averis review summary",
+      `Status: ${readiness.label}`,
+      `Passages inspected: ${reviewedCount}/${items.length}`,
+      `High attention: ${counts.high_attention}`,
+      `Attention: ${counts.attention}`,
+      `Contextualized: ${counts.contextualized}`,
+      `Unresolved evidence categories: wording ${categoryCounts.wording}; attribution ${categoryCounts.attribution}; references ${categoryCounts.references}`,
+      `Reviewer checklist: ${checklistCount}/3`,
+      "",
+      "Next passages to inspect:",
+      ...unresolved.slice(0, 3).map((item) => `- ${item.label} (${priorityLabel(item.priority)}): ${item.snippet}`),
+      "",
+      "This is a review-workflow summary, not a plagiarism, misconduct, authorship, or submission-approval verdict.",
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      setAnnouncement("Review summary copied to the clipboard.");
+    } catch {
+      setAnnouncement("Clipboard access was unavailable. Review summary was not copied.");
+    }
+  }
+
   if (!items.length) return null;
 
   return (
@@ -206,6 +257,22 @@ export default function EvidenceNavigator() {
 
       {expanded && (
         <div className={styles.body}>
+          <section className={`${styles.readiness} ${styles[readiness.tone] ?? ""}`} aria-label="Submission review status">
+            <div>
+              <span>SUBMISSION REVIEW STATUS</span>
+              <strong>{readiness.label}</strong>
+              <small>{unresolvedPriority} priority/context passage{unresolvedPriority === 1 ? "" : "s"} remain in the deterministic matrix.</small>
+            </div>
+            <button type="button" onClick={copyReviewSummary}>Copy review notes</button>
+            <div className={styles.categoryGrid}>
+              <span><b>{categoryCounts.wording}</b> wording</span>
+              <span><b>{categoryCounts.attribution}</b> attribution</span>
+              <span><b>{categoryCounts.references}</b> references</span>
+              <span><b>{checklistCount}/3</b> checklist</span>
+            </div>
+            <p>This status describes reviewer workflow only. It is never a pass/fail or misconduct decision.</p>
+          </section>
+
           <div className={styles.progressBlock}>
             <div><span>REVIEW PROGRESS</span><strong>{progress}%</strong></div>
             <div className={styles.progressTrack} aria-hidden="true"><i style={{ width: `${progress}%` }} /></div>
