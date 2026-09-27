@@ -1,0 +1,522 @@
+/* Averis workspace UX v4 — signed-in workflow clarity, responsive density and evidence readability.
+ * Presentation only: no auth, scoring, credits, retention, API, CORS or Supabase behavior changes.
+ */
+
+/* Keep the working surface visually quieter than the marketing surface. */
+.productShell .toolCanvas {
+  min-width: 0;
+}
+
+.productShell .workspaceGrid,
+.productShell .metricGrid,
+.productShell .controlGrid,
+.productShell .referenceSummaryGrid {
+  align-items: stretch;
+}
+
+.productShell .panel,
+.productShell .metricCard,
+.productShell .summaryCard {
+  transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+/* Workflow guide: inferred from the existing document/source/report state, without changing scan behavior. */
+.productShell:has(.toolNav .toolButton:first-child.active) .toolHero::before {
+  content: "01  Upload draft   →   02  Add source   →   03  Configure & scan   →   04  Review evidence";
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: block;
+  margin-top: 2px;
+  padding: 10px 12px;
+  border: 1px solid rgba(156, 181, 200, .11);
+  border-radius: 9px;
+  background: #08131d;
+  color: #718896;
+  font-size: 9px;
+  font-weight: 760;
+  line-height: 1.4;
+  letter-spacing: .035em;
+  white-space: normal;
+}
+
+.productShell:has(.toolNav .toolButton:first-child.active):has(.uploadPanel .docCard) .toolHero::before {
+  content: "✓  Draft ready   →   02  Add source   →   03  Configure & scan   →   04  Review evidence";
+  color: #86aaa9;
+  border-color: rgba(97, 214, 204, .14);
+}
+
+.productShell:has(.toolNav .toolButton:first-child.active):has(.uploadPanel .docCard):has(.sourceComparePanel textarea:not(:placeholder-shown)) .toolHero::before {
+  content: "✓  Draft ready   →   ✓  Source added   →   03  Configure & scan   →   04  Review evidence";
+  color: #8dc4bf;
+  border-color: rgba(97, 214, 204, .18);
+}
+
+.productShell:has(.toolNav .toolButton:first-child.active):has(.appliedControls) .toolHero::before {
+  content: "✓  Draft ready   →   ✓  Source added   →   ✓  Analysis complete   →   04  Review evidence";
+  color: #a9d8d3;
+  border-color: rgba(97, 214, 204, .24);
+  background: linear-gradient(90deg, rgba(97, 214, 204, .055), rgba(120, 169, 232, .025));
+}
+
+/* Preparation cards communicate readiness without extra modal UI. */
+.productShell .uploadPanel,
+.productShell .sourceComparePanel {
+  position: relative;
+  overflow: hidden;
+}
+
+.productShell .uploadPanel::before,
+.productShell .sourceComparePanel::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: rgba(156, 181, 200, .11);
+  pointer-events: none;
+}
+
+.productShell .uploadPanel:has(.docCard) {
+  border-color: rgba(97, 214, 204, .22);
+}
+
+.productShell .uploadPanel:has(.docCard)::before {
+  background: rgba(97, 214, 204, .74);
+}
+
+.productShell .sourceComparePanel:has(textarea:not(:placeholder-shown)) {
+  border-color: rgba(120, 169, 232, .22);
+}
+
+.productShell .sourceComparePanel:has(textarea:not(:placeholder-shown))::before {
+  background: rgba(120, 169, 232, .72);
+}
+
+.productShell .sourceComparePanel textarea:not(:placeholder-shown) {
+  border-color: rgba(120, 169, 232, .24);
+  background: #091722;
+}
+
+.productShell .uploadPanel:has(.docCard) .panelHead .chip,
+.productShell .sourceComparePanel:has(textarea:not(:placeholder-shown)) .panelHead .chip {
+  color: #b9d8d5;
+  border-color: rgba(97, 214, 204, .16);
+  background: rgba(97, 214, 204, .055);
+}
+
+.productShell .docCard {
+  border: 1px solid rgba(97, 214, 204, .14);
+}
+
+.productShell .docCard > b {
+  color: #8be2d8;
+  letter-spacing: .08em;
+}
+
+/* Primary action hierarchy. */
+.productShell .sourceComparePanel .primary,
+.productShell .uploadPanel form > button,
+.productShell .referenceActions > button:first-child,
+.productShell .inlineForm > button {
+  min-height: 44px;
+}
+
+.productShell button:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.productShell button:not(:disabled):focus-visible,
+.productShell a:focus-visible,
+.productShell input:focus-visible,
+.productShell textarea:focus-visible,
+.productShell [tabindex]:focus-visible {
+  outline: 2px solid rgba(106, 224, 214, .82);
+  outline-offset: 3px;
+}
+
+/* Controls should read as a deliberate configuration step, not a wall of toggles. */
+.productShell .evidenceControlsPanel {
+  margin-top: 14px;
+}
+
+.productShell .controlCard {
+  min-height: 118px;
+  border: 1px solid rgba(156, 181, 200, .11);
+}
+
+.productShell .controlCard:has(input:checked) {
+  border-color: rgba(97, 214, 204, .22);
+  background: rgba(97, 214, 204, .045);
+}
+
+.productShell .controlBoundary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(156, 181, 200, .09);
+}
+
+.productShell .analysisTrace {
+  margin-top: 14px;
+}
+
+/* Result hierarchy: one primary score, supporting evidence metrics underneath. */
+.productShell .metricGrid {
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.productShell .metricCard {
+  position: relative;
+  overflow: hidden;
+  padding-top: 18px;
+}
+
+.productShell .metricCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: rgba(156, 181, 200, .08);
+}
+
+.productShell .metricCard.primaryMetric::before {
+  background: linear-gradient(90deg, rgba(97, 214, 204, .9), rgba(120, 169, 232, .42));
+}
+
+.productShell .metricCard:has(.score-high)::before {
+  background: rgba(239, 133, 148, .72);
+}
+
+.productShell .metricCard:has(.score-medium)::before {
+  background: rgba(228, 185, 109, .72);
+}
+
+.productShell .metricCard:has(.score-low)::before {
+  background: rgba(112, 213, 173, .72);
+}
+
+.productShell:not(:has(.appliedControls)) .metricGrid {
+  opacity: .72;
+}
+
+.productShell:has(.appliedControls) .metricGrid {
+  opacity: 1;
+}
+
+.productShell .primaryMetric .score {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Evidence viewer is the most important post-scan area. */
+.productShell .evidencePanel {
+  scroll-margin-top: 90px;
+}
+
+.productShell .evidencePanelHead {
+  position: sticky;
+  top: 82px;
+  z-index: 8;
+  margin: -2px -2px 14px;
+  padding: 2px 2px 12px;
+  background: linear-gradient(180deg, #0c1722 78%, rgba(12, 23, 34, .88));
+}
+
+.productShell .evidenceHeadActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.productShell .appliedControls {
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.productShell .match {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(156, 181, 200, .11);
+}
+
+.productShell .match + .match {
+  margin-top: 9px;
+}
+
+.productShell .matchScore {
+  align-self: start;
+  min-width: 52px;
+  padding: 8px 6px;
+  border: 1px solid rgba(97, 214, 204, .15);
+  border-radius: 9px;
+  background: rgba(97, 214, 204, .055);
+  color: #9be4dc;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.productShell .match > div:last-child > small {
+  display: block;
+  margin-bottom: 4px;
+  color: #728b99;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.productShell .match > div:last-child > p {
+  margin: 0 0 12px;
+  line-height: 1.65;
+}
+
+.productShell .match > div:last-child > p:last-child {
+  margin-bottom: 0;
+}
+
+.productShell .documentViewer {
+  gap: 10px;
+}
+
+.productShell .documentPane {
+  min-width: 0;
+}
+
+.productShell .documentText {
+  max-height: 58vh;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.productShell .viewerSentence {
+  line-height: 1.72;
+}
+
+.productShell .viewerSentence mark {
+  padding: 1px 2px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Tool rail becomes a compact product navigation rather than a second dashboard. */
+.productShell .railSummary {
+  gap: 6px;
+}
+
+.productShell .railSummary > div {
+  min-width: 0;
+}
+
+.productShell .railSummary strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.productShell .railPrivacy {
+  padding-top: 10px;
+  border-top: 1px solid rgba(156, 181, 200, .08);
+}
+
+/* Source, reference and history surfaces share the same hierarchy language. */
+.productShell .sourceSection,
+.productShell .referenceWorkbench,
+.productShell .auditPanel,
+.productShell .verificationPanel,
+.productShell .parsedPanel,
+.productShell .historyPanel {
+  scroll-margin-top: 90px;
+}
+
+.productShell .sourceCard,
+.productShell .verificationRow,
+.productShell .parsedRow,
+.productShell .historyRow {
+  border: 1px solid rgba(156, 181, 200, .10);
+}
+
+.productShell .sourceCard:hover,
+.productShell .verificationRow:hover,
+.productShell .historyRow:hover {
+  border-color: rgba(97, 214, 204, .17);
+  background: #0a1722;
+}
+
+.productShell .historyRow strong,
+.productShell .referenceSummaryGrid strong,
+.productShell .summaryCard strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Responsive: preserve app density without collapsing into oversized stacked blocks. */
+@media (max-width: 1100px) {
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  main:has(.topActions .ghostButton):has(.toolNav .toolButton:first-child.active) .toolHero::after {
+    display: none !important;
+  }
+
+  .productShell .match {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .productShell .toolRail {
+    padding-bottom: 10px;
+  }
+
+  .productShell .toolNav {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 7px !important;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: thin;
+    padding: 10px 1px 8px !important;
+  }
+
+  .productShell .toolNav .toolButton {
+    flex: 0 0 172px;
+    scroll-snap-align: start;
+  }
+
+  .productShell .railSummary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .productShell .evidencePanelHead {
+    position: static;
+  }
+
+  .productShell .documentText {
+    max-height: 46vh;
+  }
+}
+
+@media (max-width: 680px) {
+  main:has(.topActions .ghostButton) .productShell {
+    margin-top: 14px !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 15px !important;
+  }
+
+  main:has(.topActions .ghostButton) .toolHero .costChip {
+    justify-self: start !important;
+  }
+
+  .productShell:has(.toolNav .toolButton:first-child.active) .toolHero::before {
+    grid-column: 1;
+    grid-row: auto;
+    font-size: 8px;
+    line-height: 1.55;
+    letter-spacing: .02em;
+  }
+
+  .productShell .railAccount {
+    padding-bottom: 8px;
+  }
+
+  .productShell .toolNav .toolButton {
+    flex-basis: 156px;
+  }
+
+  .productShell .railSummary {
+    gap: 5px;
+  }
+
+  .productShell .railSummary > div {
+    padding: 8px 6px;
+  }
+
+  .productShell .railPrivacy {
+    margin-top: 8px;
+  }
+
+  .productShell .workspaceGrid {
+    gap: 10px !important;
+  }
+
+  .productShell .controlGrid {
+    gap: 8px;
+  }
+
+  .productShell .controlCard {
+    min-height: 0;
+  }
+
+  .productShell .metricGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .productShell .metricCard {
+    min-width: 0;
+    min-height: 102px;
+  }
+
+  .productShell .match {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 14px;
+  }
+
+  .productShell .matchScore {
+    justify-self: start;
+  }
+
+  .productShell .evidenceHeadActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .productShell .viewSwitch {
+    max-width: 100%;
+  }
+
+  .productShell .documentText {
+    max-height: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .productShell .toolNav .toolButton {
+    flex-basis: 148px;
+  }
+
+  .productShell .metricGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .productShell .railSummary {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .productShell .railSummary span {
+    font-size: 7px;
+  }
+
+  .productShell .railSummary strong {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .productShell *,
+  .productShell *::before,
+  .productShell *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
