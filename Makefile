@@ -1,4 +1,4 @@
-.PHONY: api-test api-dev web-dev infra-up infra-down
+.PHONY: api-test api-dev web-dev infra-up infra-down ai-smoke ai-benchmark
 
 api-test:
 	cd services/api && pytest -q
@@ -14,3 +14,10 @@ infra-up:
 
 infra-down:
 	docker compose down
+
+ai-smoke:
+	cd services/api && python scripts/certify_ollama.py --check-coach
+
+ai-benchmark:
+	@test -n "$(DATASET)" || (echo "Set DATASET=/path/to/labeled-pairs.jsonl" && exit 2)
+	cd services/api && python scripts/benchmark_semantic.py "$(DATASET)" --progress
