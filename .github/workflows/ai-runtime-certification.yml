@@ -1,0 +1,77 @@
+name: AI Runtime Certification
+
+on:
+  push:
+    branches:
+      - feat/ai-runtime-certification-v9
+  pull_request:
+    paths:
+      - ".github/workflows/ai-runtime-certification.yml"
+      - "services/api/app/ai/**"
+      - "services/api/app/services/evidence_calibration.py"
+      - "services/api/app/services/detector_benchmark.py"
+      - "services/api/app/services/revision_metrics.py"
+      - "services/api/scripts/certify_ollama.py"
+      - "services/api/scripts/benchmark_semantic.py"
+      - "services/api/requirements.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-runtime-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ollama-embedding-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Start Ollama
+        run: |
+          nohup ollama serve > /tmp/ollama.log 2>&1 &
+          echo $! > /tmp/ollama.pid
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:11434/api/tags > /tmp/ollama-tags.json; then
+              cat /tmp/ollama-tags.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/ollama.log
+          exit 1
+      - name: Pull open-source embedding model
+        run: ollama pull nomic-embed-text
+      - name: Certify embedding runtime
+        run: |
+          mkdir -p ../../artifacts
+          python scripts/certify_ollama.py \
+            --base-url http://127.0.0.1:11434 \
+            --embedding-model nomic-embed-text \
+            --timeout 45 \
+            | tee ../../artifacts/ollama-runtime-certification.json
+      - name: Show Ollama log on failure
+        if: failure()
+        run: cat /tmp/ollama.log || true
+      - name: Upload runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-runtime-certification-${{ github.sha }}
+          path: artifacts/ollama-runtime-certification.json
+          if-no-files-found: warn
+          retention-days: 30
