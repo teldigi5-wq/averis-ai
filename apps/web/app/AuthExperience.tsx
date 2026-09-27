@@ -34,7 +34,8 @@ export default function AuthExperience() {
   }, []);
 
   useEffect(() => {
-    if (!panel || !supabaseConfigured || !supabase) return;
+    const client = supabase;
+    if (!panel || !supabaseConfigured || !client) return;
 
     const form = panel.querySelector<HTMLFormElement>(".authForm");
     const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
@@ -68,7 +69,7 @@ export default function AuthExperience() {
 
       if (!attemptRef.current || !sawWorkingState) return;
 
-      const { data } = await supabase.auth.getSession();
+      const { data } = await client.auth.getSession();
       if (data.session?.user) return;
 
       attemptRef.current = false;
@@ -101,9 +102,10 @@ export default function AuthExperience() {
   }, [panel]);
 
   useEffect(() => {
-    if (!supabaseConfigured || !supabase) return;
+    const client = supabase;
+    if (!supabaseConfigured || !client) return;
 
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    const { data } = client.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" || !attemptRef.current) return;
       attemptRef.current = false;
       setPhase("success");
