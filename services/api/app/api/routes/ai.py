@@ -51,6 +51,7 @@ def _reference_linkage_model(review: ReferenceLinkageReview) -> ReferenceLinkage
         linked_passage_count=review.linked_passage_count,
         unlinked_citation_count=review.unlinked_citation_count,
         doi_verified_reference_count=review.doi_verified_reference_count,
+        doi_metadata_review_count=review.doi_metadata_review_count,
         verification_unavailable_count=review.verification_unavailable_count,
         links=[
             CitationReferenceLinkEvidence(
@@ -66,6 +67,7 @@ def _reference_linkage_model(review: ReferenceLinkageReview) -> ReferenceLinkage
                         year=reference.year,
                         author_key=reference.author_key,
                         verification_status=reference.verification_status,
+                        verification_issues=list(reference.verification_issues),
                         verified_title=reference.verified_source.title if reference.verified_source else None,
                         verified_doi=reference.verified_source.doi if reference.verified_source else None,
                         verified_year=reference.verified_source.published_year if reference.verified_source else None,
@@ -239,8 +241,9 @@ async def analyze_revision(
                 )
                 reference_note = (
                     f"{reference_linkage.linked_passage_count} matched passages linked to supplied bibliography entries, "
-                    f"{reference_linkage.unlinked_citation_count} citation markers unresolved, and "
-                    f"{reference_linkage.doi_verified_reference_count} linked references DOI-verified through Crossref"
+                    f"{reference_linkage.unlinked_citation_count} citation markers unresolved, "
+                    f"{reference_linkage.doi_verified_reference_count} linked references resolved through Crossref, and "
+                    f"{reference_linkage.doi_metadata_review_count} resolved DOI records have author/year metadata differences"
                     if reference_linkage is not None
                     else "no bibliography was supplied for citation-to-reference linkage"
                 )
@@ -288,16 +291,25 @@ async def analyze_revision(
         )
         actions = [linkage_action, *actions]
 
+    if reference_linkage is not None and reference_linkage.doi_metadata_review_count > 0:
+        actions = [
+            (
+                f"Review {reference_linkage.doi_metadata_review_count} DOI-linked reference"
+                f"{'s' if reference_linkage.doi_metadata_review_count != 1 else ''} whose Crossref author/year metadata differs from the supplied bibliography entry."
+            ),
+            *actions,
+        ]
+
     if reference_linkage is not None:
-        linked_without_external_verification = sum(
+        linked_without_clean_external_verification = sum(
             1
             for link in reference_linkage.links
             for reference in link.references
-            if reference.verification_status not in {"verified_doi"}
+            if reference.verification_status != "verified_doi"
         )
-        if linked_without_external_verification > 0:
+        if linked_without_clean_external_verification > 0:
             actions.append(
-                "Run Reference Audit for linked references that do not yet have verified DOI metadata; local linkage alone does not establish that a source record is correct."
+                "Run Reference Audit for linked references that do not yet have clean DOI metadata verification; local linkage or a metadata-review state does not establish that a source record is correct."
             )
 
     actions = list(dict.fromkeys(actions))[:6]
@@ -339,7 +351,7 @@ async def analyze_revision(
             "authorship. Averis reports these as review signals only. Semantic scores are retrieval evidence, not a "
             "plagiarism verdict; uncalibrated semantic scores do not change review bands. Citation proximity and local "
             "bibliography linkage do not prove that a citation supports a passage. Crossref DOI verification confirms "
-            "source metadata, not whether the student's use of that source is academically appropriate. Human review, "
-            "citation context, and the relevant institution's rules still apply."
+            "a source record exists; author/year differences are surfaced separately and still require review. Human "
+            "review, citation context, and the relevant institution's rules still apply."
         ),
     )
