@@ -40,11 +40,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Install Ollama
-        run: curl -fsSL https://ollama.com/install.sh | sh
-      - name: Start Ollama
         run: |
-          nohup ollama serve > /tmp/ollama.log 2>&1 &
-          echo $! > /tmp/ollama.pid
+          set -o pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+      - name: Ensure Ollama is reachable
+        run: |
+          if ! curl --fail --silent http://127.0.0.1:11434/api/tags > /tmp/ollama-tags.json; then
+            nohup ollama serve > /tmp/ollama.log 2>&1 &
+            echo $! > /tmp/ollama.pid
+          fi
           for attempt in {1..60}; do
             if curl --fail --silent http://127.0.0.1:11434/api/tags > /tmp/ollama-tags.json; then
               cat /tmp/ollama-tags.json
@@ -52,21 +56,32 @@ jobs:
             fi
             sleep 1
           done
-          cat /tmp/ollama.log
+          cat /tmp/ollama.log 2>/dev/null || true
           exit 1
       - name: Pull open-source embedding model
         run: ollama pull nomic-embed-text
       - name: Certify embedding runtime
         run: |
+          set -o pipefail
           mkdir -p ../../artifacts
-          python scripts/certify_ollama.py \
+          python -m scripts.certify_ollama \
             --base-url http://127.0.0.1:11434 \
             --embedding-model nomic-embed-text \
             --timeout 45 \
             | tee ../../artifacts/ollama-runtime-certification.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          artifact = Path("../../artifacts/ollama-runtime-certification.json")
+          payload = json.loads(artifact.read_text(encoding="utf-8"))
+          if payload.get("ok") is not True:
+              raise SystemExit("runtime certification artifact did not report ok=true")
+          print("runtime certification artifact validated: ok=true")
+          PY
       - name: Show Ollama log on failure
         if: failure()
-        run: cat /tmp/ollama.log || true
+        run: cat /tmp/ollama.log 2>/dev/null || true
       - name: Upload runtime evidence
         if: always()
         uses: actions/upload-artifact@v4
