@@ -9,6 +9,12 @@ This file is the high-fidelity visual companion to the Averis 2.0 product archit
 ### Foundation
 - Design System
 
+### Public and authentication
+- Landing
+- Sign In
+- Sign Up
+- Mobile Sign In
+
 ### Desktop core flow
 - Dashboard
 - New Review
@@ -36,11 +42,19 @@ Averis 2.0 uses a dark ink foundation, restrained cyan/teal accent, compact ente
 
 The visual goal is not to make the existing beta prettier. It is to make Averis read as professional academic-integrity and research software that could credibly be adopted by students, researchers, and institutions.
 
+The signed-out marketing/authentication experience is intentionally separated from the authenticated application shell. Marketing can use larger editorial typography and product explanation; authenticated screens remain compact, task-oriented, and evidence-dense.
+
 ## Core product principle
 
 **Evidence over accusations.**
 
 The UI should show the passage, source, provenance, confidence, controls, and next review action without presenting an automatic misconduct verdict.
+
+## Public journey represented in Figma
+
+1. Landing
+2. Sign In / Sign Up
+3. Enter private workspace
 
 ## Core desktop journey represented in Figma
 
@@ -56,23 +70,25 @@ The UI should show the passage, source, provenance, confidence, controls, and ne
 
 ## Mobile journey represented in Figma
 
-1. Dashboard
-2. New Review
-3. Results Summary
-4. Evidence Viewer
+1. Sign In
+2. Dashboard
+3. New Review
+4. Results Summary
+5. Evidence Viewer
 
 ## Implementation order
 
 1. Design tokens and application shell
-2. Authenticated dashboard
-3. New Review flow
-4. Processing state
-5. Review Results
-6. Evidence Viewer
-7. Source Intelligence
-8. Citation Intelligence
-9. History / Privacy / Settings / Help
-10. Mobile shell and mobile review/evidence flow
+2. Public/auth shell separation
+3. Authenticated dashboard
+4. New Review flow
+5. Processing state
+6. Review Results
+7. Evidence Viewer
+8. Source Intelligence
+9. Citation Intelligence
+10. History / Privacy / Settings / Help
+11. Mobile shell and mobile review/evidence flow
 
 ## Safety / scope boundary
 
