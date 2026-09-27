@@ -26,6 +26,7 @@ type LinkedReference = {
   year: string | null;
   author_key: string | null;
   verification_status: string;
+  verification_issues: string[];
   verified_title: string | null;
   verified_doi: string | null;
   verified_year: number | null;
@@ -80,6 +81,7 @@ type RevisionReport = {
     linked_passage_count: number;
     unlinked_citation_count: number;
     doi_verified_reference_count: number;
+    doi_metadata_review_count: number;
     verification_unavailable_count: number;
     links: CitationReferenceLink[];
     scope_note: string;
@@ -103,6 +105,7 @@ function toneClass(band: string) {
 
 function verificationLabel(status: string) {
   if (status === "verified_doi") return "DOI VERIFIED";
+  if (status === "verified_doi_metadata_review") return "DOI METADATA REVIEW";
   if (status === "doi_not_found") return "DOI NOT FOUND";
   if (status === "verification_unavailable") return "VERIFY RETRY";
   if (status === "not_checked_limit") return "NOT CHECKED";
@@ -302,13 +305,15 @@ export default function RevisionPage() {
             <section className={styles.panel}>
               <div className={styles.sectionTitle}>
                 <div><p className={styles.eyebrow}>REFERENCE LINKAGE</p><h2>Does the nearby citation map to an actual bibliography entry?</h2></div>
-                <span className={styles.safeChip}>{report.reference_linkage.unlinked_citation_count > 0 ? "CHECK LINKS" : "BIBLIOGRAPHY LINKED"}</span>
+                <span className={styles.safeChip}>{report.reference_linkage.unlinked_citation_count > 0 || report.reference_linkage.doi_metadata_review_count > 0 ? "CHECK LINKS" : "BIBLIOGRAPHY LINKED"}</span>
               </div>
               <div className={styles.metricGrid}>
                 <div><span>REFERENCES SUPPLIED</span><strong>{report.reference_linkage.supplied_reference_count}</strong><small>parsed bibliography entries</small></div>
                 <div><span>PASSAGES LINKED</span><strong>{report.reference_linkage.linked_passage_count}</strong><small>citation marker → reference</small></div>
                 <div><span>UNRESOLVED MARKERS</span><strong>{report.reference_linkage.unlinked_citation_count}</strong><small>marker not mapped to bibliography</small></div>
-                <div><span>DOI VERIFIED</span><strong>{report.reference_linkage.doi_verified_reference_count}</strong><small>Crossref metadata confirmed</small></div>
+                <div><span>DOI RESOLVED</span><strong>{report.reference_linkage.doi_verified_reference_count}</strong><small>Crossref record found</small></div>
+                <div><span>METADATA REVIEW</span><strong>{report.reference_linkage.doi_metadata_review_count}</strong><small>author/year mismatch after DOI resolve</small></div>
+                <div><span>VERIFY RETRY</span><strong>{report.reference_linkage.verification_unavailable_count}</strong><small>Crossref temporarily unavailable</small></div>
               </div>
               <div className={styles.matches}>
                 {report.reference_linkage.links.filter((item) => item.citation_marker).slice(0, 6).map((item, index) => (
@@ -323,6 +328,7 @@ export default function RevisionPage() {
                         <span>REFERENCE {reference.index} · {verificationLabel(reference.verification_status)}</span>
                         <p>{reference.raw}</p>
                         {reference.verified_title && <small>Crossref: {reference.verified_title}{reference.verified_year ? ` · ${reference.verified_year}` : ""}{reference.verified_doi ? ` · ${reference.verified_doi}` : ""}</small>}
+                        {reference.verification_issues.length > 0 && <small>Review: {reference.verification_issues.map((issue) => issue.replaceAll("_", " ")).join(" · ")}</small>}
                       </div>
                     )) : <small>No supplied bibliography entry matched this marker.</small>}
                   </article>
