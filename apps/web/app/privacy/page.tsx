@@ -57,8 +57,11 @@ export default function PrivacyPage() {
     try {
       const { data, error: rpcError } = await supabase.rpc("export_my_account_data");
       if (rpcError) throw rpcError;
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("Averis returned an invalid account-export payload.");
+      }
 
-      const payload = data as ExportPayload;
+      const payload = data as unknown as ExportPayload;
       const blob = new Blob([`${JSON.stringify(payload, null, 2)}\n`], {
         type: "application/json;charset=utf-8",
       });
