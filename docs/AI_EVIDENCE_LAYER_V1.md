@@ -19,7 +19,8 @@ The revision endpoint reports independent, explainable metrics instead of one op
 - fuzzy sentence/passage strength;
 - MinHash candidate score;
 - lexical feature-vector candidate score;
-- optional semantic cosine similarity from a local Ollama embedding model;
+- optional whole-text semantic cosine similarity from a local Ollama embedding model;
+- optional sentence-level semantic paraphrase candidates using the same local embedding model;
 - lexical diversity;
 - sentence-length coefficient of variation;
 - repeated-trigram ratio;
@@ -32,6 +33,23 @@ Source-overlap metrics are evidence about text relationship. Writing-style metri
 The first provider is local Ollama. `OLLAMA_EMBEDDING_MODEL` defaults to `nomic-embed-text`, while the existing `OLLAMA_MODEL` remains available for a short, grounded coaching explanation.
 
 `AI_REVISION_ENABLED=false` by default. When disabled or when Ollama is unavailable, the endpoint still returns deterministic metrics and rule-based revision actions. This keeps the certified exact/fuzzy path available and avoids making the product dependent on an AI runtime.
+
+Sentence-level semantic reranking is intentionally bounded to a small number of eligible sentences so it can fail open on low-resource infrastructure. The deterministic exact/fuzzy evidence path still analyzes the complete supplied text.
+
+## Detector-quality gate
+
+Averis does not convert the writing-uniformity signal into an "AI probability." Before any future authorship detector can be described as a detector, it must be measured on a labeled, held-out benchmark containing both human and generated samples.
+
+The repository includes a provider-agnostic benchmark harness that reports:
+
+- ROC AUC;
+- equal error rate (EER);
+- true-positive rate at 1% false-positive rate;
+- true-positive rate at 5% false-positive rate;
+- true-positive rate at 10% false-positive rate;
+- positive/negative sample counts.
+
+A detector model must publish its benchmark source, model/version, thresholds, sample composition, language/domain limitations, and false-positive performance before it can influence product decisions. Per-document output must still be presented as uncertain evidence rather than proof of authorship.
 
 ## Safety and academic-integrity boundary
 
