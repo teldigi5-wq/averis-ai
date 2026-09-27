@@ -1,0 +1,616 @@
+/* Averis auth/landing experience v1 — presentation and feedback only.
+ * No authentication, credit, scoring, retention, API or Supabase policy changes.
+ */
+
+/* Signed-out landing motion and section hierarchy */
+main:not(:has(.topActions .ghostButton)) > .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+main:not(:has(.topActions .ghostButton)) > .hero::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  width: min(620px, 48vw);
+  aspect-ratio: 1;
+  right: -8%;
+  top: -36%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(87, 230, 213, .11), rgba(72, 126, 235, .065) 38%, transparent 70%);
+  filter: blur(18px);
+  pointer-events: none;
+  animation: averisAmbientDrift 9s ease-in-out infinite alternate;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroCopy > * {
+  animation: averisHeroReveal .72s cubic-bezier(.2,.8,.2,1) both;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroCopy > :nth-child(1) { animation-delay: .04s; }
+main:not(:has(.topActions .ghostButton)) .heroCopy > :nth-child(2) { animation-delay: .10s; }
+main:not(:has(.topActions .ghostButton)) .heroCopy > :nth-child(3) { animation-delay: .18s; }
+main:not(:has(.topActions .ghostButton)) .heroCopy > :nth-child(4) { animation-delay: .26s; }
+
+main:not(:has(.topActions .ghostButton)) .hero h1 span {
+  position: relative;
+  filter: drop-shadow(0 0 24px rgba(87, 230, 213, .16));
+}
+
+main:not(:has(.topActions .ghostButton)) .heroProof span {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(130, 184, 216, .14);
+  background: linear-gradient(180deg, rgba(17, 34, 51, .58), rgba(6, 17, 28, .62));
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+  transition: transform .2s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroProof span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 18%, rgba(255,255,255,.075) 46%, transparent 72%);
+  transform: translateX(-120%);
+  transition: transform .55s ease;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroProof span:hover {
+  transform: translateY(-3px);
+  border-color: rgba(87, 230, 213, .27);
+  background: rgba(87, 230, 213, .045);
+  box-shadow: 0 12px 30px rgba(0,0,0,.16), 0 0 0 1px rgba(87,230,213,.025);
+}
+
+main:not(:has(.topActions .ghostButton)) .heroProof span:hover::after {
+  transform: translateX(120%);
+}
+
+/* Selected brand lockup becomes a restrained 3D product object. */
+main:not(:has(.topActions .ghostButton)) .heroOrb {
+  position: relative;
+  transform: perspective(1050px) rotateY(-5deg) rotateX(2deg) translateZ(0);
+  transform-origin: center;
+  filter: drop-shadow(0 26px 38px rgba(0,0,0,.22)) drop-shadow(0 0 30px rgba(67, 177, 229, .07));
+  animation: averisLogoFloat 6.4s ease-in-out infinite;
+  transition: transform .45s cubic-bezier(.2,.8,.2,1), filter .45s ease;
+}
+
+main:not(:has(.topActions .ghostButton)) .heroOrb:hover {
+  transform: perspective(1050px) rotateY(1deg) rotateX(-1deg) translateY(-5px) scale(1.015);
+  filter: drop-shadow(0 34px 52px rgba(0,0,0,.28)) drop-shadow(0 0 38px rgba(87, 230, 213, .13));
+}
+
+/* Free-beta and auth cards should feel like a single product entry surface. */
+main:not(:has(.topActions .ghostButton)) .accountGrid {
+  position: relative;
+  gap: 20px;
+  perspective: 1200px;
+}
+
+main:not(:has(.topActions .ghostButton)) .accountGrid::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: 24px;
+  background: linear-gradient(115deg, rgba(87,230,213,.045), transparent 38%, rgba(123,163,255,.035));
+  pointer-events: none;
+}
+
+main:not(:has(.topActions .ghostButton)) .accountIntro,
+main:not(:has(.topActions .ghostButton)) .authPanel {
+  border-radius: 20px;
+  border-color: rgba(132, 182, 216, .145);
+  background: linear-gradient(160deg, rgba(13, 29, 44, .94), rgba(7, 18, 29, .96));
+  box-shadow: inset 0 1px rgba(255,255,255,.035), 0 28px 70px rgba(0,0,0,.20);
+}
+
+main:not(:has(.topActions .ghostButton)) .accountIntro {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 3vw, 34px);
+}
+
+main:not(:has(.topActions .ghostButton)) .accountIntro::after {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -120px;
+  bottom: -150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(87,230,213,.10), transparent 68%);
+  pointer-events: none;
+}
+
+main:not(:has(.topActions .ghostButton)) .accountIntro h2 {
+  max-width: 720px;
+  font-size: clamp(36px, 4vw, 56px);
+  line-height: 1.01;
+  letter-spacing: -.052em;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList span {
+  position: relative;
+  padding: 11px 12px 11px 33px;
+  border: 1px solid rgba(132,182,216,.09);
+  border-radius: 10px;
+  background: rgba(255,255,255,.018);
+  color: #aac0cd;
+  line-height: 1.45;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList span::before {
+  content: "✓";
+  position: absolute;
+  left: 11px;
+  top: 10px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(87,230,213,.10);
+  color: #82e6db;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList span {
+  font-size: 0;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList span::after {
+  font-size: 10px;
+}
+
+main:not(:has(.topActions .ghostButton)) .trustList span:nth-child(1)::after { content: "No card required"; }
+main:not(:has(.topActions .ghostButton)) .trustList span:nth-child(2)::after { content: "Original upload is not retained"; }
+main:not(:has(.topActions .ghostButton)) .trustList span:nth-child(3)::after { content: "Source tools use no scan credit"; }
+main:not(:has(.topActions .ghostButton)) .trustList span:nth-child(4)::after { content: "Evidence supports human review"; }
+
+/* Premium auth card */
+.authPanel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 100%;
+  transform-style: preserve-3d;
+  transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease;
+}
+
+.authPanel::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -45% 42% 40% -25%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(87,230,213,.11), rgba(123,163,255,.035) 44%, transparent 72%);
+  filter: blur(10px);
+  pointer-events: none;
+  animation: averisAuthGlow 7s ease-in-out infinite alternate;
+}
+
+.authPanel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  width: 76%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(154,255,243,.55), transparent);
+  opacity: .48;
+  pointer-events: none;
+}
+
+.authPanel:hover {
+  transform: perspective(1100px) translateY(-2px) rotateX(.4deg);
+  border-color: rgba(87,230,213,.20) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.045), 0 34px 80px rgba(0,0,0,.24), 0 0 48px rgba(66,163,205,.035) !important;
+}
+
+.authTabs {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(132,182,216,.12);
+  background: rgba(2, 10, 18, .42) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.02);
+}
+
+.authTabs::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 5px;
+  top: 5px;
+  bottom: 5px;
+  width: calc(50% - 7.5px);
+  border-radius: 9px;
+  background: linear-gradient(135deg, #9ff5ed, #62d3ca 68%, #74b9dc);
+  box-shadow: 0 10px 24px rgba(48, 189, 177, .12), inset 0 1px rgba(255,255,255,.48);
+  transition: transform .32s cubic-bezier(.2,.8,.2,1);
+}
+
+.authTabs:has(.authTab:nth-child(2).active)::before {
+  transform: translateX(calc(100% + 5px));
+}
+
+button.authTab,
+button.authTab.active {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: color .24s ease, transform .24s ease;
+}
+
+button.authTab.active {
+  color: #041a1b !important;
+}
+
+button.authTab:not(.active):hover {
+  color: #d8e7ef;
+  transform: translateY(-1px);
+}
+
+.authForm {
+  gap: 14px;
+}
+
+.authForm label {
+  position: relative;
+}
+
+.authForm label > span {
+  transition: color .18s ease, transform .18s ease;
+}
+
+.authForm label:focus-within > span {
+  color: #91e7de;
+  transform: translateX(2px);
+}
+
+.authForm input {
+  min-height: 54px;
+  border-radius: 12px;
+  border-color: rgba(132,182,216,.14);
+  background: rgba(3, 13, 22, .52);
+  box-shadow: inset 0 1px rgba(255,255,255,.018);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.authForm input:hover {
+  border-color: rgba(132,182,216,.23);
+}
+
+.authForm input:focus {
+  transform: translateY(-1px);
+  border-color: rgba(87,230,213,.48);
+  background: rgba(5, 19, 30, .75);
+  box-shadow: 0 0 0 3px rgba(87,230,213,.055), 0 10px 26px rgba(0,0,0,.10);
+}
+
+.authForm input:valid:not(:placeholder-shown) {
+  border-color: rgba(112, 237, 189, .26);
+}
+
+.authForm input:invalid:not(:focus):not(:placeholder-shown) {
+  border-color: rgba(255, 126, 143, .32);
+}
+
+.authForm > button[type="submit"] {
+  position: relative;
+  overflow: hidden;
+  min-height: 50px;
+  margin-top: 3px;
+  border: 1px solid rgba(181,255,247,.18);
+  background: linear-gradient(135deg, #a5fff3 0%, #65d6cc 48%, #75b9e3 100%);
+  box-shadow: 0 16px 32px rgba(32, 169, 159, .11), inset 0 1px rgba(255,255,255,.55);
+}
+
+.authForm > button[type="submit"]::after {
+  content: "";
+  position: absolute;
+  inset: -80% -25%;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.32) 49%, transparent 63%);
+  transform: translateX(-65%);
+  transition: transform .58s ease;
+}
+
+.authForm > button[type="submit"]:hover:not(:disabled)::after {
+  transform: translateX(65%);
+}
+
+.authForm > button[type="submit"]:active:not(:disabled) {
+  transform: translateY(1px) scale(.995);
+}
+
+.authPanel[data-auth-state="submitting"] {
+  border-color: rgba(87,230,213,.24) !important;
+}
+
+.authPanel[data-auth-state="submitting"] .authForm {
+  opacity: .74;
+}
+
+.authPanel[data-auth-state="error"] {
+  border-color: rgba(255,126,143,.32) !important;
+  animation: averisAuthShake .34s ease;
+}
+
+.authFeedback {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 11px 12px;
+  border-radius: 11px;
+  border: 1px solid rgba(132,182,216,.12);
+  background: rgba(5, 16, 26, .74);
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+  animation: averisFeedbackIn .26s ease both;
+}
+
+.authFeedbackIcon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(87,230,213,.075);
+  color: #8ce8de;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.authFeedback > span:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.authFeedback strong {
+  color: #dcebf2;
+  font-size: 10px;
+}
+
+.authFeedback small {
+  color: #869eac;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.authFeedback-error {
+  border-color: rgba(255,126,143,.22);
+  background: rgba(255,126,143,.045);
+}
+
+.authFeedback-error .authFeedbackIcon {
+  color: #ffc0ca;
+  background: rgba(255,126,143,.10);
+}
+
+.authFeedback-notice {
+  border-color: rgba(112,237,189,.19);
+  background: rgba(112,237,189,.035);
+}
+
+.authSpinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(140,232,222,.22);
+  border-top-color: #8ce8de;
+  border-radius: 50%;
+  animation: averisSpin .7s linear infinite;
+}
+
+/* Successful sign-in handoff */
+.authSuccessTransition {
+  position: fixed;
+  z-index: 999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(87,230,213,.12), transparent 32%),
+    rgba(4, 12, 20, .84);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+  animation: averisSuccessBackdrop .26s ease both;
+}
+
+.authSuccessCard {
+  width: min(420px, 92vw);
+  padding: 34px 30px;
+  border: 1px solid rgba(87,230,213,.22);
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(14,31,46,.97), rgba(5,16,26,.98));
+  box-shadow: 0 35px 90px rgba(0,0,0,.32), 0 0 70px rgba(87,230,213,.06), inset 0 1px rgba(255,255,255,.04);
+  text-align: center;
+  animation: averisSuccessCard .52s cubic-bezier(.17,.84,.32,1.2) both;
+}
+
+.authSuccessMark {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  border: 1px solid rgba(151,255,244,.24);
+  background: linear-gradient(145deg, rgba(107,224,212,.22), rgba(103,170,225,.11));
+  color: #a8fff3;
+  font-size: 24px;
+  font-weight: 950;
+  box-shadow: 0 0 34px rgba(87,230,213,.11);
+}
+
+.authSuccessCard p {
+  margin: 0 0 7px;
+  color: #71ddd4;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .18em;
+}
+
+.authSuccessCard h2 {
+  margin: 0 0 9px;
+  color: #f2fbff;
+  font-size: 30px;
+  letter-spacing: -.04em;
+}
+
+.authSuccessCard > span:last-child {
+  color: #94aab7;
+  font-size: 11px;
+}
+
+/* Signed-in workspace arrives softly after authentication. */
+main:has(.topActions .ghostButton) .productShell {
+  animation: averisWorkspaceIn .55s cubic-bezier(.2,.8,.2,1) both;
+}
+
+/* Toast-like notices/errors everywhere, with stronger auth-safe motion language. */
+.notice,
+.error {
+  animation: averisFeedbackIn .28s ease both;
+}
+
+.error {
+  box-shadow: inset 3px 0 rgba(255,126,143,.56);
+}
+
+.notice {
+  box-shadow: inset 3px 0 rgba(112,237,189,.48);
+}
+
+@keyframes averisHeroReveal {
+  from { opacity: 0; transform: translateY(14px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes averisAmbientDrift {
+  from { transform: translate3d(-10px, 4px, 0) scale(.96); opacity: .72; }
+  to { transform: translate3d(20px, -12px, 0) scale(1.06); opacity: 1; }
+}
+
+@keyframes averisLogoFloat {
+  0%, 100% { transform: perspective(1050px) rotateY(-5deg) rotateX(2deg) translateY(0); }
+  50% { transform: perspective(1050px) rotateY(-3deg) rotateX(1deg) translateY(-7px); }
+}
+
+@keyframes averisAuthGlow {
+  from { transform: translate3d(-12px, -8px, 0) scale(.95); opacity: .72; }
+  to { transform: translate3d(20px, 12px, 0) scale(1.08); opacity: 1; }
+}
+
+@keyframes averisAuthShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+
+@keyframes averisFeedbackIn {
+  from { opacity: 0; transform: translateY(-6px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes averisSuccessBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes averisSuccessCard {
+  from { opacity: 0; transform: translateY(16px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes averisWorkspaceIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes averisSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+  main:not(:has(.topActions .ghostButton)) .accountGrid {
+    gap: 14px;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .trustList {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .heroOrb {
+    transform: none;
+    animation: averisLogoFloatMobile 6.4s ease-in-out infinite;
+  }
+}
+
+@media (max-width: 620px) {
+  main:not(:has(.topActions .ghostButton)) .trustList {
+    grid-template-columns: 1fr;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .accountIntro,
+  main:not(:has(.topActions .ghostButton)) .authPanel {
+    border-radius: 16px;
+  }
+
+  .authPanel:hover {
+    transform: none;
+  }
+
+  .authSuccessCard {
+    padding: 28px 22px;
+    border-radius: 17px;
+  }
+
+  .authSuccessCard h2 {
+    font-size: 26px;
+  }
+}
+
+@keyframes averisLogoFloatMobile {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main:not(:has(.topActions .ghostButton)) .heroCopy > *,
+  main:not(:has(.topActions .ghostButton)) .hero::before,
+  main:not(:has(.topActions .ghostButton)) .heroOrb,
+  .authPanel::before,
+  .authPanel[data-auth-state="error"],
+  .authFeedback,
+  .authSpinner,
+  .authSuccessTransition,
+  .authSuccessCard,
+  main:has(.topActions .ghostButton) .productShell,
+  .notice,
+  .error {
+    animation: none !important;
+  }
+
+  main:not(:has(.topActions .ghostButton)) .heroProof span,
+  main:not(:has(.topActions .ghostButton)) .heroProof span::after,
+  .authPanel,
+  .authTabs::before,
+  .authForm input,
+  .authForm > button[type="submit"]::after {
+    transition: none !important;
+  }
+}
