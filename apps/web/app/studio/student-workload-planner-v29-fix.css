@@ -2,7 +2,11 @@
   position: fixed;
   z-index: 88;
   right: max(22px, calc((100vw - 1500px) / 2 + 22px));
+  left: auto !important;
   top: 156px;
+  width: max-content !important;
+  max-width: min(240px, calc(100vw - 44px));
+  flex: 0 0 auto !important;
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   gap: 9px;
@@ -63,16 +67,17 @@
   .studioV29PlannerLauncher {
     top: auto;
     right: 18px;
-    bottom: 18px;
+    bottom: 92px;
   }
 }
 
 @media (max-width: 760px) {
   .studioV29PlannerLauncher {
     right: 12px;
-    bottom: 12px;
+    bottom: 84px;
     min-width: 0;
-    width: auto;
+    width: max-content !important;
+    max-width: calc(100vw - 24px);
     grid-template-columns: 30px auto;
     min-height: 48px;
     border-radius: 14px;
