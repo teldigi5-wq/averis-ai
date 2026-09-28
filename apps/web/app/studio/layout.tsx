@@ -3,9 +3,12 @@ import type { ReactNode } from "react";
 import AssignmentRubricBridgeV33 from "./AssignmentRubricBridgeV33";
 import AssignmentStructureBridgeV34 from "./AssignmentStructureBridgeV34";
 import StructureReadinessBridgeV34 from "./StructureReadinessBridgeV34";
+import WorkspaceContextBridgeV35 from "./WorkspaceContextBridgeV35";
 import StudioAiRuntimeBridge from "./StudioAiRuntimeBridge";
+import StudioAssignmentWorkspaceV35 from "./StudioAssignmentWorkspaceV35";
 import StudioCommandAccessibilityV29 from "./StudioCommandAccessibilityV29";
 import StudioCommandCenterV27 from "./StudioCommandCenterV27";
+import StudioWorkspaceLauncherV35 from "./StudioWorkspaceLauncherV35";
 import StudioPlannerLauncherV29 from "./StudioPlannerLauncherV29";
 import StudioReferenceLauncherV30 from "./StudioReferenceLauncherV30";
 import StudioReadinessLauncherV31 from "./StudioReadinessLauncherV31";
@@ -25,6 +28,8 @@ import "./submission-readiness-center-v31.css";
 import "./document-quality-center-v32.css";
 import "./rubric-claim-coverage-v33.css";
 import "./academic-structure-coach-v34.css";
+import "./assignment-workspace-v35.css";
+import "./assignment-workspace-launcher-v35.css";
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
@@ -33,8 +38,11 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
         <AssignmentRubricBridgeV33 />
         <AssignmentStructureBridgeV34 />
         <StructureReadinessBridgeV34 />
+        <WorkspaceContextBridgeV35 />
+        <StudioAssignmentWorkspaceV35 />
         <StudioCommandCenterV27 />
         <StudioCommandAccessibilityV29 />
+        <StudioWorkspaceLauncherV35 />
         <div className="studioV30UtilityDock" aria-label="Student productivity tools">
           <StudioPlannerLauncherV29 />
           <StudioReferenceLauncherV30 />
