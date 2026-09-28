@@ -15,6 +15,7 @@ const routes = [
   { name: "revision", path: "/revision/" },
   { name: "refine", path: "/refine/" },
   { name: "studio", path: "/studio/", studio: true },
+  { name: "private-ai", path: "/private-ai/" },
   { name: "privacy", path: "/privacy/" },
 ];
 
@@ -154,7 +155,7 @@ await fs.mkdir(artifactDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const report = {
-  schema_version: "averis.web-quality/v4",
+  schema_version: "averis.web-quality/v5",
   base_url: baseUrl,
   generated_at: new Date().toISOString(),
   checks: [],
