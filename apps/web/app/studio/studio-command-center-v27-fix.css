@@ -1,4 +1,4 @@
-/* v27 mobile certification fix: override inherited full-width button sizing inside the phase scroller. */
+/* v27 mobile certification fixes: keep the horizontal phase navigator compact and the next action readable. */
 @media (max-width: 760px) {
   .studioV27Command__phases {
     align-items: stretch;
@@ -20,5 +20,10 @@
   .studioV27Command__phase strong,
   .studioV27Command__phase small {
     max-width: 68px;
+  }
+
+  .studioV27Command__actions .studioV27Command__primary {
+    min-width: 136px;
+    max-width: 148px;
   }
 }
