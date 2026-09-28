@@ -180,6 +180,57 @@
   transition: width .18s ease;
 }
 
+.consent {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid rgba(244, 188, 83, .18);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(73, 48, 10, .16), rgba(5, 18, 30, .86));
+  color: #9eb1bd;
+  cursor: pointer;
+}
+
+.consent input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  flex: 0 0 16px;
+  accent-color: #2fd8e6;
+}
+
+.consent span,
+.consent b,
+.consent small {
+  display: block;
+}
+
+.consent b {
+  color: #f4f9fb;
+  font-size: 10px;
+  letter-spacing: .01em;
+}
+
+.consent small {
+  margin-top: 4px;
+  color: #859eac;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.consent:has(input:checked) {
+  border-color: rgba(69, 213, 221, .2);
+  background: linear-gradient(145deg, rgba(18, 113, 127, .13), rgba(5, 18, 30, .88));
+}
+
+.consent:focus-within {
+  outline: 2px solid rgba(109, 232, 237, .7);
+  outline-offset: 2px;
+}
+
 .runtimeBoundary {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto 12px;
@@ -208,7 +259,8 @@
 
 @media (max-width: 680px) {
   .runtimeBar,
-  .runtimeBoundary {
+  .runtimeBoundary,
+  .consent {
     width: calc(100% - 20px);
   }
 
@@ -231,6 +283,10 @@
 
   .runtimeChoices button {
     min-height: 68px;
+  }
+
+  .consent {
+    border-radius: 12px;
   }
 
   .runtimeBoundary {
