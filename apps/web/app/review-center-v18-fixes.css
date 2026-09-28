@@ -22,6 +22,29 @@ html[data-averis-review-center="true"] .reviewCenterShell {
     width: calc(100% - 24px) !important;
   }
 
+  html[data-averis-review-center="true"] .reviewCommandBar {
+    gap: 10px !important;
+  }
+
+  /* Keep the mobile command bar compact while preserving the full accessible label. */
+  html[data-averis-review-center="true"] .reviewCommandActions button {
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    padding-inline: 0 !important;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0 !important;
+    white-space: nowrap;
+  }
+
+  html[data-averis-review-center="true"] .reviewCommandActions button::after {
+    content: "Scan";
+    color: #eaf9ff;
+    font-size: 10px;
+    font-weight: 760;
+  }
+
   .reviewHistoryTable {
     width: 100%;
     max-width: 100%;
@@ -42,6 +65,17 @@ html[data-averis-review-center="true"] .reviewCenterShell {
     clip-path: inset(50%) !important;
     white-space: nowrap !important;
     border: 0 !important;
+  }
+
+  .reviewHistoryHeader > span {
+    position: absolute !important;
+    width: 1px !important;
+    min-width: 0 !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
   }
 
   .reviewHistoryRow:not(.reviewHistoryHeader) {
