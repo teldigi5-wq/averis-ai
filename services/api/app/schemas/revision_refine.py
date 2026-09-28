@@ -15,6 +15,7 @@ class RevisionRefineRequest(BaseModel):
     source_text: str | None = Field(default=None, max_length=40_000)
     source_name: str = Field(default="Comparison source", min_length=1, max_length=250)
     strength: Literal["light", "balanced"] = "balanced"
+    runtime: Literal["ollama", "cloud"] = "ollama"
 
 
 class RefinementSourceEvidence(BaseModel):
@@ -32,6 +33,9 @@ class RefinementPreservationReport(BaseModel):
     numbers_before: list[str] = Field(default_factory=list)
     numbers_after: list[str] = Field(default_factory=list)
     missing_numbers: list[str] = Field(default_factory=list)
+    dois_before: list[str] = Field(default_factory=list)
+    dois_after: list[str] = Field(default_factory=list)
+    missing_dois: list[str] = Field(default_factory=list)
     length_change_percent: float
     acceptance_eligible: bool
 
@@ -43,6 +47,7 @@ class RevisionRefineResponse(BaseModel):
     blocked_reason: str | None = None
     original_text: str
     suggested_text: str | None = None
+    runtime: Literal["ollama", "cloud"] | None = None
     preservation: RefinementPreservationReport | None = None
     source_evidence_before: RefinementSourceEvidence | None = None
     source_evidence_after: RefinementSourceEvidence | None = None
@@ -51,4 +56,4 @@ class RevisionRefineResponse(BaseModel):
         "It is not designed to hide AI use, lower detector scores or bypass academic-integrity systems. "
         "Review every suggestion and re-run evidence before accepting it."
     )
-    evidence_version: str = "writing-refinement-v1"
+    evidence_version: str = "writing-refinement-v2"
