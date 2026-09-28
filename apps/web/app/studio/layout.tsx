@@ -7,6 +7,7 @@ import StudioPlannerLauncherV29 from "./StudioPlannerLauncherV29";
 import StudioReferenceLauncherV30 from "./StudioReferenceLauncherV30";
 import StudioReadinessLauncherV31 from "./StudioReadinessLauncherV31";
 import StudioDocumentQualityLauncherV32 from "./StudioDocumentQualityLauncherV32";
+import StudioRubricCoverageLauncherV33 from "./StudioRubricCoverageLauncherV33";
 import "./studio-unified-v25.css";
 import "./studio-unified-v25-fix.css";
 import "./studio-command-center-v27.css";
@@ -18,6 +19,7 @@ import "./citation-reference-assistant-v30.css";
 import "./citation-reference-assistant-v30-fix.css";
 import "./submission-readiness-center-v31.css";
 import "./document-quality-center-v32.css";
+import "./rubric-claim-coverage-v33.css";
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
@@ -30,6 +32,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
           <StudioReferenceLauncherV30 />
           <StudioReadinessLauncherV31 />
           <StudioDocumentQualityLauncherV32 />
+          <StudioRubricCoverageLauncherV33 />
         </div>
         {children}
       </StudioAiRuntimeBridge>
