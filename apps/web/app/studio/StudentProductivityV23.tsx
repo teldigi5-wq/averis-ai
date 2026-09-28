@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import SimilarityCitationReadinessV24 from "./SimilarityCitationReadinessV24";
+import SourceCitationWorkbenchV26 from "./SourceCitationWorkbenchV26";
 import styles from "./student-productivity-v23.module.css";
 
 const AUTHOR_YEAR = /\([^()]{0,90}\b(?:19|20)\d{2}[a-z]?[^()]{0,45}\)/gi;
@@ -136,6 +137,14 @@ export default function StudentProductivityV23({
         source={sourceText}
         sourceName={sourceLabel}
         proposal={proposal}
+        onStartAiReview={startSourceSafeAiReview}
+      />
+
+      <SourceCitationWorkbenchV26
+        original={original}
+        proposal={proposal}
+        source={sourceText}
+        sourceName={sourceLabel}
         onStartAiReview={startSourceSafeAiReview}
       />
 
