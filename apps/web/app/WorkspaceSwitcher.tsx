@@ -28,7 +28,7 @@ function WorkspaceIcon({ name }: { name: IconName }) {
     return <svg {...common}><path d="M6 5.5h9a3 3 0 0 1 3 3v10H9a3 3 0 0 0-3 3z" /><path d="M6 5.5a3 3 0 0 0-3 3v10h6M10 10h5M10 14h5" /></svg>;
   }
   if (name === "revision") {
-    return <svg {...common}><path d="m12 3 1.55 4.45L18 9l-4.45 1.55L12 15l-1.55-4.45L6 9l4.45-1.55z" /><path d="m18.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8zM5 15.5l.7 1.8 1.8.7-1.8.7L5 20.5l-.7-1.8-1.8-.7 1.8-.7z" /></svg>;
+    return <svg {...common}><path d="m12 3 1.55 4.45L18 9l-4.45 1.55L12 15l-1.55-4.45L6 9l4.45-1.55z" /><path d="m18.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8 2.2-2.2-.8 2.2-.8zM5 15.5l.7 1.8 1.8.7-1.8.7L5 20.5l-.7-1.8-1.8-.7 1.8-.7z" /></svg>;
   }
   if (name === "refine") {
     return <svg {...common}><path d="m4 16-1 5 5-1L20 8l-4-4L4 16Z" /><path d="m13 7 4 4M10 18h10" /></svg>;
@@ -39,17 +39,25 @@ function WorkspaceIcon({ name }: { name: IconName }) {
   return <svg {...common}><path d="M12 3 5 6v5c0 4.6 2.9 7.4 7 9 4.1-1.6 7-4.4 7-9V6z" /><path d="M9.5 11.5 11 13l3.5-3.5" /></svg>;
 }
 
+function routeLeaf(pathname: string) {
+  const clean = pathname.split(/[?#]/, 1)[0].replace(/\/+$/, "");
+  const parts = clean.split("/").filter(Boolean);
+  return parts.at(-1) ?? "";
+}
+
 export default function WorkspaceSwitcher() {
   const pathname = usePathname();
   const [ready, setReady] = useState(!supabaseConfigured);
   const [workspaceOpen, setWorkspaceOpen] = useState(!supabaseConfigured);
 
-  const multiSource = pathname === "/multi-source" || pathname.endsWith("/multi-source");
-  const revision = pathname === "/revision" || pathname.endsWith("/revision");
-  const studio = pathname === "/studio" || pathname.endsWith("/studio");
-  const refine = pathname === "/refine" || pathname.endsWith("/refine") || studio;
-  const privateAi = pathname === "/private-ai" || pathname.endsWith("/private-ai");
-  const privacy = pathname === "/privacy" || pathname.endsWith("/privacy");
+  const leaf = routeLeaf(pathname);
+  const multiSource = leaf === "multi-source";
+  const revision = leaf === "revision";
+  const studio = leaf === "studio";
+  const refinePage = leaf === "refine";
+  const refine = refinePage || studio;
+  const privateAi = leaf === "private-ai";
+  const privacy = leaf === "privacy";
   const main = !multiSource && !revision && !refine && !privateAi && !privacy;
 
   useEffect(() => {
@@ -105,7 +113,7 @@ export default function WorkspaceSwitcher() {
   if (!ready || !workspaceOpen) return null;
 
   return (
-    <nav className={styles.switcher} aria-label="Averis workspace modules">
+    <nav className={styles.switcher} aria-label="Averis workspace modules" data-active-module={studio ? "studio" : leaf || "workspace"}>
       <span className={styles.railBrand} aria-hidden="true" />
       <span className={styles.railDivider} aria-hidden="true" />
       <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined} title="Review Center" onClick={reopenReviewCenter}>
@@ -120,7 +128,7 @@ export default function WorkspaceSwitcher() {
         <WorkspaceIcon name="revision" />
         <span className={styles.label}>Evidence AI</span>
       </Link>
-      <Link className={refine ? styles.active : ""} href="/refine" aria-current={refine ? "page" : undefined} title={studio ? "Revision Studio" : "Refine writing"}>
+      <Link className={refine ? styles.active : ""} href={studio ? "/studio" : "/refine"} aria-current={refine ? "page" : undefined} title={studio ? "Revision Studio" : "Refine writing"}>
         <WorkspaceIcon name="refine" />
         <span className={styles.label}>{studio ? "Studio" : "Refine"}</span>
       </Link>
