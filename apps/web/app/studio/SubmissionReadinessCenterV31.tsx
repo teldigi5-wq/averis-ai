@@ -37,8 +37,17 @@ export type CitationReadinessSignal = {
   references: number;
 };
 
+export type DocumentQualityReadinessSignal = {
+  seen: boolean;
+  score: number;
+  issues: number;
+  highAttention: number;
+  structureWarnings: number;
+  consistencyWarnings: number;
+};
+
 type LaneState = "pass" | "review" | "pending";
-type LaneId = "draft" | "assignment" | "length" | "evidence" | "proposal" | "citations" | "plan" | "final" | "manual";
+type LaneId = "draft" | "assignment" | "length" | "evidence" | "proposal" | "citations" | "document" | "plan" | "final" | "manual";
 
 type Lane = {
   id: LaneId;
@@ -56,6 +65,7 @@ type Props = {
   assignment: AssignmentReadinessSignal;
   planner: PlannerReadinessSignal;
   citation: CitationReadinessSignal;
+  document: DocumentQualityReadinessSignal;
 };
 
 const MANUAL_CHECKS = [
@@ -89,7 +99,7 @@ function downloadText(filename: string, value: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function SubmissionReadinessCenterV31({ open, onClose, onAction, studio, assignment, planner, citation }: Props) {
+export default function SubmissionReadinessCenterV31({ open, onClose, onAction, studio, assignment, planner, citation, document }: Props) {
   const [manual, setManual] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState(false);
 
@@ -120,6 +130,7 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
       : "pending";
 
     const citationPass = citation.seen && citation.score >= 85 && citation.unresolved === 0 && citation.duplicates === 0;
+    const documentPass = document.seen && document.score >= 85 && document.highAttention === 0;
     const plannerPass = planner.seen && /comfortable|manageable/i.test(planner.risk);
 
     return [
@@ -167,6 +178,15 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
         action: citationPass ? undefined : "Open References",
       },
       {
+        id: "document",
+        label: "Document quality",
+        state: documentPass ? "pass" : document.seen ? "review" : "pending",
+        detail: document.seen
+          ? `${document.score}/100 document quality · ${document.issues} findings · ${document.highAttention} high attention.`
+          : "Run Document Quality to review structure, repetition, acronym, numbering and formatting consistency.",
+        action: documentPass ? undefined : "Open document quality",
+      },
+      {
         id: "plan",
         label: "Deadline plan",
         state: plannerPass ? "pass" : planner.seen ? "review" : "pending",
@@ -189,7 +209,7 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
         detail: `${manualProgress}% of the final file/upload checks are confirmed by you.`,
       },
     ];
-  }, [assignment, citation, manual, manualProgress, planner, studio, target]);
+  }, [assignment, citation, document, manual, manualProgress, planner, studio, target]);
 
   const score = useMemo(() => Math.round((lanes.reduce((sum, lane) => sum + stateWeight(lane.state), 0) / lanes.length) * 100), [lanes]);
   const passes = lanes.filter((lane) => lane.state === "pass").length;
@@ -201,11 +221,12 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
     const rows = lanes.map((lane) => `${lane.state === "pass" ? "[PASS]" : lane.state === "review" ? "[REVIEW]" : "[PENDING]"} ${lane.label} — ${lane.detail}`);
     const manualRows = MANUAL_CHECKS.map((item) => `${manual[item.id] ? "[x]" : "[ ]"} ${item.label}`);
     return [
-      "Averis Submission Readiness Center v31",
+      "Averis Submission Readiness Center v31 + Document Quality v32",
       `Readiness signal: ${score}/100 — ${status}`,
       `Draft: ${studio.draftWords.toLocaleString()} words${target ? ` / ${target.toLocaleString()} target` : ""}`,
       assignment.citationStyle ? `Assignment citation style: ${assignment.citationStyle}` : null,
       citation.seen ? `Citation readiness: ${citation.score}/100` : null,
+      document.seen ? `Document quality: ${document.score}/100` : null,
       planner.seen ? `Workload signal: ${planner.risk}` : null,
       "",
       "Readiness areas",
@@ -216,7 +237,7 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
       "",
       "Boundary: This is a pre-submission readiness signal, not a guarantee of marks, originality-system results, policy compliance, or successful upload. Verify your university brief and submission portal yourself.",
     ].filter((item): item is string => item !== null).join("\n");
-  }, [assignment.citationStyle, citation, lanes, manual, planner, score, status, studio.draftWords, target]);
+  }, [assignment.citationStyle, citation, document, lanes, manual, planner, score, status, studio.draftWords, target]);
 
   async function copyReport() {
     try {
@@ -235,9 +256,9 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
       <aside className="readinessV31Drawer" role="dialog" aria-modal="true" aria-labelledby="readiness-v31-title">
         <header className="readinessV31Header">
           <div>
-            <span>AVERIS · SUBMISSION READINESS CENTER V31</span>
+            <span>AVERIS · SUBMISSION READINESS CENTER V31 + DOCUMENT QUALITY V32</span>
             <h2 id="readiness-v31-title">See what still needs attention before upload.</h2>
-            <p>Combines the current Studio workflow with assignment, citation and workload signals from this page session. No new AI call or backend write is used.</p>
+            <p>Combines the current Studio workflow with assignment, citation, document-quality and workload signals from this page session. No new AI call or backend write is used.</p>
           </div>
           <button type="button" className="readinessV31Close" onClick={onClose} aria-label="Close Submission Readiness Center">×</button>
         </header>
@@ -255,7 +276,7 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
               <p>Averis only marks an area strong when the corresponding local/session check has evidence. Pending tools are never silently treated as passed.</p>
               <div className="readinessV31MiniStats">
                 <span><small>DRAFT</small><b>{studio.draftWords.toLocaleString()} words</b></span>
-                <span><small>SOURCE</small><b>{studio.sourceSupplied ? "Connected" : "Optional / none"}</b></span>
+                <span><small>DOCUMENT</small><b>{document.seen ? `${document.score}/100` : "Not checked"}</b></span>
                 <span><small>FINAL RE-CHECK</small><b>{studio.finalRecheckReady ? "Complete" : "Pending"}</b></span>
               </div>
             </div>
