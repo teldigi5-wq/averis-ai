@@ -21,6 +21,7 @@ type RefinePayload = {
   requested_goal?: string;
   strength?: "light" | "balanced";
   runtime?: "ollama" | "api";
+  external_processing_consent?: boolean;
 };
 
 type RuntimeManifest = {
@@ -28,6 +29,8 @@ type RuntimeManifest = {
     enabled?: boolean;
     provider_label?: string | null;
     model?: string | null;
+    external_processing?: boolean;
+    consent_required?: boolean;
   };
   ollama?: {
     enabled?: boolean;
@@ -84,6 +87,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
   const runtimeRef = useRef<Runtime>("ollama");
   const [capability, setCapability] = useState<{ supported: boolean; reason: string | null } | null>(null);
   const [manifest, setManifest] = useState<RuntimeManifest | null>(null);
+  const [externalConsent, setExternalConsent] = useState(false);
   const [progress, setProgress] = useState<BrowserAiProgress>({
     status: "idle",
     label: "Private model not loaded",
@@ -92,6 +96,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
 
   useEffect(() => {
     runtimeRef.current = runtime;
+    if (runtime !== "api") setExternalConsent(false);
   }, [runtime]);
 
   useEffect(() => {
@@ -129,7 +134,11 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
         }
         return nativeFetch(input, {
           ...init,
-          body: JSON.stringify({ ...payload, runtime: "api" }),
+          body: JSON.stringify({
+            ...payload,
+            runtime: "api",
+            external_processing_consent: externalConsent,
+          }),
         });
       }
 
@@ -176,7 +185,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
           preservation: protectedTokens,
           source_evidence_before: null,
           source_evidence_after: null,
-          runtime: "ollama",
+          runtime: "browser",
           provider_label: "Private Browser AI",
           model: BROWSER_AI_MODEL,
           caution: "This proposal was generated on-device. Review every sentence and re-run evidence before using accepted wording. Source similarity is not an optimization target.",
@@ -193,7 +202,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
     return () => {
       window.fetch = nativeFetch;
     };
-  }, [capability]);
+  }, [capability, externalConsent]);
 
   const browserReady = capability?.supported === true;
   const apiReady = manifest?.api?.enabled === true;
@@ -251,7 +260,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
             disabled={manifest !== null && !apiReady}
           >
             <b>{apiLabel}</b>
-            <small>{apiReady ? "Server-side credential · authenticated API" : manifest === null ? "Checking server configuration…" : "Not configured in this deployment"}</small>
+            <small>{apiReady ? "External model · authenticated server gateway" : manifest === null ? "Checking server configuration…" : "Not configured in this deployment"}</small>
           </button>
         </div>
 
@@ -267,8 +276,22 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
         </div>
       </section>
 
+      {runtime === "api" && apiReady && (
+        <label className={styles.consent}>
+          <input
+            type="checkbox"
+            checked={externalConsent}
+            onChange={(event) => setExternalConsent(event.target.checked)}
+          />
+          <span>
+            <b>External model processing</b>
+            <small>I understand that the draft section submitted for this proposal will be sent through Averis' server to the configured external AI provider. The provider credential stays server-side.</small>
+          </span>
+        </label>
+      )}
+
       <p className={styles.runtimeBoundary}>
-        All runtimes feed the same human-controlled Revision Studio. API credentials stay on the server, there is no silent provider fallback, nothing is auto-accepted, detector-evasion goals remain outside the product boundary, and citation/DOI/number loss is blocked before adoption.
+        All runtimes feed the same human-controlled Revision Studio. External API processing requires explicit consent, API credentials stay on the server, there is no silent provider fallback, nothing is auto-accepted, detector-evasion goals remain outside the product boundary, and citation/DOI/number loss is blocked before adoption.
       </p>
 
       {children}
