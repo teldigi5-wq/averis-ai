@@ -19,6 +19,7 @@ import "./authenticated-workspace-v16.css";
 import "./workspace-polish-v16.css";
 import "./workspace-depth-v17.css";
 import "./review-center-v18.css";
+import "./review-center-v18-fixes.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
