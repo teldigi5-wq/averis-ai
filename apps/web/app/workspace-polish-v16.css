@@ -23,6 +23,31 @@ html[data-averis-workspace-open="true"] .brandButton > .brandText {
   display: none !important;
 }
 
+/* Remove the legacy text workflow pseudo-label that collides with the rebuilt tool hero.
+   The actual numbered workflow remains visible in the real panels below. */
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active) .toolHero::before,
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active):has(.uploadPanel .docCard) .toolHero::before,
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active):has(.uploadPanel .docCard):has(.sourceComparePanel textarea:not(:placeholder-shown)) .toolHero::before,
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active):has(.appliedControls) .toolHero::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 28px !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 112px !important;
+  height: 2px !important;
+  display: block !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, #23e2ef, #257dff, transparent) !important;
+  box-shadow: none !important;
+}
+
 html[data-averis-workspace-open="true"] .toolHero::after {
   display: none !important;
   content: none !important;
@@ -56,5 +81,10 @@ html[data-averis-workspace-open="true"] body > main > footer {
 
   html[data-averis-workspace-open="true"] .toolHero {
     padding-top: 23px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active) .toolHero::before {
+    left: 19px !important;
+    width: 84px !important;
   }
 }
