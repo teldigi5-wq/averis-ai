@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
@@ -41,6 +42,7 @@ function similarityTone(value: number | null) {
 }
 
 export default function ReviewCenterV18() {
+  const pathname = usePathname();
   const [ready, setReady] = useState(!supabaseConfigured);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -49,10 +51,11 @@ export default function ReviewCenterV18() {
   const [loading, setLoading] = useState(false);
 
   const qaEnabled = process.env.NEXT_PUBLIC_CINEMATIC_QA === "true";
+  const onRoot = pathname === "/" || pathname.endsWith("/averis-ai") || pathname.endsWith("/averis-ai/");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const qaReviewCenter = qaEnabled && params.get("review-center") === "1";
+    const qaReviewCenter = qaEnabled && params.get("review-center") === "1" && onRoot;
     if (qaReviewCenter) {
       setUser({ id: "qa-local", email: "local@averis.dev" } as User);
       setProfile({ display_name: "Local developer", plan: "local", credits_remaining: 5, monthly_credit_allowance: 5 });
@@ -64,6 +67,7 @@ export default function ReviewCenterV18() {
 
     if (!supabaseConfigured || !supabase) {
       setReady(true);
+      setVisible(false);
       return;
     }
 
@@ -100,7 +104,7 @@ export default function ReviewCenterV18() {
       setScans((scanData as Scan[] | null) ?? []);
       setLoading(false);
       setReady(true);
-      setVisible(true);
+      setVisible(onRoot);
     }
 
     void supabase.auth.getSession().then(({ data }) => loadFor(data.session?.user ?? null));
@@ -112,20 +116,34 @@ export default function ReviewCenterV18() {
       active = false;
       subscription.subscription.unsubscribe();
     };
-  }, [qaEnabled]);
+  }, [onRoot, qaEnabled]);
+
+  useEffect(() => {
+    if (!onRoot) setVisible(false);
+  }, [onRoot]);
+
+  useEffect(() => {
+    function reopenReviewCenter() {
+      if (!onRoot || !user) return;
+      setVisible(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    window.addEventListener("averis:review-center", reopenReviewCenter);
+    return () => window.removeEventListener("averis:review-center", reopenReviewCenter);
+  }, [onRoot, user]);
 
   useEffect(() => {
     const html = document.documentElement;
-    const shouldOpen = ready && visible && Boolean(user);
+    const shouldOpen = onRoot && ready && visible && Boolean(user);
     if (shouldOpen) html.dataset.averisReviewCenter = "true";
     else delete html.dataset.averisReviewCenter;
     return () => {
       delete html.dataset.averisReviewCenter;
     };
-  }, [ready, user, visible]);
+  }, [onRoot, ready, user, visible]);
 
   const recent = scans[0] ?? null;
-  const completedScans = scans.length;
+  const recentRecords = scans.length;
   const credits = profile?.credits_remaining ?? null;
   const allowance = profile?.monthly_credit_allowance ?? null;
   const averageSimilarity = useMemo(() => {
@@ -142,11 +160,9 @@ export default function ReviewCenterV18() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  if (!ready || !visible || !user) return null;
+  if (!onRoot || !ready || !visible || !user) return null;
 
   const name = profile?.display_name?.trim() || user.email?.split("@")[0] || "Reviewer";
-  const basePath = typeof document !== "undefined" ? document.documentElement.dataset.basePath ?? "" : "";
-  const href = (path: string) => `${basePath}${path}`;
 
   return (
     <section className="reviewCenterV18" aria-label="Averis Review Center">
@@ -171,7 +187,7 @@ export default function ReviewCenterV18() {
           </div>
           <div className="reviewHeroActions">
             <button className="reviewPrimary" type="button" onClick={openIntegrityWorkspace}>New integrity review <span>→</span></button>
-            <Link className="reviewSecondary" href={href("/refine/")}>Open Writing Refinement</Link>
+            <Link className="reviewSecondary" href="/refine/">Open Writing Refinement</Link>
           </div>
         </section>
 
@@ -182,9 +198,9 @@ export default function ReviewCenterV18() {
             <small>{allowance != null ? `of ${allowance} current allowance` : "Account allowance"}</small>
           </article>
           <article>
-            <span>RECENT REVIEWS</span>
-            <strong>{completedScans}</strong>
-            <small>Loaded from your latest scan records</small>
+            <span>RECENT RECORDS</span>
+            <strong>{recentRecords}</strong>
+            <small>Loaded from your latest scan metadata</small>
           </article>
           <article>
             <span>RECENT AVG. SIMILARITY</span>
@@ -214,7 +230,7 @@ export default function ReviewCenterV18() {
                 <p className="reviewBoundaryNote">This history card preserves scan metadata only. It does not reconstruct the original submission file.</p>
                 <div className="reviewInlineActions">
                   <button type="button" onClick={openIntegrityWorkspace}>Start a fresh scan</button>
-                  <button type="button" className="quiet" onClick={openIntegrityWorkspace}>Open history</button>
+                  <button type="button" className="quiet" onClick={openIntegrityWorkspace}>Open workspace</button>
                 </div>
               </>
             ) : (
@@ -249,13 +265,13 @@ export default function ReviewCenterV18() {
             <button type="button" onClick={openIntegrityWorkspace}>
               <span className="reviewToolNumber">01</span><b>Integrity Scan</b><small>Exact/fuzzy passage evidence, exclusions, and source comparison.</small><em>Open workspace →</em>
             </button>
-            <Link href={href("/multi-source/")}>
+            <Link href="/multi-source/">
               <span className="reviewToolNumber">02</span><b>Source Intelligence</b><small>Compare multiple sources and inspect source-level contribution.</small><em>Open sources →</em>
             </Link>
-            <Link href={href("/revision/")}>
+            <Link href="/revision/">
               <span className="reviewToolNumber">03</span><b>Evidence AI</b><small>Quotation, citation, bibliography, DOI, and human-review evidence.</small><em>Open evidence AI →</em>
             </Link>
-            <Link href={href("/refine/")}>
+            <Link href="/refine/">
               <span className="reviewToolNumber">04</span><b>Writing Refinement</b><small>Preflight first, then bounded local-Ollama revision proposals.</small><em>Open refinement →</em>
             </Link>
           </div>
@@ -264,7 +280,7 @@ export default function ReviewCenterV18() {
         <section className="reviewHistoryPanel">
           <div className="reviewSectionTitle compact">
             <div><p className="reviewEyebrow">RECENT REVIEW ACTIVITY</p><h2>Your latest scan metadata.</h2></div>
-            <button type="button" onClick={openIntegrityWorkspace}>View complete history</button>
+            <button type="button" onClick={openIntegrityWorkspace}>Open workspace</button>
           </div>
           <div className="reviewHistoryTable" role="table" aria-label="Recent Averis scans">
             <div className="reviewHistoryRow reviewHistoryHeader" role="row">
@@ -286,7 +302,7 @@ export default function ReviewCenterV18() {
         <footer className="reviewCenterFooter">
           <span className="reviewFooterBrand" aria-hidden="true" />
           <p>Averis supports human review. Similarity, citation, source, and AI evidence are not automatic misconduct verdicts.</p>
-          <Link href={href("/privacy/")}>Privacy controls</Link>
+          <Link href="/privacy/">Privacy controls</Link>
         </footer>
       </div>
     </section>
