@@ -9,24 +9,12 @@ const NUMERIC_CITATION = /\[(?:\d{1,4}\s*(?:[-–,;]\s*\d{1,4}\s*)*)\]/;
 const NUMBER = /(?<!\w)\d+(?:\.\d+)?%?(?!\w)/;
 const QUOTE = /["“”‘’]/;
 
-type SourceEvidence = {
-  similarity_percent: number;
-  exact_overlap_percent: number;
-  fuzzy_passage_percent: number;
-  matched_passage_count?: number;
-  strongest_passage_score?: number | null;
-  review_band: string;
-};
-
 type Props = {
   draft: string;
   source: string;
   sourceName: string;
-  proposal: string | null;
-  evidence: SourceEvidence | null;
-  generationEligible: boolean;
-  busy: boolean;
-  onRequestAiRevision: () => void;
+  proposal: string;
+  onStartAiReview: () => void;
 };
 
 type PassageReview = {
@@ -98,19 +86,10 @@ function reviewLabel(item: PassageReview) {
   return "Source context";
 }
 
-export default function SimilarityCitationReadinessV24({
-  draft,
-  source,
-  sourceName,
-  proposal,
-  evidence,
-  generationEligible,
-  busy,
-  onRequestAiRevision,
-}: Props) {
+export default function SimilarityCitationReadinessV24({ draft, source, sourceName, proposal, onStartAiReview }: Props) {
   const [copied, setCopied] = useState(false);
   const draftReviews = useMemo(() => reviewPassages(draft, source), [draft, source]);
-  const proposalReviews = useMemo(() => reviewPassages(proposal ?? "", source), [proposal, source]);
+  const proposalReviews = useMemo(() => reviewPassages(proposal, source), [proposal, source]);
   const highRisk = draftReviews.filter((item) => item.severity === "high");
   const citationChecks = draftReviews.filter((item) => !item.hasCitation && item.sharedWords >= 8);
   const numericChecks = draftReviews.filter((item) => item.hasNumber && !item.hasCitation);
@@ -144,7 +123,7 @@ export default function SimilarityCitationReadinessV24({
         <div>
           <p>AI SIMILARITY & CITATION READINESS · V24</p>
           <h2 id="similarity-readiness-title">Find source-risky wording before submission.</h2>
-          <span>Averis reviews the supplied source for close wording, missing attribution, quotation needs, and citation context. It does not predict, target, or bypass a Turnitin or AI-detector score.</span>
+          <span>Averis compares your draft with the source you supplied and flags close wording, missing attribution, quotation needs, and citation context. It does not predict, target, or bypass a Turnitin or AI-detector score.</span>
         </div>
         <div className={styles.status} data-state={readiness === "READY FOR HUMAN REVIEW" ? "good" : "review"}>
           <small>READINESS</small>
@@ -156,18 +135,18 @@ export default function SimilarityCitationReadinessV24({
         <article><span>CLOSE WORDING</span><strong>{highRisk.length}</strong><small>12+ contiguous source words</small></article>
         <article><span>CITATION CHECKS</span><strong>{citationChecks.length}</strong><small>close wording without nearby citation</small></article>
         <article><span>NUMERIC CLAIMS</span><strong>{numericChecks.length}</strong><small>matched sentences with uncited numbers</small></article>
-        <article><span>SERVER EVIDENCE</span><strong>{evidence ? evidence.review_band.toUpperCase() : "—"}</strong><small>{evidence ? `${evidence.matched_passage_count ?? 0} matched passages` : "source evidence unavailable"}</small></article>
+        <article><span>AI PROPOSAL</span><strong>{proposalHighRisk.length}</strong><small>close-wording passages still needing review</small></article>
       </div>
 
       <div className={styles.boundary}>
-        <b>What this AI action does</b>
-        <span>It asks the selected Averis runtime to improve source-safe wording while preserving meaning, claims, quotations, citations, DOIs, and numbers. It never asks the model to make text “undetectable,” lower a detector score, or conceal authorship.</span>
-        <button type="button" onClick={onRequestAiRevision} disabled={!generationEligible || busy || !source.trim()}>
-          {busy ? "AI review in progress…" : "Ask AI for source-safe revision"}
+        <b>Source-safe AI action</b>
+        <span>Switch Revision Studio to the existing Source-safe paraphrase goal, then run the evidence gate and generate a proposal with the runtime you selected. Citation, DOI, number, and human-acceptance protections remain active.</span>
+        <button type="button" onClick={onStartAiReview} disabled={!source.trim()}>
+          Switch to source-safe AI review
         </button>
       </div>
 
-      {draftReviews.length > 0 ? (
+      {source.trim() ? draftReviews.length > 0 ? (
         <div className={styles.passages}>
           <div className={styles.passagesHead}>
             <div><span>PASSAGE REVIEW</span><strong>Inspect the wording that overlaps most closely with the supplied source.</strong></div>
@@ -191,14 +170,14 @@ export default function SimilarityCitationReadinessV24({
         </div>
       ) : (
         <div className={styles.empty}><strong>No long exact source phrases found.</strong><span>Still verify citations, quotation rules, references, and your university’s submission requirements manually.</span></div>
+      ) : (
+        <div className={styles.empty}><strong>Add the comparison source to activate this review.</strong><span>Averis needs the source text to identify close wording and attribution risks. It cannot infer a Turnitin database or report.</span></div>
       )}
 
-      {proposal && (
-        <div className={styles.comparison}>
-          <div><span>AI PROPOSAL SOURCE CHECK</span><strong>{proposalHighRisk.length === 0 ? "No 12+ word exact source phrase found" : `${proposalHighRisk.length} close-wording passage${proposalHighRisk.length === 1 ? "" : "s"} still need review`}</strong></div>
-          <p>This comparison is evidence for human review only. A lower overlap count is not treated as proof that a submission is acceptable.</p>
-        </div>
-      )}
+      <div className={styles.comparison}>
+        <div><span>AI PROPOSAL SOURCE CHECK</span><strong>{proposalHighRisk.length === 0 ? "No 12+ word exact source phrase found" : `${proposalHighRisk.length} close-wording passage${proposalHighRisk.length === 1 ? "" : "s"} still need review`}</strong></div>
+        <p>This is evidence for human review only. A lower overlap count is not treated as proof that a submission is acceptable.</p>
+      </div>
     </section>
   );
 }
