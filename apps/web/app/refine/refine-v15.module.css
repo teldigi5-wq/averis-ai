@@ -1,0 +1,288 @@
+.runtimeStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.2fr) minmax(220px, .8fr);
+  gap: 14px;
+  align-items: center;
+  margin: 0 auto 24px;
+  max-width: 1320px;
+  padding: 14px 16px;
+  border: 1px solid rgba(54, 219, 239, .18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(12, 35, 56, .94), rgba(4, 17, 30, .92)),
+    radial-gradient(circle at 90% 10%, rgba(33, 136, 255, .16), transparent 34%);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+}
+
+.runtimeStrip div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.runtimeStrip span,
+.preflightProtocol span,
+.changeSummary span,
+.adoptionGate span,
+.missingEvidence span {
+  color: #91b5c9;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.runtimeStrip strong {
+  color: #f6fbff;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.runtimeStrip i {
+  color: #2dddec;
+  font-style: normal;
+  opacity: .78;
+}
+
+.runtimeStrip small {
+  color: #a9c0d0;
+  font-size: 11px;
+  line-height: 1.45;
+  border-left: 1px solid rgba(96, 166, 211, .2);
+  padding-left: 14px;
+}
+
+.goalGridExpanded {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.intentNote {
+  margin: 12px 0 0;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(111, 165, 199, .15);
+  background: rgba(5, 18, 31, .68);
+  color: #a9c0d0;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.preflightProtocol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 14px;
+  border: 1px solid rgba(98, 172, 216, .16);
+  border-radius: 14px;
+  background: rgba(4, 16, 28, .66);
+}
+
+.preflightProtocol div {
+  display: grid;
+  gap: 5px;
+}
+
+.preflightProtocol strong {
+  color: #edf8ff;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.preflightProtocol p {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(98, 172, 216, .12);
+  color: #9eb9ca;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.changeSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.changeSummary article {
+  display: grid;
+  gap: 5px;
+  padding: 15px;
+  min-height: 110px;
+  border: 1px solid rgba(69, 189, 224, .17);
+  border-radius: 15px;
+  background: linear-gradient(180deg, rgba(9, 32, 51, .88), rgba(5, 20, 34, .9));
+}
+
+.changeSummary strong {
+  color: #f6fbff;
+  font-size: clamp(1.45rem, 2.4vw, 2.05rem);
+  letter-spacing: -.045em;
+}
+
+.changeSummary small {
+  color: #8faabd;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.adoptionGate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 14px 0;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.adoptionGate > div {
+  display: grid;
+  gap: 5px;
+}
+
+.adoptionGate strong {
+  color: #f6fbff;
+  font-size: 14px;
+}
+
+.adoptionGate p {
+  margin: 0;
+  max-width: 760px;
+  color: #abc3d3;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.adoptionGate > b {
+  flex: 0 0 auto;
+  padding: 9px 11px;
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+
+.adoptionGatePass {
+  border: 1px solid rgba(52, 225, 190, .24);
+  background: rgba(22, 103, 88, .13);
+}
+
+.adoptionGatePass > b {
+  color: #7af2cf;
+  background: rgba(45, 207, 168, .12);
+  border: 1px solid rgba(83, 225, 190, .2);
+}
+
+.adoptionGateReview {
+  border: 1px solid rgba(255, 189, 87, .28);
+  background: rgba(133, 83, 17, .14);
+}
+
+.adoptionGateReview > b {
+  color: #ffd28a;
+  background: rgba(255, 188, 74, .1);
+  border: 1px solid rgba(255, 195, 92, .22);
+}
+
+.missingEvidence {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 16px;
+  padding: 14px;
+  border: 1px solid rgba(255, 191, 87, .16);
+  border-radius: 14px;
+  background: rgba(43, 26, 7, .24);
+}
+
+.missingEvidence div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.missingEvidence span {
+  width: 100%;
+}
+
+.missingEvidence code {
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: #ffe4af;
+  background: rgba(255, 190, 84, .08);
+  border: 1px solid rgba(255, 195, 92, .13);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.actionLockNote {
+  margin: 9px 0 0;
+  color: #a9c0d0;
+  font-size: 11px;
+}
+
+@media (max-width: 980px) {
+  .runtimeStrip {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .runtimeStrip i {
+    display: none;
+  }
+
+  .runtimeStrip small {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid rgba(96, 166, 211, .16);
+    padding: 10px 0 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .runtimeStrip,
+  .changeSummary,
+  .preflightProtocol {
+    grid-template-columns: 1fr;
+  }
+
+  .runtimeStrip {
+    padding: 14px;
+  }
+
+  .runtimeStrip div {
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(96, 166, 211, .12);
+  }
+
+  .runtimeStrip div:last-of-type {
+    border-bottom: 0;
+  }
+
+  .preflightProtocol p {
+    grid-column: auto;
+  }
+
+  .goalGridExpanded {
+    grid-template-columns: 1fr;
+  }
+
+  .changeSummary article {
+    min-height: 94px;
+  }
+
+  .adoptionGate {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .runtimeStrip,
+  .changeSummary article,
+  .adoptionGate {
+    scroll-behavior: auto;
+    transition: none !important;
+  }
+}
