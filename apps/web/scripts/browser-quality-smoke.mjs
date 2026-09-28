@@ -9,6 +9,7 @@ const artifactDir = path.resolve(process.cwd(), "../../artifacts/web-quality");
 
 const routes = [
   { name: "home", path: "/" },
+  { name: "workspace", path: "/", workspace: true },
   { name: "multi-source", path: "/multi-source/" },
   { name: "revision", path: "/revision/" },
   { name: "refine", path: "/refine/" },
@@ -39,6 +40,17 @@ function compactViolation(violation) {
   };
 }
 
+async function prepareRoute(page, route) {
+  if (!route.workspace) return;
+  await page.evaluate(() => {
+    document.querySelector('section[aria-label="Averis product introduction"]')?.remove();
+    document.documentElement.dataset.averisIntroVisible = "false";
+    document.documentElement.dataset.averisAuthBootstrap = "ready";
+    document.documentElement.dataset.averisWorkspaceOpen = "true";
+  });
+  await page.waitForTimeout(120);
+}
+
 async function exerciseScrollExperience(page) {
   const { scrollHeight, viewportHeight } = await page.evaluate(() => ({
     scrollHeight: document.documentElement.scrollHeight,
@@ -59,7 +71,7 @@ await fs.mkdir(artifactDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const report = {
-  schema_version: "averis.web-quality/v1",
+  schema_version: "averis.web-quality/v2",
   base_url: baseUrl,
   generated_at: new Date().toISOString(),
   checks: [],
@@ -87,6 +99,7 @@ try {
       const url = routeUrl(route.path);
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
       await page.waitForTimeout(600);
+      await prepareRoute(page, route);
       await exerciseScrollExperience(page);
 
       const status = response?.status() ?? 0;
@@ -128,19 +141,13 @@ try {
       const brokenImages = await page.locator("img").evaluateAll((images) =>
         images
           .filter((image) => !image.complete || image.naturalWidth === 0)
-          .map((image) => ({
-            src: image.getAttribute("src"),
-            alt: image.getAttribute("alt"),
-          })),
+          .map((image) => ({ src: image.getAttribute("src"), alt: image.getAttribute("alt") })),
       );
 
       await page.addScriptTag({ content: axe.source });
       const axeResults = await page.evaluate(async () => {
         const results = await window.axe.run(document, {
-          runOnly: {
-            type: "tag",
-            values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
-          },
+          runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
           resultTypes: ["violations"],
         });
         return results.violations;
@@ -166,6 +173,7 @@ try {
 
       const check = {
         route: route.path,
+        mode: route.workspace ? "workspace" : "default",
         profile: profile.name,
         viewport: profile.viewport,
         url,
@@ -182,12 +190,8 @@ try {
       report.summary.pages_checked += 1;
       report.summary.serious_or_critical_accessibility_violations += severeViolations.length;
 
-      if (!response || status < 200 || status >= 400) {
-        failed = true;
-      }
-      if (!title.toLowerCase().includes("averis")) {
-        failed = true;
-      }
+      if (!response || status < 200 || status >= 400) failed = true;
+      if (!title.toLowerCase().includes("averis")) failed = true;
       if (horizontalOverflow > 2) {
         failed = true;
         report.summary.overflow_failures += 1;
@@ -200,16 +204,14 @@ try {
         failed = true;
         report.summary.keyboard_focus_failures += 1;
       }
-      if (severeViolations.length > 0) {
-        failed = true;
-      }
+      if (severeViolations.length > 0) failed = true;
 
       console.log(
-        `[${profile.name}] ${route.path} status=${status} overflow=${horizontalOverflow}px ` +
+        `[${profile.name}] ${route.name} status=${status} overflow=${horizontalOverflow}px ` +
           `brokenImages=${brokenImages.length} severeA11y=${severeViolations.length} focus=${focusState.tag}`,
       );
       if (overflowOffenders.length > 0) {
-        console.log(`overflow offenders for [${profile.name}] ${route.path}: ${JSON.stringify(overflowOffenders, null, 2)}`);
+        console.log(`overflow offenders for [${profile.name}] ${route.name}: ${JSON.stringify(overflowOffenders, null, 2)}`);
       }
 
       await page.close();
