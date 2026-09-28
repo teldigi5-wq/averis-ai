@@ -172,7 +172,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
     runtime === "browser"
       ? `${BROWSER_AI_MODEL} · max ${BROWSER_AI_MAX_CHARS.toLocaleString()} characters per pass`
       : runtime === "cloud"
-        ? "Opt-in only · API key stays server-side · no automatic paid/local fallback"
+        ? "Your draft is sent by the Averis API to the configured provider · API key stays server-side · no automatic fallback"
         : "No paid inference fallback. Existing preservation and sentence-review gates stay active.";
 
   return (
@@ -213,7 +213,7 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
             aria-pressed={runtime === "cloud"}
           >
             <b>Cloud AI</b>
-            <small>Server-side API · deployment must explicitly enable it</small>
+            <small>Server-side provider · explicit opt-in deployment</small>
           </button>
         </div>
 
