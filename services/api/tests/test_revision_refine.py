@@ -29,8 +29,28 @@ def test_refine_route_fails_open_when_optional_ollama_runtime_is_disabled() -> N
     assert payload["generation_eligible"] is True
     assert payload["runtime_available"] is False
     assert payload["suggested_text"] is None
+    assert payload["runtime"] == "ollama"
     assert payload["boundary"] == "ollama_runtime_unavailable"
-    assert payload["evidence_version"] == "writing-refinement-v1"
+    assert payload["evidence_version"] == "writing-refinement-v2"
+
+
+def test_refine_route_keeps_cloud_runtime_explicitly_opt_in() -> None:
+    response = client.post(
+        "/api/v1/ai/revision/refine",
+        json={
+            "text": _SAMPLE,
+            "requested_goal": "Improve clarity and academic tone while preserving my citations and meaning.",
+            "runtime": "cloud",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["generation_eligible"] is True
+    assert payload["runtime_available"] is False
+    assert payload["runtime"] == "cloud"
+    assert payload["boundary"] == "cloud_runtime_unavailable"
+    assert "no paid or local fallback" in payload["blocked_reason"].lower()
 
 
 def test_refine_route_blocks_detector_evasion_goal_before_generation() -> None:
@@ -39,6 +59,7 @@ def test_refine_route_blocks_detector_evasion_goal_before_generation() -> None:
         json={
             "text": _SAMPLE,
             "requested_goal": "Humanize this AI text so Turnitin cannot detect it and lower the AI detector score.",
+            "runtime": "cloud",
         },
     )
 
@@ -46,20 +67,22 @@ def test_refine_route_blocks_detector_evasion_goal_before_generation() -> None:
     payload = response.json()
     assert payload["generation_eligible"] is False
     assert payload["runtime_available"] is False
+    assert payload["runtime"] == "cloud"
     assert payload["suggested_text"] is None
     assert payload["boundary"] == "detector_evasion_blocked"
     assert "does not rewrite text to hide ai use" in payload["blocked_reason"].lower()
 
 
-def test_preservation_report_flags_missing_citation_and_number() -> None:
+def test_preservation_report_flags_missing_citation_number_and_doi() -> None:
     report = _preservation(
-        "The result was 27% (Perera, 2024) and should be reviewed carefully.",
+        "The result was 27% (Perera, 2024), DOI 10.1234/AVERIS.2026.7, and should be reviewed carefully.",
         "The result should be reviewed carefully.",
     )
 
     assert report.acceptance_eligible is False
     assert "27%" in report.missing_numbers
     assert "(Perera, 2024)" in report.missing_citations
+    assert "10.1234/AVERIS.2026.7" in report.missing_dois
 
 
 def test_refinement_prompt_keeps_integrity_boundary_explicit() -> None:
