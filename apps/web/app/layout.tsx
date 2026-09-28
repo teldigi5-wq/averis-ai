@@ -18,10 +18,12 @@ import "./intro-isolation-v16.css";
 import "./authenticated-workspace-v16.css";
 import "./workspace-polish-v16.css";
 import "./workspace-depth-v17.css";
+import "./review-center-v18.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
 import IntroLayerIsolation from "./IntroLayerIsolation";
+import ReviewCenterV18 from "./ReviewCenterV18";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const githubPages = process.env.GITHUB_PAGES === "true";
@@ -51,6 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <CinematicIntroGate />
         <IntroLayerIsolation />
+        <ReviewCenterV18 />
         {children}
         <AuthExperience />
         <WorkspaceSwitcher />
