@@ -93,13 +93,17 @@ export default function WorkspaceSwitcher() {
     });
   }, [pathname, ready, workspaceOpen]);
 
+  function reopenReviewCenter() {
+    window.dispatchEvent(new Event("averis:review-center"));
+  }
+
   if (!ready || !workspaceOpen) return null;
 
   return (
     <nav className={styles.switcher} aria-label="Averis workspace modules">
       <span className={styles.railBrand} aria-hidden="true" />
       <span className={styles.railDivider} aria-hidden="true" />
-      <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined} title="Workspace">
+      <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined} title="Review Center" onClick={reopenReviewCenter}>
         <WorkspaceIcon name="workspace" />
         <span className={styles.label}>Workspace</span>
       </Link>
