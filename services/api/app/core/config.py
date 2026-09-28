@@ -14,6 +14,23 @@ class Settings(BaseSettings):
     ollama_embedding_model: str = "nomic-embed-text"
     ollama_timeout_seconds: float = 8.0
 
+    # Optional server-side OpenAI-compatible cloud runtime. It is intentionally
+    # disabled by default and never falls back to another provider/model.
+    ai_cloud_enabled: bool = False
+    ai_api_base_url: str = "https://api.groq.com/openai/v1"
+    ai_api_key: str | None = None
+    ai_api_model: str = "openai/gpt-oss-20b"
+    ai_cloud_timeout_seconds: float = 30.0
+
+    @property
+    def cloud_ai_configured(self) -> bool:
+        return bool(
+            self.ai_cloud_enabled
+            and self.ai_api_base_url.strip()
+            and (self.ai_api_key or "").strip()
+            and self.ai_api_model.strip()
+        )
+
     # Semantic evidence is displayed as a candidate signal even when these are
     # unset. It may influence review bands only after a labeled benchmark has
     # produced and documented both thresholds plus a calibration identifier.
