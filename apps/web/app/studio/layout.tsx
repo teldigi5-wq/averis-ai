@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import StudioAiRuntimeBridge from "./StudioAiRuntimeBridge";
 import "./studio-unified-v25.css";
+import "./studio-unified-v25-fix.css";
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
