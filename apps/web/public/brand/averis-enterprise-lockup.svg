@@ -1,42 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 190" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 780 176" role="img" aria-labelledby="title desc">
   <title id="title">Averis</title>
   <desc id="desc">Averis Academic Integrity Intelligence</desc>
   <defs>
-    <linearGradient id="ribbonA" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8efcff"/>
-      <stop offset="0.34" stop-color="#22d8f2"/>
-      <stop offset="0.7" stop-color="#1687f8"/>
-      <stop offset="1" stop-color="#0a4bcc"/>
+    <linearGradient id="outer" x1="20" y1="16" x2="170" y2="160" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A7FFFF"/>
+      <stop offset="0.3" stop-color="#31E2F3"/>
+      <stop offset="0.68" stop-color="#1A95FF"/>
+      <stop offset="1" stop-color="#1357E7"/>
     </linearGradient>
-    <linearGradient id="ribbonB" x1="1" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#1a90ff"/>
-      <stop offset="0.5" stop-color="#0752c9"/>
-      <stop offset="1" stop-color="#19e6ef"/>
+    <linearGradient id="inner" x1="154" y1="52" x2="60" y2="154" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2398FF"/>
+      <stop offset="0.48" stop-color="#0B5DCE"/>
+      <stop offset="1" stop-color="#29E5EE"/>
     </linearGradient>
-    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="0.42" stop-color="#f6fbff"/>
-      <stop offset="0.78" stop-color="#cbe5ff"/>
-      <stop offset="1" stop-color="#7db7f7"/>
+    <linearGradient id="word" x1="220" y1="28" x2="690" y2="132" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.52" stop-color="#F5FBFF"/>
+      <stop offset="1" stop-color="#BBD9F8"/>
     </linearGradient>
-    <linearGradient id="tag" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#d6efff"/>
-      <stop offset="0.5" stop-color="#7edcff"/>
-      <stop offset="1" stop-color="#c7e2ff"/>
+    <linearGradient id="tag" x1="222" y1="0" x2="690" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9EEAFF"/>
+      <stop offset="0.48" stop-color="#D9F5FF"/>
+      <stop offset="1" stop-color="#85C8FF"/>
     </linearGradient>
-    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="4" result="b"/>
+    <filter id="markShadow" x="-25%" y="-25%" width="150%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#008FEA" flood-opacity="0.18"/>
+    </filter>
+    <filter id="wordShadow" x="-10%" y="-20%" width="120%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#061A38" flood-opacity="0.35"/>
+    </filter>
+    <filter id="sparkGlow" x="-90%" y="-90%" width="280%" height="280%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <g transform="translate(4 8)">
-    <path d="M24 146 75 28c8-18 26-24 42-15 8 4 14 11 18 20l57 122-28 11-47-101c-7-15-20-15-27 0L51 154z" fill="url(#ribbonA)" filter="url(#softGlow)"/>
-    <path d="M76 120c27-7 44-30 51-55 9-31 24-30 38-7l25 45c-24-17-43-17-58 10-13 24-34 40-63 48z" fill="url(#ribbonB)" opacity=".98"/>
-    <path d="m88 117 9 18 19 9-19 9-9 19-9-19-19-9 19-9z" fill="#6ff8ff" filter="url(#softGlow)"/>
+
+  <g transform="translate(8 4)" filter="url(#markShadow)">
+    <path d="M7 150 56 34c5.6-13.3 16.9-20 29-20 12.7 0 24 7.5 29.5 21.3L161 143l-27.3 10.2-35.9-84c-3.2-7.6-7.5-11.4-12.7-11.4-5.4 0-9.6 3.8-12.9 11.5L36.4 153Z" fill="url(#outer)"/>
+    <path d="M49.5 127.7c26.6-7.6 43.1-29.3 50.6-55.5 4.4-15.3 10-22.7 17-22.2 6.5.5 13.2 7.6 20.2 21.5l18.8 35.5c-20.3-12-37.9-9-50.4 12.2-12 20.4-30.9 34.2-57.2 42Z" fill="url(#inner)"/>
+    <path d="m67.1 119.1 7.8 16 16 7.8-16 7.8-7.8 16-7.8-16-16-7.8 16-7.8Z" fill="#8BFBFF" filter="url(#sparkGlow)"/>
   </g>
-  <g transform="translate(208 34)">
-    <text x="0" y="84" fill="url(#metal)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="104" font-weight="760" letter-spacing="-7">Averis</text>
-    <circle cx="381" cy="2" r="14" fill="#25d8ef" filter="url(#softGlow)"/>
-    <text x="8" y="126" fill="url(#tag)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="19" font-weight="650" letter-spacing="8">ACADEMIC INTEGRITY INTELLIGENCE</text>
+
+  <g transform="translate(194 22)">
+    <text x="0" y="83" fill="url(#word)" filter="url(#wordShadow)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="98" font-weight="780" letter-spacing="-6.5">Averis</text>
+    <circle cx="371" cy="4" r="10.5" fill="#2DE0EE" filter="url(#sparkGlow)"/>
+    <path d="M4 107H472" stroke="#71CFF4" stroke-opacity="0.13"/>
+    <text x="4" y="131" fill="url(#tag)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15.5" font-weight="700" letter-spacing="5.6">ACADEMIC INTEGRITY INTELLIGENCE</text>
   </g>
 </svg>
