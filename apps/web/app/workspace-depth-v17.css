@@ -1,6 +1,12 @@
 /* Averis workspace depth v17 — full-bleed authenticated shell, structured background, and edge integration. */
 
+html[data-averis-workspace-open="true"] {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 html[data-averis-workspace-open="true"] body {
+  max-width: 100%;
   padding-left: 0 !important;
   overflow-x: clip;
   background:
@@ -42,6 +48,7 @@ html[data-averis-workspace-open="true"] body > main {
   max-width: none !important;
   margin: 0 !important;
   padding: 0 24px 56px 104px !important;
+  overflow-x: clip;
 }
 
 html[data-averis-workspace-open="true"] .topbar {
@@ -92,6 +99,14 @@ html[data-averis-workspace-open="true"] .brandButton::before {
   filter: drop-shadow(0 10px 26px rgba(20, 164, 255, .15)) !important;
 }
 
+html[data-averis-workspace-open="true"] .productShell,
+html[data-averis-workspace-open="true"] .toolRail,
+html[data-averis-workspace-open="true"] .toolCanvas,
+html[data-averis-workspace-open="true"] .workspaceGrid {
+  min-width: 0;
+  max-width: 100%;
+}
+
 html[data-averis-workspace-open="true"] .productShell {
   width: 100%;
   max-width: 1560px;
@@ -106,7 +121,9 @@ html[data-averis-workspace-open="true"] .toolCanvas::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -70px -80px auto 8%;
+  top: -70px;
+  right: 0;
+  left: 8%;
   height: 360px;
   pointer-events: none;
   background: radial-gradient(ellipse at center, rgba(25, 115, 255, .075), transparent 67%);
@@ -136,6 +153,11 @@ html[data-averis-workspace-open="true"] .panel::after {
 
 html[data-averis-workspace-open="true"] .toolRail {
   min-height: calc(100svh - 118px) !important;
+  overflow: clip !important;
+}
+
+html[data-averis-workspace-open="true"] .toolNav {
+  max-width: 100%;
 }
 
 html[data-averis-workspace-open="true"] .panel,
@@ -172,6 +194,23 @@ html[data-averis-workspace-open="true"] .controlCard:hover {
   html[data-averis-workspace-open="true"] .productShell {
     width: 100%;
     margin-bottom: 92px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .toolNav {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  html[data-averis-workspace-open="true"] .toolNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  html[data-averis-workspace-open="true"] .toolButton {
+    flex-shrink: 0;
   }
 }
 
