@@ -136,6 +136,8 @@ async def revision_runtimes() -> dict[str, object]:
             "enabled": bool(settings.ai_revision_enabled and settings.ai_api_configured),
             "provider_label": settings.ai_api_provider_label,
             "model": settings.ai_api_model if settings.ai_api_configured else None,
+            "external_processing": True,
+            "consent_required": True,
         },
         "browser": {
             "enabled": True,
@@ -199,6 +201,21 @@ async def refine_revision(
     if payload.runtime == "api":
         provider_label = settings.ai_api_provider_label
         model = settings.ai_api_model if settings.ai_api_configured else None
+        if not payload.external_processing_consent:
+            return RevisionRefineResponse(
+                generation_eligible=True,
+                runtime_available=bool(settings.ai_revision_enabled and settings.ai_api_configured),
+                boundary="external_processing_consent_required",
+                blocked_reason=(
+                    "Confirm external AI processing before sending this draft to the configured server-side provider. "
+                    "Choose Local Ollama or Private Browser AI if you do not want external model processing."
+                ),
+                original_text=payload.text,
+                source_evidence_before=source_before,
+                runtime="api",
+                provider_label=provider_label,
+                model=model,
+            )
         if not settings.ai_revision_enabled or not settings.ai_api_configured:
             return RevisionRefineResponse(
                 generation_eligible=True,
