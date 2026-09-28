@@ -1,0 +1,84 @@
+.studioV30UtilityDock {
+  display: contents;
+}
+
+@media (max-width: 760px) {
+  .studioV30UtilityDock {
+    width: calc(100% - 16px);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 8px auto 2px;
+    position: relative;
+    z-index: 62;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher,
+  .studioV30UtilityDock .studioV30ReferenceLauncher {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 48px;
+    margin: 0 !important;
+    grid-template-columns: 28px minmax(0, 1fr);
+    padding: 7px 9px;
+    border-radius: 13px;
+    box-sizing: border-box;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher > div,
+  .studioV30UtilityDock .studioV30ReferenceLauncher > div {
+    min-width: 0;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher strong,
+  .studioV30UtilityDock .studioV30ReferenceLauncher strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher small,
+  .studioV30UtilityDock .studioV30ReferenceLauncher small {
+    display: none;
+  }
+
+  .studioV27Command__actions {
+    width: 100%;
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+    gap: 7px;
+  }
+
+  .studioV27Command__actions .studioV27Command__brief,
+  .studioV27Command__actions .studioV27Command__primary {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 390px) {
+  .studioV30UtilityDock {
+    gap: 6px;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher,
+  .studioV30UtilityDock .studioV30ReferenceLauncher {
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 7px;
+    padding-inline: 8px;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher strong,
+  .studioV30UtilityDock .studioV30ReferenceLauncher strong {
+    font-size: 9.5px;
+  }
+}
