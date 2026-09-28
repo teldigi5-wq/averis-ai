@@ -16,6 +16,7 @@ class RevisionRefineRequest(BaseModel):
     source_name: str = Field(default="Comparison source", min_length=1, max_length=250)
     strength: Literal["light", "balanced"] = "balanced"
     runtime: Literal["ollama", "api"] = "ollama"
+    external_processing_consent: bool = False
 
 
 class RefinementSourceEvidence(BaseModel):
@@ -50,7 +51,7 @@ class RevisionRefineResponse(BaseModel):
     preservation: RefinementPreservationReport | None = None
     source_evidence_before: RefinementSourceEvidence | None = None
     source_evidence_after: RefinementSourceEvidence | None = None
-    runtime: Literal["ollama", "api"] = "ollama"
+    runtime: Literal["ollama", "api", "browser"] = "ollama"
     provider_label: str | None = None
     model: str | None = None
     caution: str = (
