@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 import styles from "./workspace-switcher.module.css";
 
-type IconName = "workspace" | "sources" | "revision" | "refine" | "privacy";
+type IconName = "workspace" | "sources" | "revision" | "refine" | "privateAi" | "privacy";
 
 function WorkspaceIcon({ name }: { name: IconName }) {
   const common = {
@@ -33,6 +33,9 @@ function WorkspaceIcon({ name }: { name: IconName }) {
   if (name === "refine") {
     return <svg {...common}><path d="m4 16-1 5 5-1L20 8l-4-4L4 16Z" /><path d="m13 7 4 4M10 18h10" /></svg>;
   }
+  if (name === "privateAi") {
+    return <svg {...common}><rect x="5" y="5" width="14" height="14" rx="3" /><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" /><path d="m12 8 .9 2.1L15 11l-2.1.9L12 14l-.9-2.1L9 11l2.1-.9z" /></svg>;
+  }
   return <svg {...common}><path d="M12 3 5 6v5c0 4.6 2.9 7.4 7 9 4.1-1.6 7-4.4 7-9V6z" /><path d="M9.5 11.5 11 13l3.5-3.5" /></svg>;
 }
 
@@ -44,8 +47,9 @@ export default function WorkspaceSwitcher() {
   const multiSource = pathname === "/multi-source" || pathname.endsWith("/multi-source");
   const revision = pathname === "/revision" || pathname.endsWith("/revision");
   const refine = pathname === "/refine" || pathname.endsWith("/refine");
+  const privateAi = pathname === "/private-ai" || pathname.endsWith("/private-ai");
   const privacy = pathname === "/privacy" || pathname.endsWith("/privacy");
-  const main = !multiSource && !revision && !refine && !privacy;
+  const main = !multiSource && !revision && !refine && !privateAi && !privacy;
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
@@ -118,6 +122,10 @@ export default function WorkspaceSwitcher() {
       <Link className={refine ? styles.active : ""} href="/refine" aria-current={refine ? "page" : undefined} title="Refine writing">
         <WorkspaceIcon name="refine" />
         <span className={styles.label}>Refine</span>
+      </Link>
+      <Link className={privateAi ? styles.active : ""} href="/private-ai" aria-current={privateAi ? "page" : undefined} title="Private AI">
+        <WorkspaceIcon name="privateAi" />
+        <span className={styles.label}>Private AI</span>
       </Link>
       <Link className={privacy ? styles.active : ""} href="/privacy" aria-current={privacy ? "page" : undefined} title="Privacy">
         <WorkspaceIcon name="privacy" />
