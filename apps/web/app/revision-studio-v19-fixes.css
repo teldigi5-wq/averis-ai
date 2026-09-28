@@ -1,6 +1,42 @@
 /* Revision Studio v19 final presentation fixes.
-   CSS-module class names retain the local key suffix; these selectors only tighten
-   the two desktop workflow action bars without changing mobile stacking. */
+   CSS-module class names retain the local key suffix. Keep the Studio isolated
+   from legacy global button treatments and tighten desktop workflow actions. */
+
+/* A legacy global button treatment can target positional buttons. Force the
+   revision-goal cards back onto the Studio's dark, contrast-safe surface. */
+[class*="studio-module"][class*="__goalGrid"] > button,
+[class*="studio-module"][class*="__goalGrid"] > button:hover,
+[class*="studio-module"][class*="__goalGrid"] > button:active {
+  border-color: rgba(78, 151, 195, .16) !important;
+  color: #d8e7ef !important;
+  background: #071d2d !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+[class*="studio-module"][class*="__goalGrid"] > button strong {
+  color: #d8e7ef !important;
+}
+
+[class*="studio-module"][class*="__goalGrid"] > button small {
+  color: #8da8b8 !important;
+}
+
+[class*="studio-module"][class*="__goalGrid"] > button[class*="__goalActive"],
+[class*="studio-module"][class*="__goalGrid"] > button[class*="__goalActive"]:hover,
+[class*="studio-module"][class*="__goalGrid"] > button[class*="__goalActive"]:active {
+  border-color: rgba(75, 222, 232, .44) !important;
+  background: #0a3347 !important;
+  box-shadow: inset 0 0 0 1px rgba(75, 222, 232, .08) !important;
+}
+
+[class*="studio-module"][class*="__goalGrid"] > button[class*="__goalActive"] strong {
+  color: #f0fdff !important;
+}
+
+[class*="studio-module"][class*="__goalGrid"] > button[class*="__goalActive"] small {
+  color: #a9c8d3 !important;
+}
 
 @media (min-width: 761px) {
   [class*="studio-module"][class*="__actionBar"] > div,
