@@ -14,6 +14,7 @@ const routes = [
   { name: "multi-source", path: "/multi-source/" },
   { name: "revision", path: "/revision/" },
   { name: "refine", path: "/refine/" },
+  { name: "studio", path: "/studio/" },
   { name: "privacy", path: "/privacy/" },
 ];
 
