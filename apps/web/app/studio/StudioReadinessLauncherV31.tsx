@@ -5,11 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 import SubmissionReadinessCenterV31, {
   type AssignmentReadinessSignal,
   type CitationReadinessSignal,
+  type DocumentQualityReadinessSignal,
   type PlannerReadinessSignal,
   type StudioReadinessSnapshot,
 } from "./SubmissionReadinessCenterV31";
 
-type LaneId = "draft" | "assignment" | "length" | "evidence" | "proposal" | "citations" | "plan" | "final" | "manual";
+type LaneId = "draft" | "assignment" | "length" | "evidence" | "proposal" | "citations" | "document" | "plan" | "final" | "manual";
 
 const EMPTY_STUDIO: StudioReadinessSnapshot = {
   draftWords: 0,
@@ -24,6 +25,7 @@ const EMPTY_STUDIO: StudioReadinessSnapshot = {
 const EMPTY_ASSIGNMENT: AssignmentReadinessSignal = { seen: false, progress: 0, wordTarget: null, citationStyle: null, deadlineDetected: false };
 const EMPTY_PLANNER: PlannerReadinessSignal = { seen: false, progress: 0, risk: "Not checked", daysLeft: null, remainingWords: null };
 const EMPTY_CITATION: CitationReadinessSignal = { seen: false, score: 0, unresolved: 0, uncited: 0, duplicates: 0, references: 0 };
+const EMPTY_DOCUMENT: DocumentQualityReadinessSignal = { seen: false, score: 0, issues: 0, highAttention: 0, structureWarnings: 0, consistencyWarnings: 0 };
 
 function compact(text: string | null | undefined) {
   return (text ?? "").replace(/\s+/g, " ").trim();
@@ -123,6 +125,7 @@ export default function StudioReadinessLauncherV31() {
   const [assignment, setAssignment] = useState<AssignmentReadinessSignal>(EMPTY_ASSIGNMENT);
   const [planner, setPlanner] = useState<PlannerReadinessSignal>(EMPTY_PLANNER);
   const [citation, setCitation] = useState<CitationReadinessSignal>(EMPTY_CITATION);
+  const [documentQuality, setDocumentQuality] = useState<DocumentQualityReadinessSignal>(EMPTY_DOCUMENT);
 
   const refresh = useCallback(() => {
     const main = document.querySelector<HTMLElement>(".studioV25Scope main");
@@ -143,18 +146,26 @@ export default function StudioReadinessLauncherV31() {
       window.cancelAnimationFrame(raf);
       raf = window.requestAnimationFrame(refresh);
     };
+    const onDocumentQuality = (event: Event) => {
+      const custom = event as CustomEvent<DocumentQualityReadinessSignal>;
+      if (custom.detail?.seen) setDocumentQuality(custom.detail);
+      schedule();
+    };
+
     refresh();
     const observer = new MutationObserver(schedule);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-valuenow", "data-risk"] });
     document.addEventListener("input", schedule, true);
     document.addEventListener("change", schedule, true);
     window.addEventListener("averis:assignment-word-target", schedule as EventListener);
+    window.addEventListener("averis:document-quality", onDocumentQuality as EventListener);
     return () => {
       window.cancelAnimationFrame(raf);
       observer.disconnect();
       document.removeEventListener("input", schedule, true);
       document.removeEventListener("change", schedule, true);
       window.removeEventListener("averis:assignment-word-target", schedule as EventListener);
+      window.removeEventListener("averis:document-quality", onDocumentQuality as EventListener);
     };
   }, [refresh]);
 
@@ -177,6 +188,10 @@ export default function StudioReadinessLauncherV31() {
       }
       if (lane === "citations") {
         clickButtonContaining("References");
+        return;
+      }
+      if (lane === "document") {
+        clickButtonContaining("Document quality");
         return;
       }
       if (lane === "plan") {
@@ -213,6 +228,7 @@ export default function StudioReadinessLauncherV31() {
         assignment={assignment}
         planner={planner}
         citation={citation}
+        document={documentQuality}
       />
     </>
   );
