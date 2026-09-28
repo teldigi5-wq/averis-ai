@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import AssignmentIntelligenceV28 from "./AssignmentIntelligenceV28";
+
 type PhaseId = "draft" | "evidence" | "proposal" | "sources" | "decisions" | "final";
 type PhaseState = "done" | "active" | "pending" | "hold";
 
@@ -163,6 +165,7 @@ function phaseState(phase: PhaseId, snapshot: Snapshot): PhaseState {
 export default function StudioCommandCenterV27() {
   const [snapshot, setSnapshot] = useState<Snapshot>(EMPTY);
   const [focusMode, setFocusMode] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
 
   const refresh = useCallback(() => {
     const next = readSnapshot();
@@ -220,6 +223,10 @@ export default function StudioCommandCenterV27() {
         event.preventDefault();
         setFocusMode((current) => !current);
       }
+      if (event.key.toLowerCase() === "b") {
+        event.preventDefault();
+        setBriefOpen((current) => !current);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -263,70 +270,78 @@ export default function StudioCommandCenterV27() {
   if (!snapshot.visible) return null;
 
   return (
-    <nav className="studioV27Command" aria-label="Revision Studio command center">
-      <div className="studioV27Command__top">
-        <div className="studioV27Command__identity">
-          <span className="studioV27Command__pulse" aria-hidden="true" />
-          <div>
-            <small>AVERIS STUDIO · V27</small>
-            <strong>Command Center</strong>
+    <>
+      <nav className="studioV27Command" aria-label="Revision Studio command center">
+        <div className="studioV27Command__top">
+          <div className="studioV27Command__identity">
+            <span className="studioV27Command__pulse" aria-hidden="true" />
+            <div>
+              <small>AVERIS STUDIO · V28</small>
+              <strong>Command Center</strong>
+            </div>
           </div>
-        </div>
 
-        <div className="studioV27Command__meter">
-          <div className="studioV27Command__meterCopy">
-            <span>WORKFLOW</span>
-            <b>{progress}%</b>
+          <div className="studioV27Command__meter">
+            <div className="studioV27Command__meterCopy">
+              <span>WORKFLOW</span>
+              <b>{progress}%</b>
+            </div>
+            <div className="studioV27Command__track" role="progressbar" aria-label="Revision workflow completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+              <i style={{ width: `${progress}%` }} />
+            </div>
           </div>
-          <div className="studioV27Command__track" role="progressbar" aria-label="Revision workflow completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
-            <i style={{ width: `${progress}%` }} />
+
+          <div className="studioV27Command__telemetry">
+            <span><small>DRAFT</small><b>{snapshot.draftWords} words</b></span>
+            <span><small>SOURCE</small><b>{snapshot.sourceReady ? "Added" : "Optional"}</b></span>
+            <span><small>STATUS</small><b>{snapshot.finalRecheckReady ? "Verified" : snapshot.preflightBlocked ? "Hold" : "In progress"}</b></span>
           </div>
-        </div>
 
-        <div className="studioV27Command__telemetry">
-          <span><small>DRAFT</small><b>{snapshot.draftWords} words</b></span>
-          <span><small>SOURCE</small><b>{snapshot.sourceReady ? "Added" : "Optional"}</b></span>
-          <span><small>STATUS</small><b>{snapshot.finalRecheckReady ? "Verified" : snapshot.preflightBlocked ? "Hold" : "In progress"}</b></span>
-        </div>
-
-        <div className="studioV27Command__actions">
-          <button type="button" className="studioV27Command__focus" onClick={() => setFocusMode((current) => !current)} aria-pressed={focusMode}>
-            {focusMode ? "Exit focus" : "Focus mode"}
-          </button>
-          <button type="button" className="studioV27Command__primary" onClick={runQuickAction}>{quickAction.label}</button>
-        </div>
-      </div>
-
-      <div className="studioV27Command__phases">
-        {PHASES.map((phase) => {
-          const state = phaseState(phase.id, snapshot);
-          const active = snapshot.activePhase === phase.id;
-          return (
-            <button
-              type="button"
-              key={phase.id}
-              className="studioV27Command__phase"
-              data-state={state}
-              data-active={active ? "true" : "false"}
-              onClick={() => scrollToPhase(phase.id)}
-              aria-label={`${phase.number} ${phase.label}${state === "done" ? ", complete" : state === "hold" ? ", needs review" : ""}`}
-            >
-              <span>{phase.number}</span>
-              <div><strong>{phase.label}</strong><small>{phase.short}</small></div>
-              <i aria-hidden="true" />
+          <div className="studioV27Command__actions">
+            <button type="button" className="studioV27Command__brief" onClick={() => setBriefOpen(true)}>Assignment brief</button>
+            <button type="button" className="studioV27Command__focus" onClick={() => setFocusMode((current) => !current)} aria-pressed={focusMode}>
+              {focusMode ? "Exit focus" : "Focus mode"}
             </button>
-          );
-        })}
-      </div>
+            <button type="button" className="studioV27Command__primary" onClick={runQuickAction}>{quickAction.label}</button>
+          </div>
+        </div>
 
-      <div className="studioV27Command__hint">
-        <span>Long assignment?</span>
-        <b>Alt + Shift + 1–6</b>
-        <small>jump between Studio stages</small>
-        <i aria-hidden="true" />
-        <b>Alt + Shift + F</b>
-        <small>toggle focus mode</small>
-      </div>
-    </nav>
+        <div className="studioV27Command__phases">
+          {PHASES.map((phase) => {
+            const state = phaseState(phase.id, snapshot);
+            const active = snapshot.activePhase === phase.id;
+            return (
+              <button
+                type="button"
+                key={phase.id}
+                className="studioV27Command__phase"
+                data-state={state}
+                data-active={active ? "true" : "false"}
+                onClick={() => scrollToPhase(phase.id)}
+                aria-label={`${phase.number} ${phase.label}${state === "done" ? ", complete" : state === "hold" ? ", needs review" : ""}`}
+              >
+                <span>{phase.number}</span>
+                <div><strong>{phase.label}</strong><small>{phase.short}</small></div>
+                <i aria-hidden="true" />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="studioV27Command__hint">
+          <span>Long assignment?</span>
+          <b>Alt + Shift + 1–6</b>
+          <small>jump between Studio stages</small>
+          <i aria-hidden="true" />
+          <b>Alt + Shift + F</b>
+          <small>focus mode</small>
+          <i aria-hidden="true" />
+          <b>Alt + Shift + B</b>
+          <small>assignment brief</small>
+        </div>
+      </nav>
+
+      <AssignmentIntelligenceV28 open={briefOpen} onClose={() => setBriefOpen(false)} currentDraftWords={snapshot.draftWords} />
+    </>
   );
 }
