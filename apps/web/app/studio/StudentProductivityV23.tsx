@@ -84,6 +84,17 @@ export default function StudentProductivityV23({
     setSourceLabel(sourceNameField?.value?.trim() || "Comparison source");
   }, [sourceProvided, proposal]);
 
+  useEffect(() => {
+    const applyAssignmentTarget = (event: Event) => {
+      const detail = (event as CustomEvent<{ target?: number }>).detail;
+      const nextTarget = Number(detail?.target);
+      if (!Number.isFinite(nextTarget) || nextTarget < 100 || nextTarget > 50000) return;
+      setWordTarget(Math.round(nextTarget));
+    };
+    window.addEventListener("averis:assignment-word-target", applyAssignmentTarget);
+    return () => window.removeEventListener("averis:assignment-word-target", applyAssignmentTarget);
+  }, []);
+
   async function copyFullProposal() {
     try {
       await navigator.clipboard.writeText(proposal);
