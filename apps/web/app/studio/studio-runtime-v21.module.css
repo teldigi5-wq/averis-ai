@@ -190,7 +190,7 @@
   letter-spacing: .005em;
 }
 
-@media (min-width: 1101px) {
+@media (min-width: 981px) {
   .shell {
     padding-left: 88px;
   }
