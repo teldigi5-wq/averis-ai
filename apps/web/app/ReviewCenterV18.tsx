@@ -187,7 +187,7 @@ export default function ReviewCenterV18() {
           </div>
           <div className="reviewHeroActions">
             <button className="reviewPrimary" type="button" onClick={openIntegrityWorkspace}>New integrity review <span>→</span></button>
-            <Link className="reviewSecondary" href="/refine/">Open Writing Refinement</Link>
+            <Link className="reviewSecondary" href="/studio/">Open Revision Studio</Link>
           </div>
         </section>
 
@@ -273,6 +273,9 @@ export default function ReviewCenterV18() {
             </Link>
             <Link href="/refine/">
               <span className="reviewToolNumber">04</span><b>Writing Refinement</b><small>Preflight first, then bounded local-Ollama revision proposals.</small><em>Open refinement →</em>
+            </Link>
+            <Link href="/studio/">
+              <span className="reviewToolNumber">05</span><b>Revision Studio</b><small>Accept or keep proposed sentence changes, protect citations and numbers, then re-check evidence.</small><em>Open studio →</em>
             </Link>
           </div>
         </section>
