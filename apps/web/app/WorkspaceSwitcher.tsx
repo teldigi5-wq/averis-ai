@@ -77,7 +77,9 @@ export default function WorkspaceSwitcher() {
     const html = document.documentElement;
     if (ready && workspaceOpen) html.dataset.averisWorkspaceOpen = "true";
     else delete html.dataset.averisWorkspaceOpen;
-    return () => delete html.dataset.averisWorkspaceOpen;
+    return () => {
+      delete html.dataset.averisWorkspaceOpen;
+    };
   }, [ready, workspaceOpen]);
 
   useEffect(() => {
