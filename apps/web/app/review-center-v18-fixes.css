@@ -12,6 +12,13 @@ html[data-averis-review-center="true"] .reviewCenterShell {
   overflow-x: clip;
 }
 
+/* v19 adds Revision Studio as a fifth first-class module. */
+@media (min-width: 1181px) {
+  .reviewToolGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 680px) {
   html[data-averis-review-center="true"] .reviewCenterV18 {
     width: 100% !important;
