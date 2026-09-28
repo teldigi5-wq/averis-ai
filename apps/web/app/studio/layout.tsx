@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import StudioAiRuntimeBridge from "./StudioAiRuntimeBridge";
+import StudioCommandAccessibilityV29 from "./StudioCommandAccessibilityV29";
 import StudioCommandCenterV27 from "./StudioCommandCenterV27";
 import StudioPlannerLauncherV29 from "./StudioPlannerLauncherV29";
 import "./studio-unified-v25.css";
@@ -16,6 +17,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
     <div className="studioV25Scope">
       <StudioAiRuntimeBridge>
         <StudioCommandCenterV27 />
+        <StudioCommandAccessibilityV29 />
         <StudioPlannerLauncherV29 />
         {children}
       </StudioAiRuntimeBridge>
