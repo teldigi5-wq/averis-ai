@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { supabase, supabaseConfigured } from "../../lib/supabase";
+import StudentProductivityV23 from "./StudentProductivityV23";
 import styles from "./studio.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -50,6 +51,9 @@ type Preservation = {
   numbers_before: string[];
   numbers_after: string[];
   missing_numbers: string[];
+  dois_before?: string[];
+  dois_after?: string[];
+  missing_dois?: string[];
   length_change_percent: number;
   acceptance_eligible: boolean;
 };
@@ -461,9 +465,9 @@ export default function RevisionStudioPage() {
     <main className={styles.page}>
       <section className={styles.hero}>
         <div>
-          <p className={styles.eyebrow}>REVISION STUDIO · V19</p>
+          <p className={styles.eyebrow}>REVISION STUDIO · V23</p>
           <h1>Review every proposed sentence before it becomes your draft.</h1>
-          <p className={styles.lede}>Averis runs the existing evidence gate first, requests a bounded local-Ollama proposal when that runtime is available, then separates the proposal into reviewable sentence changes. Nothing is auto-accepted.</p>
+          <p className={styles.lede}>Choose Local Ollama, Private Browser AI, or Cloud AI in the runtime bar. Averis checks evidence first, requests a proposal only through the runtime you selected, and keeps every wording decision under your control.</p>
         </div>
         <aside className={styles.boundaryCard}>
           <span>HUMAN-CONTROLLED REVISION</span>
@@ -475,7 +479,7 @@ export default function RevisionStudioPage() {
       <section className={styles.flowStrip} aria-label="Revision Studio workflow">
         <div><span>01</span><strong>Evidence gate</strong><small>writing + optional source</small></div>
         <i aria-hidden="true">→</i>
-        <div><span>02</span><strong>Bounded proposal</strong><small>local Ollama when enabled</small></div>
+        <div><span>02</span><strong>Selected-runtime proposal</strong><small>browser, local, or cloud</small></div>
         <i aria-hidden="true">→</i>
         <div><span>03</span><strong>Sentence review</strong><small>accept or keep original</small></div>
         <i aria-hidden="true">→</i>
@@ -544,7 +548,7 @@ export default function RevisionStudioPage() {
           {preflight.blocked_reason && <p className={styles.blockedReason}>{preflight.blocked_reason}</p>}
           {preflight.evidence_first_actions.length > 0 && <ul className={styles.preflightActions}>{preflight.evidence_first_actions.slice(0, 4).map((action) => <li key={action}>{action}</li>)}</ul>}
           <div className={styles.generateBar}>
-            <div><b>Step 2 · request a bounded proposal</b><span>The backend still blocks detector-evasion goals and preserves the existing local-runtime boundary.</span></div>
+            <div><b>Step 2 · request a bounded proposal</b><span>The selected runtime stays explicit. Averis does not automatically switch to another paid or local runtime.</span></div>
             <button type="button" onClick={generateProposal} disabled={!preflight.generation_eligible || busy !== null}>{busy === "generate" ? "Generating proposal…" : "Generate revision proposal"}</button>
           </div>
         </section>
@@ -552,90 +556,103 @@ export default function RevisionStudioPage() {
 
       {result && !result.suggested_text && (
         <section className={styles.runtimeCard}>
-          <span>LOCAL RUNTIME STATUS</span>
-          <h2>Proposal generation is not available in this deployment.</h2>
-          <p>{result.blocked_reason ?? "The optional local Ollama runtime did not return a revision proposal."}</p>
-          <small>Evidence review remains available. Averis does not switch to a paid inference API automatically.</small>
+          <span>SELECTED RUNTIME STATUS</span>
+          <h2>Proposal generation is not available from the selected runtime.</h2>
+          <p>{result.blocked_reason ?? "The selected runtime did not return a revision proposal."}</p>
+          <small>Evidence review remains available. Averis does not silently switch to another inference provider.</small>
         </section>
       )}
 
       {result?.suggested_text && (
-        <section className={styles.studioSection}>
-          <div className={styles.sectionHead}>
-            <div><p className={styles.eyebrow}>SENTENCE REVIEW</p><h2>Accept changes one unit at a time</h2></div>
-            <span className={globallySafe ? styles.goodChip : styles.warnChip}>{globallySafe ? "PROTECTED TOKENS PRESERVED" : "PRESERVATION HOLD"}</span>
-          </div>
+        <>
+          <StudentProductivityV23
+            original={result.original_text}
+            proposal={result.suggested_text}
+            goalLabel={goals.find(([key]) => key === goal)?.[1] ?? "Clarity"}
+            strength={strength}
+            sourceProvided={Boolean(source.trim())}
+            serverPreservationSafe={result.preservation?.acceptance_eligible ?? false}
+            recheckComplete={Boolean(recheck)}
+            onAcceptSafe={acceptSafeChanges}
+          />
 
-          <div className={styles.summaryGrid}>
-            <div><span>CHANGED UNITS</span><strong>{changedRows.length}</strong><small>unchanged text stays original</small></div>
-            <div><span>ACCEPTED</span><strong>{acceptedRows.length}</strong><small>explicit user decisions</small></div>
-            <div><span>BLOCKED UNITS</span><strong>{unsafeRows.length}</strong><small>citation / DOI / number loss</small></div>
-            <div><span>WHOLE PROPOSAL CHECK</span><strong>{result.preservation?.acceptance_eligible ? "PASS" : "REVIEW"}</strong><small>{result.evidence_version}</small></div>
-          </div>
-
-          <div className={styles.reviewToolbar}>
-            <button type="button" onClick={acceptSafeChanges} disabled={!changedRows.length}>Accept all preservation-safe</button>
-            <button type="button" onClick={resetDecisions} disabled={!changedRows.length}>Keep all originals</button>
-            <button type="button" onClick={undoDecision} disabled={!decisionHistory.length}>Undo last decision</button>
-          </div>
-
-          <div className={styles.diffHeader} aria-hidden="true"><span>ORIGINAL</span><span>PROPOSED</span><span>DECISION</span></div>
-          <div className={styles.diffList}>
-            {rows.map((row, index) => {
-              const decision = decisions[row.id] ?? "keep";
-              return (
-                <article className={`${styles.diffRow} ${row.status === "unchanged" ? styles.unchanged : ""}`} key={row.id}>
-                  <div className={styles.originalCell}>
-                    <span>#{String(index + 1).padStart(2, "0")} · {row.status.toUpperCase()}</span>
-                    <p>{row.original ?? <em>No original sentence</em>}</p>
-                  </div>
-                  <div className={styles.proposedCell}>
-                    <span>{row.status === "unchanged" ? "NO WORDING CHANGE" : `${Math.round(row.similarity * 100)}% TOKEN OVERLAP`}</span>
-                    <p>{row.suggested ?? <em>Proposed deletion</em>}</p>
-                    {!row.safeToAccept && (
-                      <div className={styles.preservationWarning}>
-                        <b>Acceptance blocked</b>
-                        {row.missingCitations.length > 0 && <small>Missing citation: {row.missingCitations.join(" · ")}</small>}
-                        {row.missingDois.length > 0 && <small>Missing DOI: {row.missingDois.join(" · ")}</small>}
-                        {row.missingNumbers.length > 0 && <small>Missing number: {row.missingNumbers.join(" · ")}</small>}
-                      </div>
-                    )}
-                  </div>
-                  <div className={styles.decisionCell}>
-                    {row.status === "unchanged" ? <span className={styles.unchangedChip}>UNCHANGED</span> : (
-                      <>
-                        <button type="button" className={decision === "accept" ? styles.acceptActive : ""} disabled={!row.safeToAccept} onClick={() => updateDecision(row, "accept")} aria-pressed={decision === "accept"}>Accept proposed</button>
-                        <button type="button" className={decision === "keep" ? styles.keepActive : ""} onClick={() => updateDecision(row, "keep")} aria-pressed={decision === "keep"}>Keep original</button>
-                      </>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          <section className={styles.acceptedPreview}>
-            <div className={styles.previewHead}>
-              <div><p className={styles.eyebrow}>ACCEPTED DRAFT PREVIEW</p><h3>Only your explicit decisions are composed here</h3></div>
-              <span>{acceptedDraft.trim() ? acceptedDraft.trim().split(/\s+/).length : 0} words</span>
+          <section className={styles.studioSection}>
+            <div className={styles.sectionHead}>
+              <div><p className={styles.eyebrow}>SENTENCE REVIEW</p><h2>Accept changes one unit at a time</h2></div>
+              <span className={globallySafe ? styles.goodChip : styles.warnChip}>{globallySafe ? "PROTECTED TOKENS PRESERVED" : "PRESERVATION HOLD"}</span>
             </div>
-            <pre>{acceptedDraft}</pre>
-            {!globallySafe && (
-              <div className={styles.globalHold} role="alert">
-                <b>Protected-token hold</b>
-                <span>The composed draft still removes protected content. Revert the affected decisions before copying, applying, or re-checking.</span>
-                {globalAudit.missingCitations.length > 0 && <small>Citations: {globalAudit.missingCitations.join(" · ")}</small>}
-                {globalAudit.missingDois.length > 0 && <small>DOIs: {globalAudit.missingDois.join(" · ")}</small>}
-                {globalAudit.missingNumbers.length > 0 && <small>Numbers: {globalAudit.missingNumbers.join(" · ")}</small>}
+
+            <div className={styles.summaryGrid}>
+              <div><span>CHANGED UNITS</span><strong>{changedRows.length}</strong><small>unchanged text stays original</small></div>
+              <div><span>ACCEPTED</span><strong>{acceptedRows.length}</strong><small>explicit user decisions</small></div>
+              <div><span>BLOCKED UNITS</span><strong>{unsafeRows.length}</strong><small>citation / DOI / number loss</small></div>
+              <div><span>WHOLE PROPOSAL CHECK</span><strong>{result.preservation?.acceptance_eligible ? "PASS" : "REVIEW"}</strong><small>{result.evidence_version}</small></div>
+            </div>
+
+            <div className={styles.reviewToolbar}>
+              <button type="button" onClick={acceptSafeChanges} disabled={!changedRows.length}>Accept all preservation-safe</button>
+              <button type="button" onClick={resetDecisions} disabled={!changedRows.length}>Keep all originals</button>
+              <button type="button" onClick={undoDecision} disabled={!decisionHistory.length}>Undo last decision</button>
+            </div>
+
+            <div className={styles.diffHeader} aria-hidden="true"><span>ORIGINAL</span><span>PROPOSED</span><span>DECISION</span></div>
+            <div className={styles.diffList}>
+              {rows.map((row, index) => {
+                const decision = decisions[row.id] ?? "keep";
+                return (
+                  <article className={`${styles.diffRow} ${row.status === "unchanged" ? styles.unchanged : ""}`} key={row.id}>
+                    <div className={styles.originalCell}>
+                      <span>#{String(index + 1).padStart(2, "0")} · {row.status.toUpperCase()}</span>
+                      <p>{row.original ?? <em>No original sentence</em>}</p>
+                    </div>
+                    <div className={styles.proposedCell}>
+                      <span>{row.status === "unchanged" ? "NO WORDING CHANGE" : `${Math.round(row.similarity * 100)}% TOKEN OVERLAP`}</span>
+                      <p>{row.suggested ?? <em>Proposed deletion</em>}</p>
+                      {!row.safeToAccept && (
+                        <div className={styles.preservationWarning}>
+                          <b>Acceptance blocked</b>
+                          {row.missingCitations.length > 0 && <small>Missing citation: {row.missingCitations.join(" · ")}</small>}
+                          {row.missingDois.length > 0 && <small>Missing DOI: {row.missingDois.join(" · ")}</small>}
+                          {row.missingNumbers.length > 0 && <small>Missing number: {row.missingNumbers.join(" · ")}</small>}
+                        </div>
+                      )}
+                    </div>
+                    <div className={styles.decisionCell}>
+                      {row.status === "unchanged" ? <span className={styles.unchangedChip}>UNCHANGED</span> : (
+                        <>
+                          <button type="button" className={decision === "accept" ? styles.acceptActive : ""} disabled={!row.safeToAccept} onClick={() => updateDecision(row, "accept")} aria-pressed={decision === "accept"}>Accept proposed</button>
+                          <button type="button" className={decision === "keep" ? styles.keepActive : ""} onClick={() => updateDecision(row, "keep")} aria-pressed={decision === "keep"}>Keep original</button>
+                        </>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <section className={styles.acceptedPreview}>
+              <div className={styles.previewHead}>
+                <div><p className={styles.eyebrow}>ACCEPTED DRAFT PREVIEW</p><h3>Only your explicit decisions are composed here</h3></div>
+                <span>{acceptedDraft.trim() ? acceptedDraft.trim().split(/\s+/).length : 0} words</span>
               </div>
-            )}
-            <div className={styles.previewActions}>
-              <button type="button" onClick={recheckAcceptedDraft} disabled={!globallySafe || busy !== null || acceptedDraft.trim().length < 50}>{busy === "recheck" ? "Re-checking evidence…" : "Re-check accepted draft"}</button>
-              <button type="button" onClick={copyAcceptedDraft} disabled={!globallySafe}>{copied ? "Copied" : "Copy accepted draft"}</button>
-              <button type="button" onClick={applyAcceptedAsBaseline} disabled={!globallySafe}>Use as new baseline</button>
-            </div>
+              <pre>{acceptedDraft}</pre>
+              {!globallySafe && (
+                <div className={styles.globalHold} role="alert">
+                  <b>Protected-token hold</b>
+                  <span>The composed draft still removes protected content. Revert the affected decisions before copying, applying, or re-checking.</span>
+                  {globalAudit.missingCitations.length > 0 && <small>Citations: {globalAudit.missingCitations.join(" · ")}</small>}
+                  {globalAudit.missingDois.length > 0 && <small>DOIs: {globalAudit.missingDois.join(" · ")}</small>}
+                  {globalAudit.missingNumbers.length > 0 && <small>Numbers: {globalAudit.missingNumbers.join(" · ")}</small>}
+                </div>
+              )}
+              <div className={styles.previewActions}>
+                <button type="button" onClick={recheckAcceptedDraft} disabled={!globallySafe || busy !== null || acceptedDraft.trim().length < 50}>{busy === "recheck" ? "Re-checking evidence…" : "Re-check accepted draft"}</button>
+                <button type="button" onClick={copyAcceptedDraft} disabled={!globallySafe}>{copied ? "Copied" : "Copy accepted draft"}</button>
+                <button type="button" onClick={applyAcceptedAsBaseline} disabled={!globallySafe}>Use as new baseline</button>
+              </div>
+            </section>
           </section>
-        </section>
+        </>
       )}
 
       {recheck && (
@@ -655,7 +672,7 @@ export default function RevisionStudioPage() {
 
       <footer className={styles.footerNote}>
         <span>AVERIS REVISION STUDIO</span>
-        <p>No detector-evasion objective · no paid inference fallback · no automatic acceptance · no new persistence path.</p>
+        <p>Source-safe originality support · no automatic runtime fallback · no automatic acceptance · evidence re-check before submission.</p>
         <Link href="/revision/">Open Evidence AI</Link>
         <Link href="/refine/">Open Writing Refinement</Link>
       </footer>
