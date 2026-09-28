@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { supabase, supabaseConfigured } from "../lib/supabase";
 import styles from "./workspace-switcher.module.css";
 
-type IconName = "workspace" | "sources" | "revision" | "refine" | "privateAi" | "privacy";
+type IconName = "dashboard" | "workspace" | "sources" | "revision" | "refine" | "privateAi" | "privacy";
 
 function WorkspaceIcon({ name }: { name: IconName }) {
   const common = {
@@ -21,6 +21,9 @@ function WorkspaceIcon({ name }: { name: IconName }) {
     "aria-hidden": true,
   };
 
+  if (name === "dashboard") {
+    return <svg {...common}><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></svg>;
+  }
   if (name === "workspace") {
     return <svg {...common}><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M3 9h18M8 9v11" /></svg>;
   }
@@ -51,6 +54,7 @@ export default function WorkspaceSwitcher() {
   const [workspaceOpen, setWorkspaceOpen] = useState(!supabaseConfigured);
 
   const leaf = routeLeaf(pathname);
+  const dashboard = leaf === "dashboard";
   const multiSource = leaf === "multi-source";
   const revision = leaf === "revision";
   const studio = leaf === "studio";
@@ -58,7 +62,7 @@ export default function WorkspaceSwitcher() {
   const refine = refinePage || studio;
   const privateAi = leaf === "private-ai";
   const privacy = leaf === "privacy";
-  const main = !multiSource && !revision && !refine && !privateAi && !privacy;
+  const main = !dashboard && !multiSource && !revision && !refine && !privateAi && !privacy;
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
@@ -116,6 +120,10 @@ export default function WorkspaceSwitcher() {
     <nav className={styles.switcher} aria-label="Averis workspace modules" data-active-module={studio ? "studio" : leaf || "workspace"}>
       <span className={styles.railBrand} aria-hidden="true" />
       <span className={styles.railDivider} aria-hidden="true" />
+      <Link className={dashboard ? styles.active : ""} href="/dashboard" aria-current={dashboard ? "page" : undefined} title="Student Dashboard">
+        <WorkspaceIcon name="dashboard" />
+        <span className={styles.label}>Home</span>
+      </Link>
       <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined} title="Review Center" onClick={reopenReviewCenter}>
         <WorkspaceIcon name="workspace" />
         <span className={styles.label}>Workspace</span>
