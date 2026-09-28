@@ -30,6 +30,7 @@ REFERENCE_PARSE = RateLimitPolicy("reference_parse", 60)
 REFERENCE_AUDIT = RateLimitPolicy("reference_audit", 30)
 REFERENCE_VERIFY = RateLimitPolicy("reference_verify", 12)
 AI_REVISION = RateLimitPolicy("ai_revision", 12)
+AI_CLOUD_REVISION = RateLimitPolicy("ai_cloud_revision", 6)
 
 
 def _receipt(payload: object) -> RateLimitReceipt:
