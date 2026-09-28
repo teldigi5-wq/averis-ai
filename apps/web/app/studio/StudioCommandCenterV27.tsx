@@ -60,6 +60,21 @@ function wordCount(text: string) {
   return value ? value.split(" ").length : 0;
 }
 
+function sameSnapshot(left: Snapshot, right: Snapshot) {
+  return left.visible === right.visible
+    && left.draftChars === right.draftChars
+    && left.draftWords === right.draftWords
+    && left.sourceReady === right.sourceReady
+    && left.preflightReady === right.preflightReady
+    && left.preflightBlocked === right.preflightBlocked
+    && left.proposalReady === right.proposalReady
+    && left.sourceWorkbenchReady === right.sourceWorkbenchReady
+    && left.sourceWorkbenchComplete === right.sourceWorkbenchComplete
+    && left.decisionsReady === right.decisionsReady
+    && left.finalRecheckReady === right.finalRecheckReady
+    && left.activePhase === right.activePhase;
+}
+
 function textNodeIncludes(needle: string) {
   const candidates = Array.from(document.querySelectorAll<HTMLElement>("h1,h2,h3,p,span,strong,small,b"));
   return candidates.find((element) => compact(element.textContent).includes(needle)) ?? null;
@@ -150,7 +165,8 @@ export default function StudioCommandCenterV27() {
   const [focusMode, setFocusMode] = useState(false);
 
   const refresh = useCallback(() => {
-    setSnapshot(readSnapshot());
+    const next = readSnapshot();
+    setSnapshot((current) => sameSnapshot(current, next) ? current : next);
   }, []);
 
   useEffect(() => {
@@ -257,12 +273,12 @@ export default function StudioCommandCenterV27() {
           </div>
         </div>
 
-        <div className="studioV27Command__meter" aria-label={`Revision workflow ${progress}% complete`}>
+        <div className="studioV27Command__meter">
           <div className="studioV27Command__meterCopy">
             <span>WORKFLOW</span>
             <b>{progress}%</b>
           </div>
-          <div className="studioV27Command__track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+          <div className="studioV27Command__track" role="progressbar" aria-label="Revision workflow completion" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
             <i style={{ width: `${progress}%` }} />
           </div>
         </div>
@@ -281,7 +297,7 @@ export default function StudioCommandCenterV27() {
         </div>
       </div>
 
-      <div className="studioV27Command__phases" role="list" aria-label="Revision workflow stages">
+      <div className="studioV27Command__phases">
         {PHASES.map((phase) => {
           const state = phaseState(phase.id, snapshot);
           const active = snapshot.activePhase === phase.id;
@@ -289,7 +305,6 @@ export default function StudioCommandCenterV27() {
             <button
               type="button"
               key={phase.id}
-              role="listitem"
               className="studioV27Command__phase"
               data-state={state}
               data-active={active ? "true" : "false"}
