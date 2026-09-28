@@ -13,6 +13,7 @@ import "./browser-quality-v12.css";
 import "./print-report.css";
 import "./enterprise-rebuild-v14.css";
 import "./enterprise-a11y-v14.css";
+import "./auth-modal-v16.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
@@ -36,7 +37,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-base-path={basePath || undefined}>
+    <html
+      lang="en"
+      data-base-path={basePath || undefined}
+      data-averis-auth-bootstrap="pending"
+      suppressHydrationWarning
+    >
       <body>
         <CinematicIntroGate />
         {children}
