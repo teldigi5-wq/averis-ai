@@ -46,7 +46,8 @@ export default function WorkspaceSwitcher() {
 
   const multiSource = pathname === "/multi-source" || pathname.endsWith("/multi-source");
   const revision = pathname === "/revision" || pathname.endsWith("/revision");
-  const refine = pathname === "/refine" || pathname.endsWith("/refine");
+  const studio = pathname === "/studio" || pathname.endsWith("/studio");
+  const refine = pathname === "/refine" || pathname.endsWith("/refine") || studio;
   const privateAi = pathname === "/private-ai" || pathname.endsWith("/private-ai");
   const privacy = pathname === "/privacy" || pathname.endsWith("/privacy");
   const main = !multiSource && !revision && !refine && !privateAi && !privacy;
@@ -119,9 +120,9 @@ export default function WorkspaceSwitcher() {
         <WorkspaceIcon name="revision" />
         <span className={styles.label}>Evidence AI</span>
       </Link>
-      <Link className={refine ? styles.active : ""} href="/refine" aria-current={refine ? "page" : undefined} title="Refine writing">
+      <Link className={refine ? styles.active : ""} href="/refine" aria-current={refine ? "page" : undefined} title={studio ? "Revision Studio" : "Refine writing"}>
         <WorkspaceIcon name="refine" />
-        <span className={styles.label}>Refine</span>
+        <span className={styles.label}>{studio ? "Studio" : "Refine"}</span>
       </Link>
       <Link className={privateAi ? styles.active : ""} href="/private-ai" aria-current={privateAi ? "page" : undefined} title="Private AI">
         <WorkspaceIcon name="privateAi" />
