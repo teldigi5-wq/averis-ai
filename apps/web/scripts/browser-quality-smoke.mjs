@@ -9,6 +9,7 @@ const artifactDir = path.resolve(process.cwd(), "../../artifacts/web-quality");
 
 const routes = [
   { name: "home", path: "/" },
+  { name: "review-center", path: "/?review-center=1", reviewCenter: true },
   { name: "workspace", path: "/", workspace: true },
   { name: "multi-source", path: "/multi-source/" },
   { name: "revision", path: "/revision/" },
@@ -41,14 +42,15 @@ function compactViolation(violation) {
 }
 
 async function prepareRoute(page, route) {
-  if (!route.workspace) return;
-  await page.evaluate(() => {
+  if (!route.workspace && !route.reviewCenter) return;
+  await page.evaluate((mode) => {
     document.querySelector('section[aria-label="Averis product introduction"]')?.remove();
     document.documentElement.dataset.averisIntroVisible = "false";
     document.documentElement.dataset.averisAuthBootstrap = "ready";
     document.documentElement.dataset.averisWorkspaceOpen = "true";
-  });
-  await page.waitForTimeout(120);
+    if (mode === "workspace") delete document.documentElement.dataset.averisReviewCenter;
+  }, route.workspace ? "workspace" : "review-center");
+  await page.waitForTimeout(route.reviewCenter ? 320 : 120);
 }
 
 async function exerciseScrollExperience(page) {
@@ -71,7 +73,7 @@ await fs.mkdir(artifactDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const report = {
-  schema_version: "averis.web-quality/v2",
+  schema_version: "averis.web-quality/v3",
   base_url: baseUrl,
   generated_at: new Date().toISOString(),
   checks: [],
@@ -173,7 +175,7 @@ try {
 
       const check = {
         route: route.path,
-        mode: route.workspace ? "workspace" : "default",
+        mode: route.reviewCenter ? "review-center" : route.workspace ? "workspace" : "default",
         profile: profile.name,
         viewport: profile.viewport,
         url,
