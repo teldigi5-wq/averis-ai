@@ -196,6 +196,12 @@ html[data-averis-workspace-open="true"] .controlCard:hover {
     margin-bottom: 92px !important;
   }
 
+  html[data-averis-workspace-open="true"] .toolRail {
+    min-height: 0 !important;
+    height: auto !important;
+    padding-bottom: 8px !important;
+  }
+
   html[data-averis-workspace-open="true"] .toolNav {
     width: 100%;
     max-width: 100%;
