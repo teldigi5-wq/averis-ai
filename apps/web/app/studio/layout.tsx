@@ -6,6 +6,7 @@ import "./studio-unified-v25.css";
 import "./studio-unified-v25-fix.css";
 import "./studio-command-center-v27.css";
 import "./studio-command-center-v27-fix.css";
+import "./assignment-intelligence-v28.css";
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
