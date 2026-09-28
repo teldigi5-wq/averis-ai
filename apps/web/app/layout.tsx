@@ -16,6 +16,7 @@ import "./enterprise-a11y-v14.css";
 import "./auth-modal-v16.css";
 import "./intro-isolation-v16.css";
 import "./authenticated-workspace-v16.css";
+import "./workspace-polish-v16.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
