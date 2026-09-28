@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import DashboardProgressSemanticsV36 from "./DashboardProgressSemanticsV36";
 import StudentDashboardV36 from "./StudentDashboardV36";
 
 export const metadata: Metadata = {
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <StudentDashboardV36 />;
+  return (
+    <>
+      <DashboardProgressSemanticsV36 />
+      <StudentDashboardV36 />
+    </>
+  );
 }
