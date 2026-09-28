@@ -14,6 +14,26 @@ class Settings(BaseSettings):
     ollama_embedding_model: str = "nomic-embed-text"
     ollama_timeout_seconds: float = 8.0
 
+    # Optional server-side AI API runtime. This is vendor-neutral and expects an
+    # OpenAI-compatible /v1 API surface. It is disabled by default so Averis
+    # keeps its zero-cost/local-first deployment behavior unless an operator
+    # explicitly opts in and supplies a server-side credential.
+    ai_api_enabled: bool = False
+    ai_api_base_url: str | None = None
+    ai_api_key: str | None = None
+    ai_api_model: str | None = None
+    ai_api_provider_label: str = "AI API"
+    ai_api_timeout_seconds: float = 30.0
+
+    @property
+    def ai_api_configured(self) -> bool:
+        return bool(
+            self.ai_api_enabled
+            and (self.ai_api_base_url or "").strip()
+            and (self.ai_api_key or "").strip()
+            and (self.ai_api_model or "").strip()
+        )
+
     # Semantic evidence is displayed as a candidate signal even when these are
     # unset. It may influence review bands only after a labeled benchmark has
     # produced and documented both thresholds plus a calibration identifier.
