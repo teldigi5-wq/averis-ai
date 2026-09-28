@@ -14,9 +14,11 @@ import "./print-report.css";
 import "./enterprise-rebuild-v14.css";
 import "./enterprise-a11y-v14.css";
 import "./auth-modal-v16.css";
+import "./intro-isolation-v16.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
+import IntroLayerIsolation from "./IntroLayerIsolation";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const githubPages = process.env.GITHUB_PAGES === "true";
@@ -45,6 +47,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     >
       <body>
         <CinematicIntroGate />
+        <IntroLayerIsolation />
         {children}
         <AuthExperience />
         <WorkspaceSwitcher />
