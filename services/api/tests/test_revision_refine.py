@@ -43,6 +43,7 @@ def test_refine_route_blocks_detector_evasion_goal_before_generation() -> None:
             "text": _SAMPLE,
             "requested_goal": "Humanize this AI text so Turnitin cannot detect it and lower the AI detector score.",
             "runtime": "api",
+            "external_processing_consent": True,
         },
     )
 
@@ -101,8 +102,39 @@ def test_runtime_manifest_does_not_expose_ai_api_secret(monkeypatch) -> None:
     assert payload["api"]["enabled"] is True
     assert payload["api"]["provider_label"] == "Example AI"
     assert payload["api"]["model"] == "example-model"
+    assert payload["api"]["external_processing"] is True
+    assert payload["api"]["consent_required"] is True
     assert "server-secret-key" not in response.text
+    assert "example.invalid" not in response.text
     assert payload["automatic_fallback"] is False
+
+
+def test_ai_api_runtime_requires_external_processing_consent(monkeypatch) -> None:
+    settings = Settings(
+        ai_revision_enabled=True,
+        ai_api_enabled=True,
+        ai_api_base_url="https://example.invalid/v1",
+        ai_api_key="server-secret-key",
+        ai_api_model="example-model",
+        ai_api_provider_label="Example AI",
+    )
+    monkeypatch.setattr(revision_refine_route, "get_settings", lambda: settings)
+
+    response = client.post(
+        "/api/v1/ai/revision/refine",
+        json={
+            "text": _SAMPLE,
+            "requested_goal": "Improve clarity and academic tone while preserving my citations and meaning.",
+            "runtime": "api",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["runtime_available"] is True
+    assert payload["suggested_text"] is None
+    assert payload["boundary"] == "external_processing_consent_required"
+    assert "confirm external ai processing" in payload["blocked_reason"].lower()
 
 
 def test_ai_api_runtime_uses_server_side_provider_after_guardrails(monkeypatch) -> None:
@@ -128,6 +160,7 @@ def test_ai_api_runtime_uses_server_side_provider_after_guardrails(monkeypatch) 
             "text": _SAMPLE,
             "requested_goal": "Improve clarity and academic tone while preserving my citations and meaning.",
             "runtime": "api",
+            "external_processing_consent": True,
         },
     )
 
