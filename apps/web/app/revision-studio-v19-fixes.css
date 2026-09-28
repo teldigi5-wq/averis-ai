@@ -1,0 +1,19 @@
+/* Revision Studio v19 final presentation fixes.
+   CSS-module class names retain the local key suffix; these selectors only tighten
+   the two desktop workflow action bars without changing mobile stacking. */
+
+@media (min-width: 761px) {
+  [class*="studio-module"][class*="__actionBar"] > div,
+  [class*="studio-module"][class*="__generateBar"] > div {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  [class*="studio-module"][class*="__actionBar"] > button,
+  [class*="studio-module"][class*="__generateBar"] > button {
+    width: auto !important;
+    min-width: 230px !important;
+    max-width: 320px !important;
+    flex: 0 0 auto !important;
+  }
+}
