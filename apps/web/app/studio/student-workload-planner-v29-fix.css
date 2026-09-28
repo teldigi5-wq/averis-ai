@@ -1,0 +1,98 @@
+.studioV29PlannerLauncher {
+  position: fixed;
+  z-index: 88;
+  right: max(22px, calc((100vw - 1500px) / 2 + 22px));
+  top: 156px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-width: 176px;
+  min-height: 54px;
+  border: 1px solid rgba(88, 211, 228, .24);
+  border-radius: 15px;
+  padding: 8px 11px;
+  color: #eafaff;
+  background: linear-gradient(145deg, rgba(7, 39, 60, .94), rgba(3, 21, 36, .96));
+  box-shadow: 0 18px 50px rgba(0, 5, 13, .28), inset 0 1px rgba(255,255,255,.03);
+  backdrop-filter: blur(12px);
+}
+
+.studioV29PlannerLauncher:hover {
+  border-color: rgba(96, 226, 235, .42);
+  transform: translateY(-1px);
+}
+
+.studioV29PlannerLauncher > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(92, 214, 229, .22);
+  border-radius: 10px;
+  color: #68e0e9;
+  background: rgba(10, 70, 94, .52);
+  font-size: 19px;
+}
+
+.studioV29PlannerLauncher > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.studioV29PlannerLauncher strong {
+  color: #eefbff;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.studioV29PlannerLauncher small {
+  color: #7192a6;
+  font-size: 7.8px;
+  white-space: nowrap;
+}
+
+.studioV29PlannerLauncher:focus-visible {
+  outline: 2px solid #6ee7ed;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+  .studioV29PlannerLauncher {
+    top: auto;
+    right: 18px;
+    bottom: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .studioV29PlannerLauncher {
+    right: 12px;
+    bottom: 12px;
+    min-width: 0;
+    width: auto;
+    grid-template-columns: 30px auto;
+    min-height: 48px;
+    border-radius: 14px;
+    padding: 7px 10px;
+  }
+
+  .studioV29PlannerLauncher > span {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    font-size: 16px;
+  }
+
+  .studioV29PlannerLauncher small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studioV29PlannerLauncher:hover {
+    transform: none;
+  }
+}
