@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { supabase, supabaseConfigured } from "../../lib/supabase";
 import styles from "./refine.module.css";
+import v15 from "./refine-v15.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -70,15 +71,31 @@ type RefineResponse = {
 const goals = [
   ["clarity", "Clarity", "Make the argument easier to follow without changing meaning."],
   ["academic", "Academic tone", "Tighten wording and formality while preserving your voice."],
+  ["natural", "Natural flow", "Smooth stiff phrasing and improve readability without hiding provenance."],
   ["concise", "Concise", "Remove repetition and unnecessary filler without removing evidence."],
   ["structure", "Structure", "Improve sentence flow and logical transitions."],
+  ["paraphrase", "Source-safe paraphrase", "Rephrase your own wording while preserving claims, citations and source context."],
+  ["grammar", "Grammar polish", "Correct grammar and mechanics with minimal content changes."],
 ] as const;
 
 function goalPrompt(goal: string) {
   if (goal === "academic") return "Improve academic tone and sentence precision while preserving my meaning, citations, quotations and factual claims.";
+  if (goal === "natural") return "Improve natural readable flow and reduce stiff phrasing while preserving my meaning, voice, citations, quotations and factual claims. Do not optimize for detector evasion.";
   if (goal === "concise") return "Make the writing more concise by removing repetition and filler while preserving my meaning, citations, quotations and factual claims.";
   if (goal === "structure") return "Improve sentence flow, transitions and local structure while preserving my meaning, citations, quotations and factual claims.";
+  if (goal === "paraphrase") return "Improve source-safe paraphrasing of my own draft while preserving factual claims, quotations, citations and source attribution. Do not add new claims or minimize evidence scores.";
+  if (goal === "grammar") return "Correct grammar, punctuation and mechanics with the smallest reasonable wording changes while preserving my meaning, citations, quotations and factual claims.";
   return "Improve clarity and readability while preserving my meaning, citations, quotations and factual claims.";
+}
+
+function splitSentences(text: string) {
+  const compact = text.replace(/\s+/g, " ").trim();
+  if (!compact) return [];
+  return compact.split(/(?<=[.!?])\s+/).map((sentence) => sentence.trim()).filter(Boolean);
+}
+
+function normalizedSentence(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 export default function RefinePage() {
@@ -95,6 +112,26 @@ export default function RefinePage() {
   const [copied, setCopied] = useState(false);
 
   const wordCount = useMemo(() => draft.trim() ? draft.trim().split(/\s+/).length : 0, [draft]);
+  const resultSummary = useMemo(() => {
+    if (!result?.suggested_text) return null;
+    const before = splitSentences(result.original_text);
+    const after = splitSentences(result.suggested_text);
+    const rows = Math.max(before.length, after.length);
+    let changed = 0;
+    for (let index = 0; index < rows; index += 1) {
+      if (normalizedSentence(before[index] ?? "") !== normalizedSentence(after[index] ?? "")) changed += 1;
+    }
+    const beforeWords = result.original_text.trim() ? result.original_text.trim().split(/\s+/).length : 0;
+    const afterWords = result.suggested_text.trim() ? result.suggested_text.trim().split(/\s+/).length : 0;
+    return {
+      beforeSentences: before.length,
+      afterSentences: after.length,
+      changedSentences: changed,
+      wordDelta: afterWords - beforeWords,
+    };
+  }, [result]);
+
+  const adoptionSafe = Boolean(result?.suggested_text && result.preservation?.acceptance_eligible);
 
   useEffect(() => {
     if (!supabase) return;
@@ -191,7 +228,7 @@ export default function RefinePage() {
   }
 
   function reviewSuggestionAgain() {
-    if (!result?.suggested_text) return;
+    if (!result?.suggested_text || !adoptionSafe) return;
     setDraft(result.suggested_text);
     setPreflight(null);
     setResult(null);
@@ -228,6 +265,15 @@ export default function RefinePage() {
         </aside>
       </section>
 
+      <section className={v15.runtimeStrip} aria-label="Refinement runtime boundary">
+        <div><span>LOCAL MODEL LANE</span><strong>Ollama when enabled</strong></div>
+        <i aria-hidden="true">→</i>
+        <div><span>PRE-GENERATION</span><strong>Evidence + policy gate</strong></div>
+        <i aria-hidden="true">→</i>
+        <div><span>POST-GENERATION</span><strong>Citation + numeric preservation</strong></div>
+        <small>No paid inference API is required by this workflow.</small>
+      </section>
+
       {error ? <div className={styles.error}><b>!</b><span>{error}</span></div> : null}
 
       <form className={styles.workbench} onSubmit={runPreflight}>
@@ -251,7 +297,7 @@ export default function RefinePage() {
             <span>02</span>
             <div><small>REVISION INTENT</small><h2>Choose what should improve</h2></div>
           </div>
-          <div className={styles.goalGrid}>
+          <div className={`${styles.goalGrid} ${v15.goalGridExpanded}`}>
             {goals.map(([key, label, copy]) => (
               <button
                 type="button"
@@ -270,6 +316,7 @@ export default function RefinePage() {
               <button type="button" className={strength === "balanced" ? styles.selected : ""} onClick={() => setStrength("balanced")}>Balanced</button>
             </div>
           </div>
+          <p className={v15.intentNote}>Natural flow means readability and voice—not “AI detector” evasion. Unsafe goals are blocked by the backend boundary before generation.</p>
         </aside>
 
         <section className={styles.sourcePanel}>
@@ -319,6 +366,12 @@ export default function RefinePage() {
             {preflight.blocked_reason ? <p className={styles.blockReason}>{preflight.blocked_reason}</p> : null}
           </div>
 
+          <div className={v15.preflightProtocol}>
+            <div><span>BOUNDARY</span><strong>{preflight.boundary.replaceAll("_", " ")}</strong></div>
+            <div><span>EVIDENCE VERSION</span><strong>{preflight.evidence_version}</strong></div>
+            <p>{preflight.caution}</p>
+          </div>
+
           {preflight.generation_eligible ? (
             <div className={styles.generateBar}>
               <div><b>Step 2 · generate a proposal</b><span>The backend re-checks the same safety boundary before asking Ollama to revise the text.</span></div>
@@ -347,16 +400,42 @@ export default function RefinePage() {
                 <article><span>SUGGESTED</span><p>{result.suggested_text}</p></article>
               </div>
 
-              {result.preservation ? (
-                <div className={styles.preservationPanel}>
-                  <div className={result.preservation.acceptance_eligible ? styles.checkGood : styles.checkWarn}>
-                    <span>PRESERVATION CHECK</span>
-                    <strong>{result.preservation.acceptance_eligible ? "No tracked citations or numbers were dropped" : "Review missing citation / numeric details"}</strong>
-                  </div>
-                  <div><span>LENGTH CHANGE</span><strong>{result.preservation.length_change_percent > 0 ? "+" : ""}{result.preservation.length_change_percent}%</strong></div>
-                  <div><span>CITATIONS MISSING</span><strong>{result.preservation.missing_citations.length}</strong></div>
-                  <div><span>NUMBERS MISSING</span><strong>{result.preservation.missing_numbers.length}</strong></div>
+              {resultSummary ? (
+                <div className={v15.changeSummary} aria-label="Revision change summary">
+                  <article><span>SENTENCES TO REVIEW</span><strong>{resultSummary.changedSentences}</strong><small>approximate position-based comparison</small></article>
+                  <article><span>SENTENCE COUNT</span><strong>{resultSummary.beforeSentences} → {resultSummary.afterSentences}</strong><small>before / after</small></article>
+                  <article><span>WORD DELTA</span><strong>{resultSummary.wordDelta > 0 ? "+" : ""}{resultSummary.wordDelta}</strong><small>words relative to original</small></article>
                 </div>
+              ) : null}
+
+              {result.preservation ? (
+                <>
+                  <div className={styles.preservationPanel}>
+                    <div className={result.preservation.acceptance_eligible ? styles.checkGood : styles.checkWarn}>
+                      <span>PRESERVATION CHECK</span>
+                      <strong>{result.preservation.acceptance_eligible ? "No tracked citations or numbers were dropped" : "Review missing citation / numeric details"}</strong>
+                    </div>
+                    <div><span>LENGTH CHANGE</span><strong>{result.preservation.length_change_percent > 0 ? "+" : ""}{result.preservation.length_change_percent}%</strong></div>
+                    <div><span>CITATIONS MISSING</span><strong>{result.preservation.missing_citations.length}</strong></div>
+                    <div><span>NUMBERS MISSING</span><strong>{result.preservation.missing_numbers.length}</strong></div>
+                  </div>
+
+                  <div className={`${v15.adoptionGate} ${result.preservation.acceptance_eligible ? v15.adoptionGatePass : v15.adoptionGateReview}`}>
+                    <div>
+                      <span>ADOPTION GATE</span>
+                      <strong>{result.preservation.acceptance_eligible ? "Tracked evidence preserved" : "Manual repair required before replacing your draft"}</strong>
+                      <p>{result.preservation.acceptance_eligible ? "Averis found no dropped tracked citations or numeric details. Continue with human review before submission." : "Averis will not promote this proposal back into the workbench while tracked evidence is missing."}</p>
+                    </div>
+                    <b>{result.preservation.acceptance_eligible ? "READY FOR REVIEW" : "HOLD"}</b>
+                  </div>
+
+                  {!result.preservation.acceptance_eligible ? (
+                    <div className={v15.missingEvidence}>
+                      {result.preservation.missing_citations.length ? <div><span>MISSING CITATIONS</span>{result.preservation.missing_citations.map((item) => <code key={item}>{item}</code>)}</div> : null}
+                      {result.preservation.missing_numbers.length ? <div><span>MISSING NUMBERS</span>{result.preservation.missing_numbers.map((item) => <code key={item}>{item}</code>)}</div> : null}
+                    </div>
+                  ) : null}
+                </>
               ) : null}
 
               {result.source_evidence_before && result.source_evidence_after ? (
@@ -369,9 +448,10 @@ export default function RefinePage() {
               ) : null}
 
               <div className={styles.resultActions}>
-                <button type="button" onClick={copySuggestion}>{copied ? "Copied" : "Copy suggestion"}</button>
-                <button type="button" className={styles.secondary} onClick={reviewSuggestionAgain}>Use as draft & re-check evidence</button>
+                <button type="button" onClick={copySuggestion}>{copied ? "Copied" : adoptionSafe ? "Copy suggestion" : "Copy for manual review"}</button>
+                <button type="button" className={styles.secondary} onClick={reviewSuggestionAgain} disabled={!adoptionSafe}>Use as draft & re-check evidence</button>
               </div>
+              {!adoptionSafe ? <p className={v15.actionLockNote}>The “Use as draft” action unlocks only after the preservation gate passes.</p> : null}
             </>
           )}
           <p className={styles.caution}>{result.caution}</p>
