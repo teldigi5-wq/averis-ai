@@ -167,7 +167,7 @@ export default function ReviewCenterV18() {
   return (
     <section className="reviewCenterV18" aria-label="Averis Review Center">
       <header className="reviewCommandBar">
-        <div className="reviewBrand" aria-label="Averis"><span /></div>
+        <div className="reviewBrand" role="img" aria-label="Averis"><span /></div>
         <div className="reviewCommandMeta">
           <span>REVIEW CENTER</span>
           <strong>Academic integrity workspace</strong>
