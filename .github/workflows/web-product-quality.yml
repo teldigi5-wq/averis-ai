@@ -67,6 +67,10 @@ jobs:
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
         run: node scripts/browser-quality-smoke.mjs
+      - name: Run Student Dashboard v36 desktop/mobile quality smoke
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/dashboard-quality-smoke-v36.mjs
       - name: Show preview server log on failure
         if: failure()
         run: cat /tmp/averis-web.log || true
