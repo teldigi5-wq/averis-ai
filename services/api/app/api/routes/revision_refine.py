@@ -5,6 +5,7 @@ from collections.abc import Iterable
 
 from fastapi import APIRouter, Depends
 
+from app.ai.providers.cloud import CloudAIProvider, CloudAIProviderError
 from app.ai.providers.ollama import OllamaProvider
 from app.core.config import get_settings
 from app.schemas.revision_refine import (
@@ -14,7 +15,7 @@ from app.schemas.revision_refine import (
     RevisionRefineResponse,
 )
 from app.services.auth import AuthContext, require_user
-from app.services.rate_limit import AI_REVISION, enforce_rate_limit
+from app.services.rate_limit import AI_CLOUD_REVISION, AI_REVISION, enforce_rate_limit
 from app.services.revision_guardrails import build_revision_boundary
 from app.services.revision_metrics import analyze_writing_style, overlap_review_band
 from app.services.similarity import compare_texts
@@ -24,6 +25,7 @@ router = APIRouter(prefix="/ai/revision", tags=["ai"])
 _AUTHOR_YEAR = re.compile(r"\([^()]{0,90}\b(?:19|20)\d{2}[a-z]?[^()]{0,45}\)")
 _NUMERIC_CITATION = re.compile(r"\[(?:\d{1,4}\s*(?:[-–,;]\s*\d{1,4}\s*)*)\]")
 _NUMBER = re.compile(r"(?<!\w)\d+(?:\.\d+)?%?(?!\w)")
+_DOI = re.compile(r"\b10\.\d{4,9}/[-._;()/:A-Z0-9]+\b", re.IGNORECASE)
 
 
 def _dedupe(values: Iterable[str]) -> list[str]:
@@ -43,6 +45,10 @@ def _citations(text: str) -> list[str]:
 
 def _numbers(text: str) -> list[str]:
     return _dedupe(match.group(0) for match in _NUMBER.finditer(text))
+
+
+def _dois(text: str) -> list[str]:
+    return _dedupe(match.group(0) for match in _DOI.finditer(text))
 
 
 def _source_evidence(text: str, source_text: str, source_name: str) -> RefinementSourceEvidence:
@@ -65,9 +71,12 @@ def _preservation(original: str, suggestion: str) -> RefinementPreservationRepor
     citations_after = _citations(suggestion)
     numbers_before = _numbers(original)
     numbers_after = _numbers(suggestion)
+    dois_before = _dois(original)
+    dois_after = _dois(suggestion)
 
     missing_citations = [value for value in citations_before if value not in citations_after]
     missing_numbers = [value for value in numbers_before if value not in numbers_after]
+    missing_dois = [value for value in dois_before if value.casefold() not in {item.casefold() for item in dois_after}]
     original_length = max(1, len(original))
     length_change_percent = round(((len(suggestion) - len(original)) / original_length) * 100, 2)
 
@@ -78,8 +87,11 @@ def _preservation(original: str, suggestion: str) -> RefinementPreservationRepor
         numbers_before=numbers_before,
         numbers_after=numbers_after,
         missing_numbers=missing_numbers,
+        dois_before=dois_before,
+        dois_after=dois_after,
+        missing_dois=missing_dois,
         length_change_percent=length_change_percent,
-        acceptance_eligible=not missing_citations and not missing_numbers,
+        acceptance_eligible=not missing_citations and not missing_numbers and not missing_dois,
     )
 
 
@@ -116,9 +128,12 @@ async def refine_revision(
 
     This endpoint is intentionally not an AI-detector humanizer. It can improve
     clarity, structure and academic tone, but explicit detector-evasion goals are
-    blocked and every suggestion is checked for citation/number preservation.
+    blocked and every suggestion is checked for citation/number/DOI preservation.
+    Cloud inference is explicitly selected, server-side only, and never falls back
+    to another model or provider.
     """
-    await enforce_rate_limit(auth, AI_REVISION)
+    rate_policy = AI_CLOUD_REVISION if payload.runtime == "cloud" else AI_REVISION
+    await enforce_rate_limit(auth, rate_policy)
     settings = get_settings()
 
     writing = analyze_writing_style(payload.text)
@@ -147,40 +162,84 @@ async def refine_revision(
         return RevisionRefineResponse(
             generation_eligible=False,
             runtime_available=False,
+            runtime=payload.runtime,
             boundary=boundary.boundary,
             blocked_reason=boundary.blocked_reason,
             original_text=payload.text,
             source_evidence_before=source_before,
         )
 
-    if not settings.ai_revision_enabled or settings.ai_provider.casefold() != "ollama":
-        return RevisionRefineResponse(
-            generation_eligible=True,
-            runtime_available=False,
-            boundary="ollama_runtime_unavailable",
-            blocked_reason=(
-                "The optional local Ollama writing runtime is not enabled in this deployment. "
-                "Evidence analysis remains available without it."
-            ),
-            original_text=payload.text,
-            source_evidence_before=source_before,
-        )
+    suggestion: str | None = None
+    if payload.runtime == "cloud":
+        if not settings.ai_revision_enabled or not settings.cloud_ai_configured:
+            return RevisionRefineResponse(
+                generation_eligible=True,
+                runtime_available=False,
+                runtime="cloud",
+                boundary="cloud_runtime_unavailable",
+                blocked_reason=(
+                    "Cloud AI is disabled or not fully configured on the Averis API. "
+                    "No paid or local fallback was attempted."
+                ),
+                original_text=payload.text,
+                source_evidence_before=source_before,
+            )
 
-    provider = OllamaProvider(
-        settings.ollama_base_url,
-        settings.ollama_model,
-        timeout_seconds=max(settings.ollama_timeout_seconds, 20.0),
-    )
-    suggestion = await provider.refine_writing(_refinement_prompt(payload))
-    if not suggestion:
-        return RevisionRefineResponse(
-            generation_eligible=True,
-            runtime_available=False,
-            boundary="ollama_runtime_unavailable",
-            blocked_reason="The local Ollama runtime did not return a refinement proposal. Try again when the configured model is available.",
-            original_text=payload.text,
-            source_evidence_before=source_before,
+        try:
+            provider = CloudAIProvider(
+                settings.ai_api_base_url,
+                settings.ai_api_key or "",
+                settings.ai_api_model,
+                timeout_seconds=settings.ai_cloud_timeout_seconds,
+            )
+            suggestion = await provider.refine_writing(_refinement_prompt(payload))
+        except (CloudAIProviderError, ValueError) as exc:
+            code = exc.code if isinstance(exc, CloudAIProviderError) else "cloud_configuration_error"
+            reason = (
+                exc.message
+                if isinstance(exc, CloudAIProviderError)
+                else "Cloud AI configuration is invalid. No fallback model was used."
+            )
+            return RevisionRefineResponse(
+                generation_eligible=True,
+                runtime_available=False,
+                runtime="cloud",
+                boundary=code,
+                blocked_reason=reason,
+                original_text=payload.text,
+                source_evidence_before=source_before,
+            )
+    else:
+        if not settings.ai_revision_enabled or settings.ai_provider.casefold() != "ollama":
+            return RevisionRefineResponse(
+                generation_eligible=True,
+                runtime_available=False,
+                runtime="ollama",
+                boundary="ollama_runtime_unavailable",
+                blocked_reason=(
+                    "The optional local Ollama writing runtime is not enabled in this deployment. "
+                    "Evidence analysis remains available without it."
+                ),
+                original_text=payload.text,
+                source_evidence_before=source_before,
+            )
+
+        provider = OllamaProvider(
+            settings.ollama_base_url,
+            settings.ollama_model,
+            timeout_seconds=max(settings.ollama_timeout_seconds, 20.0),
         )
+        suggestion = await provider.refine_writing(_refinement_prompt(payload))
+        if not suggestion:
+            return RevisionRefineResponse(
+                generation_eligible=True,
+                runtime_available=False,
+                runtime="ollama",
+                boundary="ollama_runtime_unavailable",
+                blocked_reason="The local Ollama runtime did not return a refinement proposal. Try again when the configured model is available.",
+                original_text=payload.text,
+                source_evidence_before=source_before,
+            )
 
     preservation = _preservation(payload.text, suggestion)
     source_after = None
@@ -190,6 +249,7 @@ async def refine_revision(
     return RevisionRefineResponse(
         generation_eligible=True,
         runtime_available=True,
+        runtime=payload.runtime,
         boundary="evidence_first_revision",
         original_text=payload.text,
         suggested_text=suggestion,
