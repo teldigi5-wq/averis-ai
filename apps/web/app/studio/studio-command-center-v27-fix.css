@@ -1,0 +1,24 @@
+/* v27 mobile certification fix: override inherited full-width button sizing inside the phase scroller. */
+@media (max-width: 760px) {
+  .studioV27Command__phases {
+    align-items: stretch;
+  }
+
+  .studioV27Command__phase {
+    width: 112px !important;
+    min-width: 112px !important;
+    max-width: 112px !important;
+    flex: 0 0 112px !important;
+  }
+
+  .studioV27Command__phase > div {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .studioV27Command__phase strong,
+  .studioV27Command__phase small {
+    max-width: 68px;
+  }
+}
