@@ -13,6 +13,7 @@ import "./assignment-intelligence-v28.css";
 import "./student-workload-planner-v29.css";
 import "./student-workload-planner-v29-fix.css";
 import "./citation-reference-assistant-v30.css";
+import "./citation-reference-assistant-v30-fix.css";
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
