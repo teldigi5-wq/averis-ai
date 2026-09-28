@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import SimilarityCitationReadinessV24 from "./SimilarityCitationReadinessV24";
 import styles from "./student-productivity-v23.module.css";
 
 const AUTHOR_YEAR = /\([^()]{0,90}\b(?:19|20)\d{2}[a-z]?[^()]{0,45}\)/gi;
@@ -59,6 +60,8 @@ export default function StudentProductivityV23({
 }: StudentProductivityV23Props) {
   const [copied, setCopied] = useState(false);
   const [wordTarget, setWordTarget] = useState(1500);
+  const [sourceText, setSourceText] = useState("");
+  const [sourceLabel, setSourceLabel] = useState("Comparison source");
   const audit = useMemo(() => protectedAudit(original, proposal), [original, proposal]);
   const originalWords = wordCount(original);
   const proposalWords = wordCount(proposal);
@@ -69,6 +72,17 @@ export default function StudentProductivityV23({
   const locallySafe = audit.missingCitations.length === 0 && audit.missingNumbers.length === 0 && audit.missingDois.length === 0;
   const protectionSafe = serverPreservationSafe && locallySafe;
 
+  useEffect(() => {
+    if (!sourceProvided) {
+      setSourceText("");
+      return;
+    }
+    const sourceField = document.querySelector<HTMLTextAreaElement>('textarea[maxlength="40000"]');
+    const sourceNameField = document.querySelector<HTMLInputElement>('input[aria-label="Comparison source name"]');
+    setSourceText(sourceField?.value ?? "");
+    setSourceLabel(sourceNameField?.value?.trim() || "Comparison source");
+  }, [sourceProvided, proposal]);
+
   async function copyFullProposal() {
     try {
       await navigator.clipboard.writeText(proposal);
@@ -77,6 +91,14 @@ export default function StudentProductivityV23({
     } catch {
       setCopied(false);
     }
+  }
+
+  function startSourceSafeAiReview() {
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>("button"));
+    const sourceSafeGoal = buttons.find((button) => button.textContent?.includes("Source-safe paraphrase"));
+    if (!sourceSafeGoal) return;
+    sourceSafeGoal.scrollIntoView({ behavior: "smooth", block: "center" });
+    sourceSafeGoal.click();
   }
 
   return (
@@ -108,6 +130,14 @@ export default function StudentProductivityV23({
           <span>Sentence review remains available below. Unsafe citation, DOI, or numeric loss stays blocked.</span>
         </div>
       </section>
+
+      <SimilarityCitationReadinessV24
+        draft={original}
+        source={sourceText}
+        sourceName={sourceLabel}
+        proposal={proposal}
+        onStartAiReview={startSourceSafeAiReview}
+      />
 
       <section className={styles.toolkit} aria-label="Student submission toolkit">
         <div className={styles.toolkitHead}>
