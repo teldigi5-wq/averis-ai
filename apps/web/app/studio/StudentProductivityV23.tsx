@@ -132,7 +132,17 @@ export default function StudentProductivityV23({
           <article>
             <span>WORD TARGET</span>
             <strong>{proposalWords.toLocaleString()} / {wordTarget.toLocaleString()}</strong>
-            <div className={styles.progress} aria-label={`${targetProgress}% of word target`}><i style={{ width: `${targetProgress}%` }} /></div>
+            <div
+              className={styles.progress}
+              role="progressbar"
+              aria-label="Assignment word target progress"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={targetProgress}
+              aria-valuetext={`${proposalWords.toLocaleString()} of ${wordTarget.toLocaleString()} words, ${targetProgress}%`}
+            >
+              <i style={{ width: `${targetProgress}%` }} />
+            </div>
             <small>{targetDelta >= 0 ? `${targetDelta.toLocaleString()} words remaining` : `${Math.abs(targetDelta).toLocaleString()} words over target`}</small>
           </article>
           <article>
