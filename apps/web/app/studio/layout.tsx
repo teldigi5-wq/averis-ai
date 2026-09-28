@@ -20,8 +20,10 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
       <StudioAiRuntimeBridge>
         <StudioCommandCenterV27 />
         <StudioCommandAccessibilityV29 />
-        <StudioPlannerLauncherV29 />
-        <StudioReferenceLauncherV30 />
+        <div className="studioV30UtilityDock" aria-label="Student productivity tools">
+          <StudioPlannerLauncherV29 />
+          <StudioReferenceLauncherV30 />
+        </div>
         {children}
       </StudioAiRuntimeBridge>
     </div>
