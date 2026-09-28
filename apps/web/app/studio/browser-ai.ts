@@ -14,6 +14,12 @@ type RevisionRequest = {
   onProgress?: (progress: BrowserAiProgress) => void;
 };
 
+type CoachRequest = {
+  text: string;
+  focus: string;
+  onProgress?: (progress: BrowserAiProgress) => void;
+};
+
 type BrowserGenerator = (
   input: Array<{ role: "system" | "user"; content: string }>,
   options: Record<string, unknown>,
@@ -106,16 +112,21 @@ function extractGeneratedText(output: unknown): string | null {
   return typeof last?.content === "string" ? last.content.trim() || null : null;
 }
 
-export async function generatePrivateRevision(request: RevisionRequest): Promise<string> {
-  const capability = browserAiCapability();
-  if (!capability.supported) throw new Error(capability.reason ?? "Private browser AI is unavailable.");
-  const text = request.text.trim();
-  if (text.length < 50) throw new Error("Paste at least 50 characters before generating a revision proposal.");
-  if (text.length > BROWSER_AI_MAX_CHARS) {
+function assertInput(text: string) {
+  const cleaned = text.trim();
+  if (cleaned.length < 50) throw new Error("Paste at least 50 characters before using Private AI.");
+  if (cleaned.length > BROWSER_AI_MAX_CHARS) {
     throw new Error(
       `Private browser AI currently supports up to ${BROWSER_AI_MAX_CHARS.toLocaleString()} characters per pass. Split the draft or use the Ollama runtime for longer sections.`,
     );
   }
+  return cleaned;
+}
+
+export async function generatePrivateRevision(request: RevisionRequest): Promise<string> {
+  const capability = browserAiCapability();
+  if (!capability.supported) throw new Error(capability.reason ?? "Private browser AI is unavailable.");
+  const text = assertInput(request.text);
 
   const generator = await getGenerator(request.onProgress);
   request.onProgress?.({ status: "generating", label: "Generating privately on this device…", percent: null });
@@ -155,6 +166,43 @@ export async function generatePrivateRevision(request: RevisionRequest): Promise
   if (!suggestion) throw new Error("The private AI model did not return a revision proposal. Try again or use the Ollama runtime.");
   if (suggestion.length < 20) throw new Error("The private AI response was too short to review safely. Try again or keep the original draft.");
 
-  request.onProgress?.({ status: "ready", label: "Private AI proposal ready for sentence review", percent: 100 });
+  request.onProgress?.({ status: "ready", label: "Private AI proposal ready for review", percent: 100 });
   return suggestion.slice(0, 20_000);
+}
+
+export async function generatePrivateCoach(request: CoachRequest): Promise<string> {
+  const capability = browserAiCapability();
+  if (!capability.supported) throw new Error(capability.reason ?? "Private browser AI is unavailable.");
+  const text = assertInput(request.text);
+  const generator = await getGenerator(request.onProgress);
+  request.onProgress?.({ status: "generating", label: "Building private coaching guidance…", percent: null });
+
+  const messages = [
+    {
+      role: "system" as const,
+      content: [
+        "You are Averis Private Academic Coach running on the student's device.",
+        "Give concise, practical revision guidance for the student's own draft.",
+        "Do not rewrite the full draft. Do not provide a plagiarism, misconduct, authorship, or AI-detection verdict.",
+        "Do not optimize for detector evasion or similarity-score reduction.",
+        "Do not invent citations, sources, facts, quotations, grades, or institutional rules.",
+        "When evidence is missing, say what the student should verify manually.",
+        "Return 3 to 6 short action points followed by one brief priority sentence.",
+      ].join("\n"),
+    },
+    {
+      role: "user" as const,
+      content: `Coaching focus: ${request.focus.trim()}\n\nSTUDENT TEXT\n${text}`,
+    },
+  ];
+
+  const output = await generator(messages, {
+    max_new_tokens: 420,
+    do_sample: false,
+    repetition_penalty: 1.04,
+  });
+  const guidance = extractGeneratedText(output);
+  if (!guidance) throw new Error("The private AI model did not return coaching guidance. Try again.");
+  request.onProgress?.({ status: "ready", label: "Private AI coaching ready", percent: 100 });
+  return guidance.slice(0, 5_000);
 }
