@@ -90,10 +90,10 @@ function statusLabel(score: number, pending: number, reviews: number) {
 function downloadText(filename: string, value: string) {
   const blob = new Blob([value], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
+  const link = globalThis.document.createElement("a");
   link.href = url;
   link.download = filename;
-  document.body.appendChild(link);
+  globalThis.document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
@@ -108,11 +108,11 @@ export default function SubmissionReadinessCenterV31({ open, onClose, onAction, 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const previousOverflow = globalThis.document.body.style.overflow;
+    globalThis.document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      globalThis.document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [open, onClose]);
