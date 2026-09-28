@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import AssignmentRubricBridgeV33 from "./AssignmentRubricBridgeV33";
 import StudioAiRuntimeBridge from "./StudioAiRuntimeBridge";
 import StudioCommandAccessibilityV29 from "./StudioCommandAccessibilityV29";
 import StudioCommandCenterV27 from "./StudioCommandCenterV27";
@@ -25,6 +26,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
   return (
     <div className="studioV25Scope">
       <StudioAiRuntimeBridge>
+        <AssignmentRubricBridgeV33 />
         <StudioCommandCenterV27 />
         <StudioCommandAccessibilityV29 />
         <div className="studioV30UtilityDock" aria-label="Student productivity tools">
