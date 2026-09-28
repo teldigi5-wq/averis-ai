@@ -28,6 +28,12 @@ Configure these API environment variables only when an operator intentionally en
 
 The browser can read `/api/v1/ai/revision/runtimes`, which returns only non-secret availability metadata. The API key and base URL are never returned.
 
+## External-processing consent
+
+Selecting the AI API runtime is intentionally different from using local/browser inference. Revision Studio presents an explicit external-processing consent control before generation. The request also carries `external_processing_consent`, and the backend refuses to invoke the provider unless the value is true. This means a direct API client cannot bypass the same consent boundary simply by skipping the UI.
+
+Users who do not want draft text sent to an external model can stay on Local Ollama or Private Browser AI.
+
 ## Safety / integrity boundary
 
 Every AI API revision request still passes through the same authenticated, rate-limited revision route and deterministic guardrails before a provider call. Detector-evasion goals are blocked before generation. Generated wording is treated as a candidate only and must pass citation, number, and DOI preservation checks before adoption.
