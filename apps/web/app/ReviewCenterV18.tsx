@@ -187,7 +187,7 @@ export default function ReviewCenterV18() {
           </div>
           <div className="reviewHeroActions">
             <button className="reviewPrimary" type="button" onClick={openIntegrityWorkspace}>New integrity review <span>→</span></button>
-            <Link className="reviewSecondary" href="/studio/">Open Revision Studio</Link>
+            <Link className="reviewSecondary" href="/private-ai/">Open Private AI</Link>
           </div>
         </section>
 
@@ -276,6 +276,9 @@ export default function ReviewCenterV18() {
             </Link>
             <Link href="/studio/">
               <span className="reviewToolNumber">05</span><b>Revision Studio</b><small>Accept or keep proposed sentence changes, protect citations and numbers, then re-check evidence.</small><em>Open studio →</em>
+            </Link>
+            <Link href="/private-ai/">
+              <span className="reviewToolNumber">06</span><b>Private AI</b><small>Run a small open writing model on-device with WebGPU and no paid inference API.</small><em>Open private AI →</em>
             </Link>
           </div>
         </section>
