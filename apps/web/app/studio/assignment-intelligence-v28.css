@@ -1,0 +1,488 @@
+.assignmentV28Backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 7, 13, .72);
+  backdrop-filter: blur(10px);
+}
+
+.assignmentV28Drawer {
+  width: min(760px, 100%);
+  height: 100dvh;
+  overflow: hidden;
+  border-left: 1px solid rgba(81, 204, 229, .22);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(37, 203, 229, .10), transparent 28%),
+    linear-gradient(180deg, #061a2a 0%, #03111d 56%, #020b13 100%);
+  box-shadow: -34px 0 90px rgba(0, 3, 10, .42);
+  animation: assignmentV28Enter .24s ease-out;
+}
+
+@keyframes assignmentV28Enter {
+  from { transform: translateX(24px); opacity: .2; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.assignmentV28Header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: start;
+  padding: 28px 30px 22px;
+  border-bottom: 1px solid rgba(83, 171, 209, .15);
+  background: rgba(4, 21, 35, .72);
+}
+
+.assignmentV28Header span,
+.assignmentV28SectionHead span,
+.assignmentV28Empty > span {
+  color: #62e0e9;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+
+.assignmentV28Header h2 {
+  margin: 7px 0 9px;
+  color: #f3fbff;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.assignmentV28Header p {
+  max-width: 620px;
+  margin: 0;
+  color: #89a7b9;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.assignmentV28Close {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(83, 185, 218, .22);
+  border-radius: 12px;
+  color: #dff8ff;
+  background: rgba(7, 33, 53, .82);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.assignmentV28Close:hover {
+  border-color: rgba(98, 225, 234, .44);
+  background: rgba(11, 55, 80, .88);
+}
+
+.assignmentV28Body {
+  height: calc(100dvh - 145px);
+  overflow-y: auto;
+  padding: 22px 26px 34px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(82, 174, 211, .32) transparent;
+}
+
+.assignmentV28Input,
+.assignmentV28Snapshot,
+.assignmentV28Rubric,
+.assignmentV28Checklist,
+.assignmentV28Policy,
+.assignmentV28Empty {
+  border: 1px solid rgba(82, 175, 211, .16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(7, 30, 48, .86), rgba(3, 16, 28, .94));
+  box-shadow: 0 22px 60px rgba(0, 4, 12, .18), inset 0 1px rgba(255,255,255,.022);
+}
+
+.assignmentV28Input,
+.assignmentV28Rubric,
+.assignmentV28Checklist,
+.assignmentV28Policy,
+.assignmentV28Empty {
+  padding: 18px;
+}
+
+.assignmentV28SectionHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.assignmentV28SectionHead > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.assignmentV28SectionHead strong {
+  color: #e8f7ff;
+  font-size: 15px;
+}
+
+.assignmentV28SectionHead > small {
+  color: #6e8ea3;
+  font-size: 10px;
+}
+
+.assignmentV28Input textarea {
+  width: 100%;
+  min-height: 210px;
+  resize: vertical;
+  border: 1px solid rgba(82, 169, 206, .17);
+  border-radius: 13px;
+  padding: 15px 16px;
+  color: #e9f8ff;
+  background: rgba(2, 13, 23, .78);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.assignmentV28Input textarea::placeholder {
+  color: #557389;
+}
+
+.assignmentV28Input textarea:focus-visible,
+.assignmentV28Close:focus-visible,
+.assignmentV28Drawer button:focus-visible,
+.assignmentV28Requirement input:focus-visible {
+  outline: 2px solid #6ee7ed;
+  outline-offset: 3px;
+}
+
+.assignmentV28InputActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.assignmentV28InputActions button,
+.assignmentV28Snapshot button,
+.assignmentV28Copy {
+  min-height: 38px;
+  border: 1px solid rgba(79, 190, 222, .22);
+  border-radius: 10px;
+  padding: 0 13px;
+  color: #edfaff;
+  background: linear-gradient(135deg, rgba(19, 101, 151, .74), rgba(8, 50, 82, .84));
+  font-size: 10.5px;
+  font-weight: 760;
+}
+
+.assignmentV28InputActions button:nth-child(2) {
+  color: #a8c3d3;
+  background: rgba(5, 27, 43, .72);
+}
+
+.assignmentV28InputActions button:disabled,
+.assignmentV28Snapshot button:disabled,
+.assignmentV28Copy:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.assignmentV28InputActions > span {
+  margin-left: auto;
+  color: #628196;
+  font-size: 9px;
+}
+
+.assignmentV28Snapshot {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  overflow: hidden;
+  background: rgba(82, 175, 211, .11);
+}
+
+.assignmentV28Snapshot article {
+  min-height: 132px;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(6, 27, 44, .98), rgba(3, 16, 27, .98));
+}
+
+.assignmentV28Snapshot article > span {
+  color: #6d91a7;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.assignmentV28Snapshot article > strong {
+  color: #edfaff;
+  font-size: 19px;
+}
+
+.assignmentV28Snapshot article > small {
+  color: #7897a9;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.assignmentV28Snapshot article > button {
+  justify-self: start;
+  margin-top: 5px;
+}
+
+.assignmentV28Rubric,
+.assignmentV28Checklist,
+.assignmentV28Policy {
+  margin-top: 14px;
+}
+
+.assignmentV28RubricList {
+  display: grid;
+  gap: 8px;
+}
+
+.assignmentV28RubricList article {
+  padding: 11px 12px;
+  border: 1px solid rgba(82, 169, 206, .13);
+  border-radius: 12px;
+  background: rgba(2, 14, 24, .54);
+}
+
+.assignmentV28RubricList article > div:first-child {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.assignmentV28RubricList article span {
+  color: #53dbe5;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.assignmentV28RubricList article strong {
+  min-width: 0;
+  color: #dcebf3;
+  font-size: 11px;
+}
+
+.assignmentV28RubricList article b {
+  color: #f4fbff;
+  font-size: 12px;
+}
+
+.assignmentV28RubricTrack,
+.assignmentV28ChecklistTrack {
+  height: 5px;
+  overflow: hidden;
+  margin-top: 9px;
+  border-radius: 999px;
+  background: rgba(69, 116, 142, .18);
+}
+
+.assignmentV28RubricTrack i,
+.assignmentV28ChecklistTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #25c4d4, #2d7cea);
+}
+
+.assignmentV28Progress {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.assignmentV28Progress b {
+  color: #eefaff;
+  font-size: 18px;
+}
+
+.assignmentV28Progress span {
+  color: #6f8fa4;
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+
+.assignmentV28Requirements {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.assignmentV28Requirement {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 11px;
+  align-items: start;
+  padding: 11px 12px;
+  border: 1px solid rgba(82, 168, 205, .13);
+  border-radius: 12px;
+  background: rgba(3, 17, 28, .66);
+  transition: border-color .16s ease, background .16s ease, opacity .16s ease;
+}
+
+.assignmentV28Requirement:hover {
+  border-color: rgba(84, 210, 226, .26);
+}
+
+.assignmentV28Requirement.isDone {
+  border-color: rgba(75, 204, 181, .21);
+  background: rgba(15, 86, 77, .10);
+}
+
+.assignmentV28Requirement input {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  accent-color: #4bd8d8;
+}
+
+.assignmentV28Requirement > span {
+  display: grid;
+  gap: 3px;
+}
+
+.assignmentV28Requirement em {
+  color: #58dce6;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 820;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+.assignmentV28Requirement strong {
+  color: #e3f2f9;
+  font-size: 11px;
+}
+
+.assignmentV28Requirement small {
+  color: #7896a9;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.assignmentV28Requirement.isDone strong,
+.assignmentV28Requirement.isDone small {
+  opacity: .62;
+}
+
+.assignmentV28Copy {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.assignmentV28Policy p {
+  margin: 7px 0;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(79, 199, 220, .35);
+  color: #b7cdd9;
+  background: rgba(4, 23, 37, .52);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.assignmentV28Policy > small {
+  display: block;
+  margin-top: 10px;
+  color: #6e8fa4;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.assignmentV28Empty {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  margin-top: 14px;
+}
+
+.assignmentV28Empty strong {
+  margin: 8px 0 6px;
+  color: #ebf8ff;
+  font-size: 18px;
+}
+
+.assignmentV28Empty p {
+  max-width: 520px;
+  margin: 0 auto;
+  color: #7897a9;
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.studioV27Command__brief {
+  min-height: 40px;
+  border: 1px solid rgba(84, 203, 226, .24);
+  border-radius: 10px;
+  padding: 0 13px;
+  color: #c8f6fa;
+  background: rgba(8, 47, 70, .76);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.studioV27Command__brief:hover {
+  border-color: rgba(99, 229, 236, .42);
+  background: rgba(11, 65, 88, .84);
+}
+
+@media (max-width: 760px) {
+  .assignmentV28Header {
+    padding: 22px 18px 17px;
+  }
+
+  .assignmentV28Header h2 {
+    font-size: 28px;
+  }
+
+  .assignmentV28Body {
+    height: calc(100dvh - 132px);
+    padding: 14px 14px 28px;
+  }
+
+  .assignmentV28Input,
+  .assignmentV28Rubric,
+  .assignmentV28Checklist,
+  .assignmentV28Policy,
+  .assignmentV28Empty {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .assignmentV28Snapshot {
+    grid-template-columns: 1fr;
+    border-radius: 15px;
+  }
+
+  .assignmentV28Snapshot article {
+    min-height: 108px;
+  }
+
+  .assignmentV28Input textarea {
+    min-height: 190px;
+  }
+
+  .assignmentV28InputActions > span {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .studioV27Command__brief {
+    flex: 1 1 118px;
+    min-width: 112px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assignmentV28Drawer {
+    animation: none;
+  }
+}
