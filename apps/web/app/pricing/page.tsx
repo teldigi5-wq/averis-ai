@@ -80,17 +80,28 @@ export default function PricingPage() {
   const [currency, setCurrency] = useState<Currency>("LKR");
   const [cadence, setCadence] = useState<Cadence>("monthly");
   const [status, setStatus] = useState<BillingStatus | null>(null);
+  const [statusChecked, setStatusChecked] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [message, setMessage] = useState("");
 
-  const yearlySaving = useMemo(() => (cadence === "yearly" ? "2 months-equivalent saved" : "Cancel through the billing portal"), [cadence]);
+  const yearlySaving = useMemo(
+    () => (cadence === "yearly" ? "2 months-equivalent saved" : "Cancel through the billing portal"),
+    [cadence],
+  );
+  const billingReady = statusChecked && status?.billing_enabled === true;
 
   useEffect(() => {
-    if (!supabaseConfigured || !supabase) return;
+    if (!supabaseConfigured || !supabase) {
+      setStatusChecked(true);
+      return;
+    }
     let active = true;
     void supabase.auth.getSession().then(async ({ data }) => {
       const token = data.session?.access_token;
-      if (!token || !active) return;
+      if (!token || !active) {
+        if (active) setStatusChecked(true);
+        return;
+      }
       try {
         const response = await fetch(`${API_URL}/api/v1/billing/status`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -98,7 +109,9 @@ export default function PricingPage() {
         });
         if (response.ok && active) setStatus(await response.json());
       } catch {
-        // Pricing stays usable even if the optional billing status call is unavailable.
+        // Fail closed: checkout stays disabled until the API explicitly confirms readiness.
+      } finally {
+        if (active) setStatusChecked(true);
       }
     });
     return () => { active = false; };
@@ -112,6 +125,10 @@ export default function PricingPage() {
 
   async function checkout(plan: "student" | "pro") {
     setMessage("");
+    if (!billingReady) {
+      setMessage("Subscriptions are not accepting payments yet. The free student toolkit remains available.");
+      return;
+    }
     const token = await sessionToken();
     if (!token) {
       setMessage("Sign in first so the subscription can be securely linked to your Averis account.");
@@ -148,6 +165,9 @@ export default function PricingPage() {
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body?.detail || "Billing portal is unavailable.");
+      if (typeof body.portal_url !== "string" || !body.portal_url.startsWith("https://")) {
+        throw new Error("The payment provider returned an invalid billing portal link.");
+      }
       window.location.assign(body.portal_url);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Billing portal is unavailable.");
@@ -183,7 +203,7 @@ export default function PricingPage() {
       {status && (
         <section className={styles.accountBar} aria-label="Current subscription">
           <div><span>Current plan</span><strong>{status.plan === "student" ? "Student Plus" : status.plan === "pro" ? "Student Pro" : "Free"}</strong></div>
-          <div><span>Status</span><strong>{status.subscription_status.replaceAll("_", " ")}</strong></div>
+          <div><span>Status</span><strong>{status.subscription_status.replace(/_/g, " ")}</strong></div>
           <div><span>Monthly scans</span><strong>{status.monthly_credit_allowance}</strong></div>
           {status.plan !== "free" && <button type="button" onClick={openPortal}>Manage subscription</button>}
         </section>
@@ -213,8 +233,8 @@ export default function PricingPage() {
               ) : current ? (
                 <button className={styles.primaryAction} type="button" onClick={openPortal}>Manage current plan</button>
               ) : (
-                <button className={styles.primaryAction} type="button" disabled={loadingPlan !== null || status?.billing_enabled === false} onClick={() => checkout(plan.id)}>
-                  {loadingPlan === plan.id ? "Opening secure checkout…" : status?.billing_enabled === false ? "Subscriptions activating soon" : `Choose ${plan.name}`}
+                <button className={styles.primaryAction} type="button" disabled={loadingPlan !== null || !billingReady} onClick={() => checkout(plan.id)}>
+                  {loadingPlan === plan.id ? "Opening secure checkout…" : billingReady ? `Choose ${plan.name}` : "Subscriptions activating soon"}
                 </button>
               )}
             </article>
