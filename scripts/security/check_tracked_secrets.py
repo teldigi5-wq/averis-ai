@@ -33,8 +33,11 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("Stripe live secret", re.compile(r"\bsk_live_[A-Za-z0-9]{20,}\b")),
 )
 
+# Keep the assignment match on one line. Using \s* here would cross a newline
+# after an intentionally blank `.env.example` value and could misread the next
+# variable name as the secret value.
 SERVER_SECRET_ASSIGNMENT = re.compile(
-    r"(?im)\b(SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|LEMON_SQUEEZY_API_KEY|LEMON_SQUEEZY_WEBHOOK_SECRET)\s*=\s*['\"]?([^\s'\"#]+)"
+    r"(?im)\b(SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|LEMON_SQUEEZY_API_KEY|LEMON_SQUEEZY_WEBHOOK_SECRET)[ \t]*=[ \t]*['\"]?([^\s'\"#]+)"
 )
 PLACEHOLDER_MARKERS = ("<", "${", "your_", "example", "placeholder", "changeme", "replace_me")
 
