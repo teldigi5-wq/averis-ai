@@ -120,6 +120,21 @@ def test_webhook_requires_signature(monkeypatch: pytest.MonkeyPatch) -> None:
         _reset_settings()
 
 
+def test_persist_webhook_requires_provider_event_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_complete_creem_env(monkeypatch)
+    _reset_settings()
+    try:
+        with pytest.raises(HTTPException) as error:
+            asyncio.run(
+                billing.persist_webhook(
+                    {"eventType": "subscription.paid", "object": {"id": "sub_test"}}
+                )
+            )
+        assert error.value.status_code == 400
+    finally:
+        _reset_settings()
+
+
 @pytest.mark.parametrize(
     "provider_status",
     ["past_due", "unpaid", "paused", "expired", "refunded", "disputed", "none"],
@@ -204,6 +219,7 @@ def test_sync_only_event_cannot_establish_paid_entitlement(monkeypatch: pytest.M
                 "status": "active",
                 "metadata": {"averis_user_id": "user_test"},
             },
+            event_id="evt_sync_only",
         )
     )
 
@@ -212,10 +228,16 @@ def test_unknown_product_change_downgrades_existing_subscription(monkeypatch: py
     async def existing(_subscription_id: str):
         return ("user_test", "student", "monthly")
 
-    calls: list[tuple[str, str]] = []
+    calls: list[tuple[str, str, str | None, str | None]] = []
 
-    async def fake_downgrade(subscription_id: str, *, provider_status: str) -> None:
-        calls.append((subscription_id, provider_status))
+    async def fake_downgrade(
+        subscription_id: str,
+        *,
+        provider_status: str,
+        event_id: str | None = None,
+        event_type: str | None = None,
+    ) -> None:
+        calls.append((subscription_id, provider_status, event_id, event_type))
 
     monkeypatch.setattr(billing, "_lookup_user_by_subscription", existing)
     monkeypatch.setattr(billing, "_product_map", lambda: {"prod_student": ("student", "monthly")})
@@ -225,40 +247,119 @@ def test_unknown_product_change_downgrades_existing_subscription(monkeypatch: py
         billing._persist_subscription_event(
             "subscription.update",
             {"id": "sub_test", "product": {"id": "prod_unknown"}, "status": "active"},
+            event_id="evt_unknown_product",
         )
     )
 
-    assert calls == [("sub_test", "unknown_product")]
+    assert calls == [
+        ("sub_test", "unknown_product", "evt_unknown_product", "subscription.update")
+    ]
 
 
 def test_dispute_event_downgrades_linked_subscription(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls: list[tuple[str, str]] = []
+    calls: list[tuple[str, str, str | None, str | None]] = []
 
-    async def fake_downgrade(subscription_id: str, *, provider_status: str) -> None:
-        calls.append((subscription_id, provider_status))
+    async def fake_downgrade(
+        subscription_id: str,
+        *,
+        provider_status: str,
+        event_id: str | None = None,
+        event_type: str | None = None,
+    ) -> None:
+        calls.append((subscription_id, provider_status, event_id, event_type))
 
     monkeypatch.setattr(billing, "_downgrade_subscription", fake_downgrade)
     asyncio.run(
         billing._persist_dispute(
-            {"subscription": {"id": "sub_test", "status": "active"}}
+            {"subscription": {"id": "sub_test", "status": "active"}},
+            event_id="evt_dispute",
         )
     )
-    assert calls == [("sub_test", "disputed")]
+    assert calls == [("sub_test", "disputed", "evt_dispute", "dispute.created")]
 
 
 def test_paused_update_trialing_events_are_dispatched(monkeypatch: pytest.MonkeyPatch) -> None:
     _set_complete_creem_env(monkeypatch)
     _reset_settings()
-    seen: list[str] = []
+    seen: list[tuple[str, str]] = []
 
-    async def fake_subscription_event(event_type: str, _obj: dict[str, object]) -> None:
-        seen.append(event_type)
+    async def fake_subscription_event(
+        event_type: str,
+        _obj: dict[str, object],
+        *,
+        event_id: str,
+    ) -> None:
+        seen.append((event_type, event_id))
 
     monkeypatch.setattr(billing, "_persist_subscription_event", fake_subscription_event)
     try:
-        for event_type in ("subscription.paused", "subscription.update", "subscription.trialing"):
-            asyncio.run(billing.persist_webhook({"eventType": event_type, "object": {"id": "sub_test"}}))
+        for index, event_type in enumerate(
+            ("subscription.paused", "subscription.update", "subscription.trialing"),
+            start=1,
+        ):
+            asyncio.run(
+                billing.persist_webhook(
+                    {
+                        "id": f"evt_{index}",
+                        "eventType": event_type,
+                        "object": {"id": "sub_test"},
+                    }
+                )
+            )
     finally:
         _reset_settings()
 
-    assert seen == ["subscription.paused", "subscription.update", "subscription.trialing"]
+    assert seen == [
+        ("subscription.paused", "evt_1"),
+        ("subscription.update", "evt_2"),
+        ("subscription.trialing", "evt_3"),
+    ]
+
+
+def test_webhook_profile_mutation_uses_idempotency_rpc(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_complete_creem_env(monkeypatch)
+    _reset_settings()
+    captured: dict[str, object] = {}
+
+    class FakeResponse:
+        status_code = 200
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        async def post(self, url: str, *, headers: dict[str, str], json: dict[str, object]):
+            captured["url"] = url
+            captured["headers"] = headers
+            captured["json"] = json
+            return FakeResponse()
+
+    monkeypatch.setattr(billing.httpx, "AsyncClient", FakeClient)
+    try:
+        asyncio.run(
+            billing._apply_profile_plan(
+                "user_test",
+                "student",
+                reset_credits=True,
+                event_id="evt_paid",
+                event_type="subscription.paid",
+            )
+        )
+    finally:
+        _reset_settings()
+
+    assert str(captured["url"]).endswith("/rest/v1/rpc/apply_billing_profile_event")
+    assert captured["json"] == {
+        "p_event_id": "evt_paid",
+        "p_user_id": "user_test",
+        "p_event_type": "subscription.paid",
+        "p_plan": "student",
+        "p_allowance": 50,
+        "p_reset_credits": True,
+    }
