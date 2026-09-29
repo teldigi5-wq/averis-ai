@@ -48,6 +48,25 @@ jobs:
       - name: Verify live beta release contract
         run: python scripts/release/live_beta_smoke.py --output live-beta-smoke.json
 
+      - name: Stamp exact candidate evidence
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("live-beta-smoke.json")
+          if not path.exists():
+              raise SystemExit(0)
+          report = json.loads(path.read_text(encoding="utf-8"))
+          report["github_event_sha"] = report.get("github_sha")
+          report["candidate_sha"] = os.environ["AVERIS_CANDIDATE_SHA"]
+          report["github_sha"] = os.environ["AVERIS_CANDIDATE_SHA"]
+          path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
       - name: Upload live smoke evidence
         if: always()
         uses: actions/upload-artifact@v4
