@@ -76,6 +76,10 @@ jobs:
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
         run: node scripts/mobile-action-visibility-v41.mjs
+      - name: Run Password Recovery v42 desktop/mobile quality smoke
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/password-recovery-quality-v42.mjs
       - name: Run Student Dashboard v36 desktop/mobile quality smoke
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai

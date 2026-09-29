@@ -150,6 +150,7 @@ jobs:
             refine/index.html \
             studio/index.html \
             private-ai/index.html \
+            recover/index.html \
             privacy/index.html
           do
             test -f "out/$route" || { echo "Missing static route: out/$route"; exit 1; }
@@ -195,6 +196,13 @@ jobs:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
         run: node scripts/production-auth-boundary-smoke-v38.mjs
 
+      - name: Certify password recovery route and login integration
+        working-directory: apps/web
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+          EXPECT_LOGIN_RECOVERY_LINK: "true"
+        run: node scripts/password-recovery-quality-v42.mjs
+
       - name: Stop release preview server
         if: always()
         run: |
@@ -224,6 +232,7 @@ jobs:
               "github_pages_build": "passed",
               "public_bundle_secret_scan": "passed",
               "production_signed_out_privacy_boundary": "passed",
+              "password_recovery_ui": "passed",
               "interactive_browser_quality": "required separate Web Product Quality gate",
               "note": "Live deployment verification remains pending explicit merge/deploy approval."
           }, indent=2) + "\n", encoding="utf-8")

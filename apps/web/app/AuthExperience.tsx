@@ -28,6 +28,7 @@ function normalizeLoginLabels(root: ParentNode = document) {
 
 export default function AuthExperience() {
   const [panel, setPanel] = useState<HTMLElement | null>(null);
+  const [panelMode, setPanelMode] = useState<AuthMode>("signin");
   const [phase, setPhase] = useState<AuthPhase>("idle");
   const [message, setMessage] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -42,6 +43,7 @@ export default function AuthExperience() {
   const openModal = (mode: AuthMode) => {
     document.documentElement.setAttribute("data-averis-auth-modal", "open");
     setModalOpen(true);
+    setPanelMode(mode);
 
     window.setTimeout(() => {
       const authPanel = document.querySelector<HTMLElement>(".authPanel");
@@ -97,12 +99,19 @@ export default function AuthExperience() {
     const resolvePanel = () => {
       const nextPanel = document.querySelector<HTMLElement>(".authPanel");
       setPanel(nextPanel);
+      if (nextPanel) setPanelMode(activeMode(nextPanel));
       normalizeLoginLabels(document);
     };
 
     resolvePanel();
     const observer = new MutationObserver(resolvePanel);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -161,6 +170,7 @@ export default function AuthExperience() {
 
     const onSubmit = () => {
       modeRef.current = activeMode(panel);
+      setPanelMode(modeRef.current);
       attemptRef.current = true;
       sawWorkingState = false;
       panel.dataset.authState = "submitting";
@@ -185,6 +195,7 @@ export default function AuthExperience() {
       delete panel.dataset.authState;
 
       if (modeRef.current === "signup" && activeMode(panel) === "signin") {
+        setPanelMode("signin");
         setPhase("notice");
         setMessage("Account created. Check your email to confirm it, then login.");
         return;
@@ -242,11 +253,35 @@ export default function AuthExperience() {
     else delete panel.dataset.authState;
   }, [panel, phase]);
 
+  const authForm = panel?.querySelector<HTMLFormElement>(".authForm") ?? null;
+
   return (
     <>
       {panel && modalOpen && createPortal(
         <button type="button" className="authModalClose" aria-label="Close login" onClick={closeModal}>×</button>,
         panel,
+      )}
+
+      {authForm && panelMode === "signin" && createPortal(
+        <a
+          data-averis-recovery-link="true"
+          href="./recover/"
+          onClick={closeModal}
+          style={{
+            minHeight: "44px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginTop: "2px",
+            color: "#b8c4d7",
+            fontSize: "0.88rem",
+            fontWeight: 650,
+            textDecoration: "none",
+          }}
+        >
+          Forgot password?
+        </a>,
+        authForm,
       )}
 
       {panel && phase !== "idle" && phase !== "success" && createPortal(
