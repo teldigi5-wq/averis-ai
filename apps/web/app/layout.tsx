@@ -25,6 +25,7 @@ import "./revision-studio-v19-fixes.css";
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
 import IntroLayerIsolation from "./IntroLayerIsolation";
+import OnboardingExperienceV37 from "./OnboardingExperienceV37";
 import ReviewCenterV18 from "./ReviewCenterV18";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <AuthExperience />
         <WorkspaceSwitcher />
+        <OnboardingExperienceV37 />
       </body>
     </html>
   );
