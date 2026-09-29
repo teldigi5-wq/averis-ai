@@ -8,7 +8,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.core.config import get_settings
-from app.services.billing import billing_configured, verify_webhook
+from app.services.billing import BillingSnapshot, _assert_expected_store, billing_configured, verify_webhook
 
 
 def _reset_settings() -> None:
@@ -62,3 +62,25 @@ def test_webhook_requires_signature(monkeypatch: pytest.MonkeyPatch) -> None:
         assert error.value.status_code == 401
     finally:
         _reset_settings()
+
+
+def test_webhook_rejects_a_different_store(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LEMON_SQUEEZY_STORE_ID", "101")
+    _reset_settings()
+    try:
+        with pytest.raises(HTTPException) as error:
+            _assert_expected_store({"store_id": 999})
+        assert error.value.status_code == 400
+        _assert_expected_store({"store_id": 101})
+    finally:
+        _reset_settings()
+
+
+@pytest.mark.parametrize("provider_status", ["past_due", "unpaid", "paused", "expired", "none"])
+def test_non_entitled_subscription_states_do_not_unlock_cloud(provider_status: str) -> None:
+    assert BillingSnapshot(plan="student", subscription_status=provider_status).cloud_allowed is False
+
+
+@pytest.mark.parametrize("provider_status", ["on_trial", "active", "cancelled"])
+def test_entitled_subscription_states_can_unlock_cloud(provider_status: str) -> None:
+    assert BillingSnapshot(plan="student", subscription_status=provider_status).cloud_allowed is True
