@@ -43,7 +43,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
         <StudioCommandCenterV27 />
         <StudioCommandAccessibilityV29 />
         <StudioWorkspaceLauncherV35 />
-        <div className="studioV30UtilityDock" aria-label="Student productivity tools">
+        <div className="studioV30UtilityDock" role="group" aria-label="Student productivity tools">
           <StudioPlannerLauncherV29 />
           <StudioReferenceLauncherV30 />
           <StudioReadinessLauncherV31 />
