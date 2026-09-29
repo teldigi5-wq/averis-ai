@@ -1,0 +1,163 @@
+/* Averis v41 — calm, readable product polish.
+   Presentation only: no billing, evidence, auth, runtime, or entitlement behavior changes. */
+
+:root {
+  --muted: #a7bac7;
+  --muted-2: #8fa7b7;
+  --line: rgba(151, 183, 204, .18);
+  --line-strong: rgba(112, 211, 205, .30);
+  --shadow: 0 18px 48px rgba(0, 0, 0, .20);
+}
+
+body {
+  background:
+    radial-gradient(circle at 82% 0%, rgba(90, 137, 190, .08), transparent 30%),
+    linear-gradient(180deg, #08131d 0%, #09151f 48%, #071019 100%);
+}
+
+body::before {
+  opacity: .028;
+  background-size: 56px 56px;
+}
+
+/* Keep secondary information readable without turning every surface into a highlight. */
+.lede,
+.accountIntro > p:not(.eyebrow),
+main:has(.topActions .ghostButton) .toolHero > div > p:last-child {
+  color: #aebfca !important;
+}
+
+.panel,
+.toolRail,
+main:has(.topActions .ghostButton) .toolHero {
+  border-color: rgba(151, 183, 204, .16) !important;
+  background: #0b1823 !important;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, .17) !important;
+  backdrop-filter: none !important;
+}
+
+.panelHead small,
+.sectionTitle small,
+.railAccount small,
+.productShell .historyRow span,
+.reviewMetrics span,
+html[data-averis-workspace-open="true"] .railSummary span {
+  color: #91a9b9 !important;
+  font-size: 10px !important;
+  letter-spacing: .10em !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8198a8 !important;
+}
+
+button:disabled {
+  opacity: .66;
+}
+
+/* Revision Studio: replace tiny telemetry text with a legible supporting hierarchy. */
+.studioV27Command {
+  border-color: rgba(111, 181, 204, .18) !important;
+  background: linear-gradient(180deg, #0a1b28, #081620) !important;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, .21) !important;
+  backdrop-filter: none !important;
+}
+
+.studioV27Command__identity small,
+.studioV27Command__meterCopy span,
+.studioV27Command__telemetry small {
+  color: #91adba !important;
+  font-size: 9px !important;
+  letter-spacing: .10em !important;
+}
+
+.studioV27Command__phase {
+  color: #a1b7c3 !important;
+}
+
+.studioV27Command__phase strong {
+  color: #d9e8ee !important;
+  font-size: 10px !important;
+}
+
+.studioV27Command__phase small {
+  color: #8fa8b7 !important;
+  font-size: 9px !important;
+}
+
+.studioV27Command__hint {
+  color: #8fa8b7 !important;
+  font-size: 9px !important;
+}
+
+.studioV27Command__hint > span {
+  color: #a3bac6 !important;
+}
+
+/* The signed-out landing page should feel like a product, not a neon AI demo. */
+.hero h1 span {
+  background: linear-gradient(120deg, #d9f5f2, #b7d6e9 68%, #c8c0e8) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+.heroProof span {
+  color: #c1d2dc;
+  background: rgba(255, 255, 255, .018);
+}
+
+@media (max-width: 760px) {
+  /* Keep all four Workspace tools visible instead of requiring hidden horizontal scrolling. */
+  html[data-averis-workspace-open="true"] .toolNav {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    overflow: visible !important;
+    padding-inline: 0 !important;
+  }
+
+  html[data-averis-workspace-open="true"] .toolNav button.toolButton {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+
+  /* All six Studio phases remain visible as a compact 3×2 grid. */
+  .studioV27Command__phases {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+  }
+
+  .studioV27Command__phase {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    scroll-snap-align: none !important;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 11vw, 46px) !important;
+    line-height: 1.02 !important;
+    letter-spacing: -.04em !important;
+  }
+
+  .lede {
+    color: #afc0cb !important;
+    font-size: 15px !important;
+    line-height: 1.65 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studioV27Command *,
+  .toolNav * {
+    transition-duration: .01ms !important;
+  }
+}
