@@ -31,6 +31,7 @@ The extra test product `prod_5NZACBqAiPC7SkE3uQSmZ3` is an unused duplicate of S
 - Signature algorithm: HMAC-SHA256 over the **raw** request body
 - Access is granted from verified webhook state, never from the success redirect alone.
 - Provider event IDs are required for state-changing webhook processing.
+- Creem's current dashboard emits `subscription.cancelled`; Averis normalizes that verified event in memory to its internal `subscription.canceled` state after signature verification.
 
 ## Supabase migrations
 
@@ -89,7 +90,7 @@ Subscribe to the Creem lifecycle events consumed by v43:
 - `subscription.active`
 - `subscription.paid`
 - `subscription.scheduled_cancel`
-- `subscription.canceled`
+- `subscription.cancelled`
 - `subscription.past_due`
 - `subscription.unpaid`
 - `subscription.expired`
@@ -106,9 +107,9 @@ Behavior:
 - synchronization-only events such as `subscription.active`, `subscription.update`, and `subscription.trialing` cannot establish a brand-new paid entitlement by themselves.
 - plan/product changes outside the four canonical Creem product IDs fail closed and downgrade an existing linked subscription.
 - `past_due`, `unpaid`, and `paused` states fail closed.
-- scheduled/canceled subscriptions remain entitled only until their paid-through timestamp; after it passes, Averis persists a one-time downgrade to Free before further scan usage.
+- scheduled/cancelled subscriptions remain entitled only until their paid-through timestamp; after it passes, Averis persists a one-time downgrade to Free before further scan usage.
 - `subscription.expired` alone does not revoke access because Creem can emit it during the payment-retry period; the object/provider status remains authoritative.
-- a refunded canceled subscription is downgraded to Free.
+- a refunded cancelled subscription is downgraded to Free.
 - `dispute.created` fails closed and downgrades the affected linked subscription.
 - every state-changing webhook profile mutation is keyed by Creem's event ID; duplicate deliveries do not refill or reapply credits.
 - unknown Creem products never grant a paid Averis entitlement.
@@ -130,7 +131,7 @@ Behavior:
 13. Confirm scheduled cancellation remains paid only through `current_period_end_date` and then persists a Free downgrade.
 14. Confirm `past_due`, `unpaid`, and `paused` fail closed and a later canonical `subscription.paid` restores the mapped plan.
 15. Confirm a switch to an unknown/unconfigured product fails closed.
-16. Confirm `dispute.created` and a canceled refund revoke the linked paid entitlement.
+16. Confirm `dispute.created` and a cancelled refund revoke the linked paid entitlement.
 17. Only after the complete Test Mode checklist is green should a separate production/live promotion be considered.
 
 ## Test cards
