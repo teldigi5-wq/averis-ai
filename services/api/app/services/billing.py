@@ -190,11 +190,12 @@ async def reconcile_profile_entitlement(
     *,
     snapshot: BillingSnapshot | None = None,
 ) -> BillingSnapshot:
-    """Fail closed when a canceled paid period has ended.
+    """Persist a one-time Free downgrade after a canceled paid period ends.
 
     Creem cancellation events can arrive before the paid-through timestamp. The
-    subscription row remains paid until that timestamp, but profile credits must
-    not remain on a paid allowance indefinitely after it passes.
+    subscription row remains paid until that timestamp. Once it passes, persist
+    the row/profile downgrade so repeated status or scan requests cannot reset
+    Free credits over and over.
     """
 
     current = snapshot or await get_billing_snapshot(auth)
@@ -203,7 +204,22 @@ async def reconcile_profile_entitlement(
         and not current.cloud_allowed
         and current.subscription_status.lower() in CREEM_CANCEL_PENDING_STATUSES
     ):
-        await _apply_profile_plan(auth.user_id, "free", reset_credits=True)
+        if current.provider_subscription_id:
+            await _downgrade_subscription(
+                current.provider_subscription_id,
+                provider_status=current.subscription_status.lower(),
+            )
+        else:
+            await _apply_profile_plan(auth.user_id, "free", reset_credits=True)
+        return BillingSnapshot(
+            plan="free",
+            subscription_status=current.subscription_status,
+            cadence=current.cadence,
+            renews_at=current.renews_at,
+            ends_at=current.ends_at,
+            provider_subscription_id=current.provider_subscription_id,
+            provider_customer_id=current.provider_customer_id,
+        )
     return current
 
 
