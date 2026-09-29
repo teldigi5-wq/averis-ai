@@ -1,0 +1,77 @@
+name: Live Beta Smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/live-beta-smoke.yml"
+      - "scripts/release/live_beta_smoke.py"
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-beta-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  live-beta-smoke:
+    name: live-beta-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AVERIS_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AVERIS_CANDIDATE_SHA }}
+
+      - name: Assert exact candidate checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$AVERIS_CANDIDATE_SHA"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile smoke probe
+        run: python -m py_compile scripts/release/live_beta_smoke.py
+
+      - name: Verify live beta release contract
+        run: python scripts/release/live_beta_smoke.py --output live-beta-smoke.json
+
+      - name: Stamp exact candidate evidence
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("live-beta-smoke.json")
+          if not path.exists():
+              raise SystemExit(0)
+          report = json.loads(path.read_text(encoding="utf-8"))
+          report["github_event_sha"] = report.get("github_sha")
+          report["candidate_sha"] = os.environ["AVERIS_CANDIDATE_SHA"]
+          report["github_sha"] = os.environ["AVERIS_CANDIDATE_SHA"]
+          path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload live smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-beta-smoke-${{ github.run_id }}
+          path: live-beta-smoke.json
+          if-no-files-found: warn
+          retention-days: 14
