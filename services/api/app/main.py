@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import ai, documents, health, references, revision_preflight, revision_refine, similarity, sources
+from app.api.routes import ai, billing, documents, health, references, revision_preflight, revision_refine, similarity, sources
 from app.core.config import get_settings
 from app.services.observability import emit_request_log, start_request_observation
 
@@ -41,6 +41,14 @@ async def request_observability(request: Request, call_next):
         raise
 
     response.headers["X-Request-ID"] = request_id
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), usb=(), payment=()"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+
     emit_request_log(
         request_id=request_id,
         method=request.method,
@@ -60,3 +68,4 @@ app.include_router(references.router, prefix="/api/v1")
 app.include_router(ai.router, prefix="/api/v1")
 app.include_router(revision_preflight.router, prefix="/api/v1")
 app.include_router(revision_refine.router, prefix="/api/v1")
+app.include_router(billing.router, prefix="/api/v1")
