@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Header, Request
 
 from app.schemas.billing import (
@@ -21,6 +23,36 @@ from app.services.billing import (
 )
 
 router = APIRouter(prefix="/billing", tags=["billing"])
+
+
+def _normalize_creem_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize Creem's dashboard/API spelling without touching signed bytes.
+
+    Creem currently exposes the cancellation webhook as `subscription.cancelled`
+    while older provider examples used `subscription.canceled`. Signature
+    verification is performed against the raw request body first; normalization
+    happens only on the already-authenticated in-memory payload.
+    """
+
+    normalized = dict(payload)
+    if normalized.get("eventType") == "subscription.cancelled":
+        normalized["eventType"] = "subscription.canceled"
+
+    obj = normalized.get("object")
+    if isinstance(obj, dict):
+        obj_copy = dict(obj)
+        if obj_copy.get("status") == "cancelled":
+            obj_copy["status"] = "canceled"
+
+        subscription = obj_copy.get("subscription")
+        if isinstance(subscription, dict) and subscription.get("status") == "cancelled":
+            subscription_copy = dict(subscription)
+            subscription_copy["status"] = "canceled"
+            obj_copy["subscription"] = subscription_copy
+
+        normalized["object"] = obj_copy
+
+    return normalized
 
 
 @router.get("/status", response_model=BillingStatusResponse)
@@ -61,5 +93,5 @@ async def billing_webhook(
 ) -> dict[str, bool]:
     raw_body = await request.body()
     payload = verify_webhook(raw_body, creem_signature)
-    await persist_webhook(payload)
+    await persist_webhook(_normalize_creem_payload(payload))
     return {"ok": True}
