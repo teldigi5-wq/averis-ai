@@ -9,6 +9,7 @@ const artifactDir = path.resolve(process.cwd(), "../../artifacts/web-quality");
 const profiles = [
   { name: "desktop", viewport: { width: 1440, height: 1000 } },
   { name: "mobile", viewport: { width: 390, height: 844 } },
+  { name: "small-mobile", viewport: { width: 360, height: 800 } },
 ];
 
 await fs.mkdir(artifactDir, { recursive: true });
@@ -27,13 +28,27 @@ for (const profile of profiles) {
   }));
   const serious = axeResult.violations.filter((item) => ["serious", "critical"].includes(item.impact));
 
-  const measurements = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-    cards: document.querySelectorAll('section[aria-label="Student subscription plans"] article').length,
-    brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
-    disabledPaidButtons: [...document.querySelectorAll("button")].filter((button) => button.textContent?.includes("Subscriptions activating soon") && button.disabled).length,
-  }));
+  const measurements = await page.evaluate(() => {
+    const isVisible = (element) => {
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0 && rect.width > 0 && rect.height > 0;
+    };
+    const segmentButtons = [...document.querySelectorAll('[aria-label="Billing currency display"] button, [aria-label="Billing cadence"] button')];
+    const cardActions = [...document.querySelectorAll('section[aria-label="Student subscription plans"] article > button, section[aria-label="Student subscription plans"] article > a')];
+    const microcopy = document.querySelector('main p[class*="microcopy"]');
+    return {
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      cards: document.querySelectorAll('section[aria-label="Student subscription plans"] article').length,
+      securityItems: document.querySelectorAll('section[aria-label="Subscription protections"] > div').length,
+      brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
+      disabledPaidButtons: [...document.querySelectorAll("button")].filter((button) => button.textContent?.includes("Subscriptions activating soon") && button.disabled).length,
+      controlsVisible: [...segmentButtons, ...cardActions].every(isVisible),
+      touchTargetsOk: [...segmentButtons, ...cardActions].every((element) => element.getBoundingClientRect().height >= 40),
+      microcopyFontSize: microcopy ? Number.parseFloat(getComputedStyle(microcopy).fontSize) : 0,
+    };
+  });
 
   const lkrText = await page.locator("main").innerText();
   const hasLkr = lkrText.includes("Rs. 1,490") && lkrText.includes("Rs. 2,690");
@@ -42,7 +57,17 @@ for (const profile of profiles) {
   const hasUsd = usdText.includes("$4.99") && usdText.includes("$8.99");
 
   const overflow = measurements.scrollWidth > measurements.clientWidth + 1;
-  const ok = !overflow && measurements.cards === 3 && measurements.brokenImages === 0 && serious.length === 0 && hasLkr && hasUsd && measurements.disabledPaidButtons === 2;
+  const ok = !overflow
+    && measurements.cards === 3
+    && measurements.securityItems === 4
+    && measurements.brokenImages === 0
+    && serious.length === 0
+    && hasLkr
+    && hasUsd
+    && measurements.disabledPaidButtons === 2
+    && measurements.controlsVisible
+    && measurements.touchTargetsOk
+    && measurements.microcopyFontSize >= 13;
   if (!ok) failed = true;
 
   await page.screenshot({ path: path.join(artifactDir, `pricing-v40-${profile.name}.png`), fullPage: true });
@@ -51,11 +76,15 @@ for (const profile of profiles) {
     ok,
     overflow,
     cards: measurements.cards,
+    security_items: measurements.securityItems,
     broken_images: measurements.brokenImages,
     serious_or_critical_a11y: serious.map((item) => item.id),
     lkr_toggle_ok: hasLkr,
     usd_toggle_ok: hasUsd,
     paid_checkout_fail_closed: measurements.disabledPaidButtons === 2,
+    controls_visible: measurements.controlsVisible,
+    touch_targets_ok: measurements.touchTargetsOk,
+    microcopy_font_px: measurements.microcopyFontSize,
   });
   await page.close();
 }
@@ -66,4 +95,4 @@ if (failed) {
   console.error(JSON.stringify(results, null, 2));
   process.exit(1);
 }
-console.log("Pricing v40 desktop/mobile quality smoke passed.");
+console.log("Pricing v40 desktop/mobile visibility quality smoke passed.");
