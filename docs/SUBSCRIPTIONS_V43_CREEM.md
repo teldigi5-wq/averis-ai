@@ -4,7 +4,7 @@ Averis v43 migrates the optional subscription rail from Lemon Squeezy to Creem w
 
 ## Release boundary
 
-- Creem **Test Mode only** until checkout, signed webhooks, cancellation, renewal, portal access, and entitlement downgrade are certified.
+- Creem **Test Mode only** until checkout, signed webhooks, cancellation, renewal, portal access, retry idempotency, and entitlement downgrade are certified.
 - `main`, PR #85, and PR #87 must not be merged as part of billing setup without explicit authorization.
 - Averis never receives or stores PAN/CVV card details.
 - `CREEM_API_KEY`, `CREEM_WEBHOOK_SECRET`, and `SUPABASE_SECRET_KEY` are server-only secrets. Never put them in GitHub, GitHub Pages, screenshots, chat messages, browser JavaScript, or any `NEXT_PUBLIC_*` variable.
@@ -30,19 +30,32 @@ The extra test product `prod_5NZACBqAiPC7SkE3uQSmZ3` is an unused duplicate of S
 - Webhook signature header: `creem-signature`
 - Signature algorithm: HMAC-SHA256 over the **raw** request body
 - Access is granted from verified webhook state, never from the success redirect alone.
+- Provider event IDs are required for state-changing webhook processing.
 
-## Supabase migration
+## Supabase migrations
 
-Apply:
+Apply both v43 migrations before enabling billing:
 
-`supabase/migrations/20260929233000_creem_billing_provider_v43.sql`
+1. `supabase/migrations/20260929233000_creem_billing_provider_v43.sql`
+2. `supabase/migrations/20260929235500_creem_webhook_idempotency_v43.sql`
 
-The migration:
+The provider migration:
 
 - allows both legacy `lemon_squeezy` and new `creem` provider rows,
 - changes the default provider for new rows to `creem`,
 - adds `provider_product_id` for Creem product mapping,
 - preserves the existing RLS/read-only student boundary.
+
+The idempotency migration:
+
+- creates server-only `public.billing_entitlement_events`, keyed by `(provider, event_id)`,
+- enables RLS and grants no table access to `anon` or `authenticated`,
+- creates `public.apply_billing_profile_event(...)`,
+- records the Creem event and mutates the profile in one database transaction,
+- returns without changing profile credits when the same event ID is delivered again,
+- exposes RPC execution only to the server/service-role boundary.
+
+This event ledger is required because Creem retries webhooks. A repeated `subscription.paid` or `checkout.completed` delivery must never refill credits after a student has already spent some of them.
 
 ## Azure App Service settings — Test Mode
 
@@ -70,7 +83,7 @@ Public endpoint:
 
 `https://averis-api-beta-db36dd7d.azurewebsites.net/api/v1/billing/webhook`
 
-Subscribe to the events used by v43:
+Subscribe to the Creem lifecycle events consumed by v43:
 
 - `checkout.completed`
 - `subscription.active`
@@ -80,34 +93,45 @@ Subscribe to the events used by v43:
 - `subscription.past_due`
 - `subscription.unpaid`
 - `subscription.expired`
+- `subscription.update`
+- `subscription.trialing`
+- `subscription.paused`
 - `refund.created`
+- `dispute.created`
 
 Behavior:
 
-- `checkout.completed` links a verified Creem purchase to the authenticated Averis user through server-created metadata.
-- `subscription.paid` refreshes the paid entitlement and resets the monthly scan allowance to the plan allowance using an absolute write, so webhook retries do not add credits.
+- `checkout.completed` is the primary purchase-linking event and requires one of the four canonical products plus server-created Averis metadata.
+- `subscription.paid` may recover a missed checkout webhook and can establish/refresh a paid entitlement for a canonical product.
+- synchronization-only events such as `subscription.active`, `subscription.update`, and `subscription.trialing` cannot establish a brand-new paid entitlement by themselves.
+- plan/product changes outside the four canonical Creem product IDs fail closed and downgrade an existing linked subscription.
 - `past_due`, `unpaid`, and `paused` states fail closed.
-- scheduled/canceled subscriptions remain entitled only until their paid-through timestamp; after it passes, Averis reconciles the profile to Free before further scan usage.
-- `subscription.expired` alone does not revoke access because Creem documents it as a retry-period notification; terminal cancellation/failure state remains authoritative.
+- scheduled/canceled subscriptions remain entitled only until their paid-through timestamp; after it passes, Averis persists a one-time downgrade to Free before further scan usage.
+- `subscription.expired` alone does not revoke access because Creem can emit it during the payment-retry period; the object/provider status remains authoritative.
 - a refunded canceled subscription is downgraded to Free.
+- `dispute.created` fails closed and downgrades the affected linked subscription.
+- every state-changing webhook profile mutation is keyed by Creem's event ID; duplicate deliveries do not refill or reapply credits.
 - unknown Creem products never grant a paid Averis entitlement.
 
 ## Certification sequence
 
-1. Keep `BILLING_ENABLED=false` until the migration, fresh test key, webhook secret, and four canonical product IDs are ready.
-2. Apply the Supabase v43 migration.
-3. Configure the Azure server-only values above.
-4. Register the signed Creem Test Mode webhook.
-5. Restart the Azure API.
-6. Verify authenticated `GET /api/v1/billing/status` reports billing enabled while the account remains Free.
-7. Start Student Plus Monthly checkout from Averis and complete it with Creem's successful test card.
-8. Confirm `checkout.completed` / `subscription.paid` update the `subscriptions` row and profile entitlement.
-9. Confirm an invalid `creem-signature` returns HTTP 401.
-10. Confirm duplicate/retried webhook delivery does not add credits.
-11. Confirm customer portal generation works for the stored Creem customer.
-12. Confirm scheduled cancellation remains paid only through `current_period_end_date` and then reconciles to Free.
-13. Confirm `past_due` / `unpaid` fail closed and a later `subscription.paid` restores the mapped plan.
-14. Only after the complete Test Mode checklist is green should a separate production/live promotion be considered.
+1. Keep `BILLING_ENABLED=false` until both Supabase migrations, a fresh test key, webhook secret, and four canonical product IDs are ready.
+2. Apply both v43 Supabase migrations and verify RLS/privileges on the event ledger/RPC.
+3. Rotate any test API key that has been exposed outside the secret store.
+4. Configure the Azure server-only values above.
+5. Register the signed Creem Test Mode webhook for the complete event list above.
+6. Restart the Azure API.
+7. Verify authenticated `GET /api/v1/billing/status` reports billing enabled while a new account remains Free.
+8. Start Student Plus Monthly checkout from Averis and complete it with Creem's successful test card.
+9. Confirm `checkout.completed` / `subscription.paid` update the `subscriptions` row and profile entitlement.
+10. Confirm an invalid `creem-signature` returns HTTP 401.
+11. Replay the same valid provider event ID and confirm credits do not change a second time.
+12. Confirm customer portal generation works for the stored Creem customer.
+13. Confirm scheduled cancellation remains paid only through `current_period_end_date` and then persists a Free downgrade.
+14. Confirm `past_due`, `unpaid`, and `paused` fail closed and a later canonical `subscription.paid` restores the mapped plan.
+15. Confirm a switch to an unknown/unconfigured product fails closed.
+16. Confirm `dispute.created` and a canceled refund revoke the linked paid entitlement.
+17. Only after the complete Test Mode checklist is green should a separate production/live promotion be considered.
 
 ## Test cards
 
