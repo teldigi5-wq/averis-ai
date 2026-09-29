@@ -61,6 +61,7 @@ def main() -> int:
     config = read("services/api/app/core/config.py")
     cloud = read("services/api/app/ai/providers/cloud.py")
     billing = read("services/api/app/services/billing.py")
+    billing_route = read("services/api/app/api/routes/billing.py")
     pages = read(".github/workflows/pages-preview.yml")
     vercel = read(".github/workflows/release-vercel.yml")
     health = read("services/api/app/api/routes/health.py")
@@ -73,14 +74,19 @@ def main() -> int:
     require_not_contains(cert, "supabase-secret-never-public", env_example, "NEXT_PUBLIC_SUPABASE_SECRET_KEY", "Supabase server secret credentials are not exposed to Next.js.")
     require_contains(cert, "local-saas-default-safe", env_example, "SAAS_MODE=false", "Public SaaS mode remains an explicit deployment choice rather than a local default.")
 
-    # Billing is fail-closed and server-only until the merchant setup is complete.
+    # Billing is fail-closed and server-only until the Creem merchant setup is complete.
     require_contains(cert, "billing-disabled-by-default", env_example, "BILLING_ENABLED=false", "Subscription checkout is disabled by default.")
-    require_contains(cert, "billing-api-key-empty", env_example, "LEMON_SQUEEZY_API_KEY=\n", "The tracked example contains no billing API credential.")
-    require_contains(cert, "billing-webhook-secret-empty", env_example, "LEMON_SQUEEZY_WEBHOOK_SECRET=\n", "The tracked example contains no billing webhook secret.")
-    require_not_contains(cert, "billing-api-key-never-public", env_example, "NEXT_PUBLIC_LEMON_SQUEEZY_API_KEY", "Billing provider API credentials cannot enter the browser environment.")
-    require_not_contains(cert, "billing-webhook-secret-never-public", env_example, "NEXT_PUBLIC_LEMON_SQUEEZY_WEBHOOK_SECRET", "Billing webhook credentials cannot enter the browser environment.")
+    require_contains(cert, "billing-provider-creem", env_example, "BILLING_PROVIDER=creem", "Creem is the configured subscription provider.")
+    require_contains(cert, "billing-test-api-default", env_example, "CREEM_API_BASE_URL=https://test-api.creem.io", "Tracked configuration defaults billing to Creem Test Mode.")
+    require_contains(cert, "billing-api-key-empty", env_example, "CREEM_API_KEY=\n", "The tracked example contains no Creem API credential.")
+    require_contains(cert, "billing-webhook-secret-empty", env_example, "CREEM_WEBHOOK_SECRET=\n", "The tracked example contains no Creem webhook secret.")
+    require_not_contains(cert, "billing-api-key-never-public", env_example, "NEXT_PUBLIC_CREEM_API_KEY", "Creem API credentials cannot enter the browser environment.")
+    require_not_contains(cert, "billing-webhook-secret-never-public", env_example, "NEXT_PUBLIC_CREEM_WEBHOOK_SECRET", "Creem webhook credentials cannot enter the browser environment.")
     require_contains(cert, "billing-webhook-hmac", billing, "hmac.compare_digest", "Billing webhook authorization uses constant-time HMAC signature comparison.")
-    require_contains(cert, "billing-store-boundary", billing, "Billing webhook store does not match Averis configuration.", "Billing webhooks are checked against the configured merchant store.")
+    require_contains(cert, "billing-webhook-header", billing_route, 'alias="creem-signature"', "Billing webhook reads Creem's signed webhook header.")
+    require_contains(cert, "billing-product-boundary", billing, "Unknown Creem product cannot grant an Averis entitlement.", "Unknown provider products cannot create paid Averis entitlements.")
+    require_contains(cert, "billing-test-host-allowlist", billing, "CREEM_ALLOWED_BASE_URLS", "Billing provider hosts are restricted to the official Creem test/production API origins.")
+    require_contains(cert, "billing-retry-idempotence", billing, "webhook retries never add credits", "Webhook retry handling uses absolute entitlement/credit writes instead of additive grants.")
 
     # Production CORS must be explicit and fail closed.
     require_not_contains(cert, "no-implicit-vercel-cors-origin", config, "averis-web.vercel.app", "The API no longer silently trusts the legacy Vercel frontend origin.")
@@ -105,8 +111,9 @@ def main() -> int:
         "private-ai/index.html",
         "pricing/index.html",
         "privacy/index.html",
+        "recover/index.html",
     ]
-    cert.add("pages-critical-routes-verified", all(route in pages for route in critical_routes), "GitHub Pages deployment asserts every beta-critical static route, including Pricing, before upload.")
+    cert.add("pages-critical-routes-verified", all(route in pages for route in critical_routes), "GitHub Pages deployment asserts every beta-critical static route, including Pricing and Recovery, before upload.")
 
     # API readiness semantics.
     require_contains(cert, "api-health-contract", health, 'return {"status": "ok", "service": "averis-api"}', "/health exposes a minimal liveness contract.")
@@ -119,7 +126,7 @@ def main() -> int:
     output.parent.mkdir(parents=True, exist_ok=True)
 
     payload = {
-        "schema_version": "averis.beta-release-certification/v40",
+        "schema_version": "averis.beta-release-certification/v43",
         "commit_sha": git_sha(),
         "release_stage": "code-certified",
         "live_deployment_verified": False,
@@ -129,7 +136,7 @@ def main() -> int:
             "api": "Azure App Service student/free allocation",
             "auth_data": "Supabase free tier",
             "optional_cloud_ai": "configured provider free tier; no paid fallback",
-            "optional_billing": "hosted checkout with no monthly platform requirement; transaction fees may apply",
+            "optional_billing": "Creem hosted checkout; test mode by default; transaction fees may apply in live mode",
             "api_url": AZURE_API,
             "web_origin": GITHUB_PAGES_ORIGIN,
         },
