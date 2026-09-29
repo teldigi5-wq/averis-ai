@@ -27,8 +27,8 @@ def _set_complete_creem_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CREEM_PRODUCT_PRO_MONTHLY", "prod_pro_month")
     monkeypatch.setenv("CREEM_PRODUCT_PRO_YEARLY", "prod_pro_year")
     monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
-    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
-    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_placeholder_for_tests")
+    monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "publishable-test-key")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "server-secret-placeholder-for-tests")
 
 
 def test_billing_is_disabled_without_server_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
