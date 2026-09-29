@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import json
@@ -9,6 +10,8 @@ import pytest
 from fastapi import HTTPException
 
 from app.core.config import get_settings
+from app.services import billing
+from app.services.auth import AuthContext
 from app.services.billing import BillingSnapshot, _product_map, billing_configured, verify_webhook
 
 
@@ -152,3 +155,30 @@ def test_cancel_pending_subscription_fails_closed_after_period_end(provider_stat
     )
     assert snapshot.cloud_allowed is False
     assert snapshot.effective_plan == "free"
+
+
+def test_ended_cancel_reconciliation_persists_free_downgrade(monkeypatch: pytest.MonkeyPatch) -> None:
+    past = (datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()
+    snapshot = BillingSnapshot(
+        plan="student",
+        subscription_status="canceled",
+        ends_at=past,
+        provider_subscription_id="sub_test",
+        provider_customer_id="cust_test",
+    )
+    calls: list[tuple[str, str]] = []
+
+    async def fake_downgrade(subscription_id: str, *, provider_status: str) -> None:
+        calls.append((subscription_id, provider_status))
+
+    monkeypatch.setattr(billing, "_downgrade_subscription", fake_downgrade)
+    result = asyncio.run(
+        billing.reconcile_profile_entitlement(
+            AuthContext(user_id="user_test", email=None, access_token="token"),
+            snapshot=snapshot,
+        )
+    )
+
+    assert calls == [("sub_test", "canceled")]
+    assert result.plan == "free"
+    assert result.provider_subscription_id == "sub_test"
