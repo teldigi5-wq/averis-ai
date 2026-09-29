@@ -19,9 +19,22 @@ jobs:
     env:
       AVERIS_API_URL: "https://averis-api-beta-db36dd7d.azurewebsites.net"
       AVERIS_WEB_ORIGIN: "https://teldigi5-wq.github.io"
+      AVERIS_CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - name: Checkout exact candidate
+      - name: Checkout exact candidate head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AVERIS_CANDIDATE_SHA }}
+
+      - name: Assert exact candidate checkout
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$AVERIS_CANDIDATE_SHA" || {
+            echo "Expected candidate $AVERIS_CANDIDATE_SHA but checked out $actual"
+            exit 1
+          }
+          echo "Certifying exact head: $actual"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -176,14 +189,11 @@ jobs:
           cat /tmp/averis-release-web.log || true
           exit 1
 
-      - name: Run exact-release browser certification
+      - name: Certify production-configured signed-out privacy boundaries
         working-directory: apps/web
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
-        run: |
-          node scripts/browser-quality-smoke.mjs
-          node scripts/dashboard-quality-smoke-v36.mjs
-          node scripts/onboarding-quality-smoke-v37.mjs
+        run: node scripts/production-auth-boundary-smoke-v38.mjs
 
       - name: Stop release preview server
         if: always()
@@ -205,7 +215,7 @@ jobs:
           path = Path("artifacts/beta-release/workflow-evidence.json")
           path.write_text(json.dumps({
               "schema_version": "averis.beta-release-workflow-evidence/v38",
-              "commit_sha": os.environ.get("GITHUB_SHA"),
+              "commit_sha": os.environ.get("AVERIS_CANDIDATE_SHA"),
               "workflow_run_id": os.environ.get("GITHUB_RUN_ID"),
               "code_certified": True,
               "live_deployment_verified": False,
@@ -213,7 +223,8 @@ jobs:
               "saas_fail_closed_smoke": "passed",
               "github_pages_build": "passed",
               "public_bundle_secret_scan": "passed",
-              "browser_quality": "passed",
+              "production_signed_out_privacy_boundary": "passed",
+              "interactive_browser_quality": "required separate Web Product Quality gate",
               "note": "Live deployment verification remains pending explicit merge/deploy approval."
           }, indent=2) + "\n", encoding="utf-8")
           PY
@@ -222,7 +233,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: beta-release-v38-${{ github.sha }}
+          name: beta-release-v38-${{ env.AVERIS_CANDIDATE_SHA }}
           path: |
             artifacts/beta-release/
             artifacts/web-quality/
