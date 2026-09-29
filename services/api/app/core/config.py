@@ -60,16 +60,19 @@ class Settings(BaseSettings):
     def supabase_public_key(self) -> str | None:
         return self.supabase_publishable_key or self.supabase_anon_key
 
-    # Optional zero-monthly-fee subscription rail. Disabled until a merchant
-    # account/store is approved and every server-side value is configured.
+    # Optional subscription rail. Billing stays fail-closed until every
+    # server-side Creem/Supabase value is configured.
     billing_enabled: bool = False
-    lemon_squeezy_api_key: str | None = None
-    lemon_squeezy_webhook_secret: str | None = None
-    lemon_squeezy_store_id: str | None = None
-    billing_variant_student_monthly: str | None = None
-    billing_variant_student_yearly: str | None = None
-    billing_variant_pro_monthly: str | None = None
-    billing_variant_pro_yearly: str | None = None
+    billing_provider: str = "creem"
+    # Test mode is the safe default. Production must explicitly opt into
+    # https://api.creem.io with a production key and production products.
+    creem_api_base_url: str = "https://test-api.creem.io"
+    creem_api_key: str | None = None
+    creem_webhook_secret: str | None = None
+    creem_product_student_monthly: str | None = None
+    creem_product_student_yearly: str | None = None
+    creem_product_pro_monthly: str | None = None
+    creem_product_pro_yearly: str | None = None
     billing_return_url: str = "http://localhost:3000"
 
     @property
