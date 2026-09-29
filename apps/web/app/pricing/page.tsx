@@ -26,47 +26,47 @@ const plans = [
   {
     id: "free" as const,
     name: "Free",
-    kicker: "Start with the complete local-first student toolkit",
+    kicker: "Core review tools for everyday coursework",
     monthly: { USD: 0, LKR: 0 },
     yearly: { USD: 0, LKR: 0 },
     credits: 5,
     features: [
-      "5 server scan credits / month",
-      "Private Browser AI + Local Ollama support",
-      "Assignment Intelligence, workload planner and dashboard",
-      "References, document quality, rubric and structure tools",
+      "5 server scans each month",
+      "Private Browser AI and Local Ollama support",
+      "Assignment planning and progress tools",
+      "Reference, document and rubric checks",
       "Local Assignment Workspace",
     ],
   },
   {
     id: "student" as const,
     name: "Student Plus",
-    kicker: "For regular assignments and evidence-first revision",
+    kicker: "More scans and optional Cloud AI for regular assignment work",
     monthly: { USD: 4.99, LKR: 1490 },
     yearly: { USD: 49, LKR: 14900 },
     credits: 50,
     featured: true,
     features: [
-      "50 server scan credits / billing month",
-      "Cloud AI revision access while provider free quota is available",
+      "50 server scans each billing month",
+      "Optional Cloud AI revision when the provider quota is available",
       "Everything in Free",
       "Source & Citation AI Workbench",
-      "Secure subscription management portal",
+      "Secure subscription portal",
     ],
   },
   {
     id: "pro" as const,
     name: "Student Pro",
-    kicker: "For dissertation-heavy or high-volume semester work",
+    kicker: "Higher limits for projects, dissertations and busy semesters",
     monthly: { USD: 8.99, LKR: 2690 },
     yearly: { USD: 89, LKR: 26900 },
     credits: 200,
     features: [
-      "200 server scan credits / billing month",
-      "Cloud AI revision access while provider free quota is available",
+      "200 server scans each billing month",
+      "Optional Cloud AI revision when the provider quota is available",
       "Everything in Student Plus",
-      "Designed for high-volume project and thesis review",
-      "Secure subscription management portal",
+      "Built for high-volume project and thesis review",
+      "Secure subscription portal",
     ],
   },
 ];
@@ -84,8 +84,10 @@ export default function PricingPage() {
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [message, setMessage] = useState("");
 
-  const yearlySaving = useMemo(
-    () => (cadence === "yearly" ? "2 months-equivalent saved" : "Cancel through the billing portal"),
+  const billingNote = useMemo(
+    () => cadence === "yearly"
+      ? "Yearly plans cost less than paying monthly for 12 months."
+      : "Paid plans can be managed or cancelled from the billing portal.",
     [cadence],
   );
   const billingReady = statusChecked && status?.billing_enabled === true;
@@ -179,11 +181,11 @@ export default function PricingPage() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <span className={styles.eyebrow}>AVERIS FOR STUDENTS · V40</span>
-        <h1>Academic support priced for student life.</h1>
+        <span className={styles.eyebrow}>AVERIS STUDENT PLANS</span>
+        <h1>Simple plans for your study workload.</h1>
         <p>
-          Keep the local-first productivity tools free. Upgrade only when you need more server scans and optional Cloud AI revision.
-          Averis never collects card numbers; checkout and card handling stay with the payment provider.
+          Use Averis free for core review work. Upgrade only when you need more server scans or optional Cloud AI revision.
+          Payments open in the provider&apos;s secure checkout, so Averis never sees or stores your card number or CVV.
         </p>
         <div className={styles.toggles}>
           <div className={styles.segment} aria-label="Billing currency display">
@@ -197,7 +199,7 @@ export default function PricingPage() {
             ))}
           </div>
         </div>
-        <p className={styles.microcopy}>{yearlySaving}. LKR is a localized display reference; the secure checkout shows the authoritative charged amount before payment.</p>
+        <p className={styles.microcopy}>{billingNote} LKR is a localized display reference; secure checkout shows the authoritative charged amount before payment.</p>
       </section>
 
       {status && (
@@ -242,11 +244,11 @@ export default function PricingPage() {
         })}
       </section>
 
-      <section className={styles.securityStrip}>
-        <div><strong>Hosted card checkout</strong><span>Averis does not receive or store card numbers or CVV.</span></div>
-        <div><strong>Signed webhooks</strong><span>Access changes only after server-side HMAC verification.</span></div>
-        <div><strong>Server-side entitlements</strong><span>Students cannot upgrade a plan by editing browser state.</span></div>
-        <div><strong>No paid AI fallback</strong><span>Cloud AI stops when the configured free quota is unavailable.</span></div>
+      <section className={styles.securityStrip} aria-label="Subscription protections">
+        <div><strong>Secure checkout</strong><span>Card details stay with the payment provider, not Averis.</span></div>
+        <div><strong>Verified billing</strong><span>Plan changes are accepted only after signed server verification.</span></div>
+        <div><strong>Protected plan access</strong><span>Editing browser state cannot unlock paid features.</span></div>
+        <div><strong>No surprise AI charges</strong><span>Cloud AI stops when the configured free quota is unavailable.</span></div>
       </section>
     </main>
   );
