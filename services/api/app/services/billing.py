@@ -13,7 +13,9 @@ from app.core.config import get_settings
 from app.services.auth import AuthContext
 
 
-ACTIVE_ACCESS_STATUSES = {"on_trial", "active", "paused", "past_due", "unpaid", "cancelled"}
+# Cancelled subscriptions remain entitled only until the provider reaches the
+# eventual expired state. Payment failures and paused subscriptions fail closed.
+ENTITLED_STATUSES = {"on_trial", "active", "cancelled"}
 PLAN_ALLOWANCE = {"free": 5, "student": 50, "pro": 200}
 
 
@@ -28,7 +30,7 @@ class BillingSnapshot:
 
     @property
     def cloud_allowed(self) -> bool:
-        return self.plan in {"student", "pro"} and self.subscription_status in ACTIVE_ACCESS_STATUSES
+        return self.plan in {"student", "pro"} and self.subscription_status in ENTITLED_STATUSES
 
 
 def _variant_map() -> dict[str, tuple[str, str]]:
@@ -208,6 +210,13 @@ def verify_webhook(raw_body: bytes, signature: str | None) -> dict[str, Any]:
     return payload
 
 
+def _assert_expected_store(attrs: dict[str, Any]) -> None:
+    expected = str(get_settings().lemon_squeezy_store_id or "")
+    received = attrs.get("store_id")
+    if received is not None and expected and str(received) != expected:
+        raise HTTPException(status_code=400, detail="Billing webhook store does not match Averis configuration.")
+
+
 async def _lookup_user_by_subscription(subscription_id: str) -> tuple[str, str] | None:
     settings = get_settings()
     params = {
@@ -232,11 +241,9 @@ async def _lookup_user_by_subscription(subscription_id: str) -> tuple[str, str] 
 async def _apply_profile_plan(user_id: str, plan: str, *, reset_credits: bool) -> None:
     settings = get_settings()
     allowance = PLAN_ALLOWANCE.get(plan, 5)
-    body: dict[str, Any] = {"plan": plan, "monthly_credit_allowance": allowance, "updated_at": "now()"}
+    body: dict[str, Any] = {"plan": plan, "monthly_credit_allowance": allowance}
     if reset_credits:
         body["credits_remaining"] = allowance
-    # PostgREST treats a literal now() as text, so omit updated_at and let DB trigger/default semantics own timestamps.
-    body.pop("updated_at", None)
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.patch(
             f"{settings.supabase_url.rstrip('/')}/rest/v1/profiles",
@@ -258,6 +265,7 @@ async def persist_webhook(payload: dict[str, Any]) -> None:
     custom = meta.get("custom_data") if isinstance(meta.get("custom_data"), dict) else {}
     data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
     attrs = data.get("attributes") if isinstance(data.get("attributes"), dict) else {}
+    _assert_expected_store(attrs)
 
     if event_name == "subscription_payment_success":
         subscription_id = attrs.get("subscription_id")
@@ -281,9 +289,10 @@ async def persist_webhook(payload: dict[str, Any]) -> None:
     if not user_id or not subscription_id:
         raise HTTPException(status_code=400, detail="Billing webhook cannot be linked to an Averis user.")
 
-    plan, cadence = variant_plan or (str(custom.get("plan") or "free"), str(custom.get("cadence") or "monthly"))
+    # An unknown provider variant is never promoted to a paid Averis plan.
+    plan, cadence = variant_plan or ("free", "monthly")
     provider_status = str(attrs.get("status") or "unknown")
-    effective_plan = plan if provider_status in ACTIVE_ACCESS_STATUSES else "free"
+    effective_plan = plan if provider_status in ENTITLED_STATUSES else "free"
     row = {
         "user_id": user_id,
         "provider": "lemon_squeezy",
