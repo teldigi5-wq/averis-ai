@@ -494,32 +494,40 @@ async def _persist_subscription_event(event_type: str, obj: dict[str, Any]) -> N
     product_id = _product_id(obj)
     entitlement = _product_map().get(product_id)
     existing = await _lookup_user_by_subscription(subscription_id)
-
     metadata = _metadata(obj.get("metadata"))
-    user_id = str(metadata.get("averis_user_id") or "")
-    if not user_id and existing:
-        user_id = existing[0]
 
-    # subscription.active is synchronization-only. Do not use it to create a
-    # paid entitlement when checkout.completed/subscription.paid has not linked
-    # the subscription to an Averis user yet.
-    if event_type == "subscription.active" and not existing:
+    # checkout.completed is the primary linking event. subscription.paid may
+    # recover a missed checkout webhook, but every other subscription event is
+    # synchronization-only and cannot establish a new paid Averis entitlement.
+    if event_type != "subscription.paid" and not existing:
         return
 
-    if not user_id:
-        raise HTTPException(status_code=400, detail="Billing webhook cannot be linked to an Averis user.")
+    if not entitlement:
+        # A product switch outside the four canonical Averis products can never
+        # preserve or create paid access. Existing linked subscriptions fail
+        # closed immediately and can recover on a later canonical paid event.
+        if existing:
+            await _downgrade_subscription(subscription_id, provider_status="unknown_product")
+        return
 
-    if entitlement:
-        plan, cadence = entitlement
-    elif existing:
-        # Unknown products can never newly grant access. Existing subscriptions
-        # may still be downgraded safely by terminal/failure events.
-        plan = existing[1]
-        cadence = existing[2] or "monthly"
-        if event_type in {"subscription.paid", "subscription.active"}:
-            return
+    mapped_plan, mapped_cadence = entitlement
+    if event_type == "subscription.paid":
+        plan, cadence = mapped_plan, mapped_cadence
+        if existing:
+            user_id = existing[0]
+        else:
+            user_id = _validate_checkout_metadata(
+                metadata,
+                plan=mapped_plan,
+                cadence=mapped_cadence,
+            )
     else:
-        return
+        assert existing is not None
+        user_id = existing[0]
+        # Synchronization events can revoke/maintain an existing entitlement,
+        # but only a paid event can elevate or switch the paid plan.
+        plan = existing[1]
+        cadence = existing[2] or mapped_cadence
 
     provider_status = str(obj.get("status") or "unknown")
     ends_at_value = obj.get("current_period_end_date")
@@ -586,6 +594,16 @@ async def _persist_refund(obj: dict[str, Any]) -> None:
     await _downgrade_subscription(subscription_id, provider_status="refunded")
 
 
+async def _persist_dispute(obj: dict[str, Any]) -> None:
+    # Creem dispute payloads include the affected subscription. A chargeback is
+    # treated as an immediate fail-closed entitlement event.
+    subscription = _object_dict(obj.get("subscription"))
+    subscription_id = str(subscription.get("id") or "")
+    if not subscription_id:
+        return
+    await _downgrade_subscription(subscription_id, provider_status="disputed")
+
+
 async def persist_webhook(payload: dict[str, Any]) -> None:
     settings = get_settings()
     if not settings.supabase_url or not settings.supabase_secret_key:
@@ -606,9 +624,16 @@ async def persist_webhook(payload: dict[str, Any]) -> None:
         "subscription.past_due",
         "subscription.unpaid",
         "subscription.expired",
+        "subscription.update",
+        "subscription.trialing",
+        "subscription.paused",
     }:
         await _persist_subscription_event(event_type, obj)
         return
 
     if event_type == "refund.created":
         await _persist_refund(obj)
+        return
+
+    if event_type == "dispute.created":
+        await _persist_dispute(obj)
