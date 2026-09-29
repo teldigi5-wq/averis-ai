@@ -122,7 +122,7 @@ def test_webhook_requires_signature(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.mark.parametrize(
     "provider_status",
-    ["past_due", "unpaid", "paused", "expired", "refunded", "none"],
+    ["past_due", "unpaid", "paused", "expired", "refunded", "disputed", "none"],
 )
 def test_non_entitled_subscription_states_do_not_unlock_cloud(provider_status: str) -> None:
     assert BillingSnapshot(plan="student", subscription_status=provider_status).cloud_allowed is False
@@ -182,3 +182,83 @@ def test_ended_cancel_reconciliation_persists_free_downgrade(monkeypatch: pytest
     assert calls == [("sub_test", "canceled")]
     assert result.plan == "free"
     assert result.provider_subscription_id == "sub_test"
+
+
+def test_sync_only_event_cannot_establish_paid_entitlement(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def no_existing(_subscription_id: str):
+        return None
+
+    async def unexpected_upsert(**_kwargs):
+        raise AssertionError("sync-only event must not create a subscription")
+
+    monkeypatch.setattr(billing, "_lookup_user_by_subscription", no_existing)
+    monkeypatch.setattr(billing, "_product_map", lambda: {"prod_student": ("student", "monthly")})
+    monkeypatch.setattr(billing, "_upsert_subscription", unexpected_upsert)
+
+    asyncio.run(
+        billing._persist_subscription_event(
+            "subscription.update",
+            {
+                "id": "sub_new",
+                "product": {"id": "prod_student"},
+                "status": "active",
+                "metadata": {"averis_user_id": "user_test"},
+            },
+        )
+    )
+
+
+def test_unknown_product_change_downgrades_existing_subscription(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def existing(_subscription_id: str):
+        return ("user_test", "student", "monthly")
+
+    calls: list[tuple[str, str]] = []
+
+    async def fake_downgrade(subscription_id: str, *, provider_status: str) -> None:
+        calls.append((subscription_id, provider_status))
+
+    monkeypatch.setattr(billing, "_lookup_user_by_subscription", existing)
+    monkeypatch.setattr(billing, "_product_map", lambda: {"prod_student": ("student", "monthly")})
+    monkeypatch.setattr(billing, "_downgrade_subscription", fake_downgrade)
+
+    asyncio.run(
+        billing._persist_subscription_event(
+            "subscription.update",
+            {"id": "sub_test", "product": {"id": "prod_unknown"}, "status": "active"},
+        )
+    )
+
+    assert calls == [("sub_test", "unknown_product")]
+
+
+def test_dispute_event_downgrades_linked_subscription(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[tuple[str, str]] = []
+
+    async def fake_downgrade(subscription_id: str, *, provider_status: str) -> None:
+        calls.append((subscription_id, provider_status))
+
+    monkeypatch.setattr(billing, "_downgrade_subscription", fake_downgrade)
+    asyncio.run(
+        billing._persist_dispute(
+            {"subscription": {"id": "sub_test", "status": "active"}}
+        )
+    )
+    assert calls == [("sub_test", "disputed")]
+
+
+def test_paused_update_trialing_events_are_dispatched(monkeypatch: pytest.MonkeyPatch) -> None:
+    _set_complete_creem_env(monkeypatch)
+    _reset_settings()
+    seen: list[str] = []
+
+    async def fake_subscription_event(event_type: str, _obj: dict[str, object]) -> None:
+        seen.append(event_type)
+
+    monkeypatch.setattr(billing, "_persist_subscription_event", fake_subscription_event)
+    try:
+        for event_type in ("subscription.paused", "subscription.update", "subscription.trialing"):
+            asyncio.run(billing.persist_webhook({"eventType": event_type, "object": {"id": "sub_test"}}))
+    finally:
+        _reset_settings()
+
+    assert seen == ["subscription.paused", "subscription.update", "subscription.trialing"]
