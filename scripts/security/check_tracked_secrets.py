@@ -39,7 +39,9 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 SERVER_SECRET_ASSIGNMENT = re.compile(
     r"(?im)\b(SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|LEMON_SQUEEZY_API_KEY|LEMON_SQUEEZY_WEBHOOK_SECRET)[ \t]*=[ \t]*['\"]?([^\s'\"#]+)"
 )
-PLACEHOLDER_MARKERS = ("<", "${", "your_", "example", "placeholder", "changeme", "replace_me")
+# `\\n` is included because release-certificate source code intentionally checks
+# for strings such as `LEMON_SQUEEZY_API_KEY=\\n` to prove the example value is empty.
+PLACEHOLDER_MARKERS = ("<", "${", "your_", "example", "placeholder", "changeme", "replace_me", "\\n")
 
 
 def tracked_files() -> list[Path]:
