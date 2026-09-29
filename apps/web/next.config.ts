@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
   output: githubPages ? "export" : undefined,
   basePath,
   assetPrefix: basePath || undefined,
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
+  reactStrictMode: true,
   images: {
     unoptimized: githubPages,
   },
