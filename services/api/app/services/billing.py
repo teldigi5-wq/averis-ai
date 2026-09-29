@@ -378,9 +378,39 @@ async def _lookup_user_by_subscription(
     )
 
 
-async def _apply_profile_plan(user_id: str, plan: str, *, reset_credits: bool) -> None:
+async def _apply_profile_plan(
+    user_id: str,
+    plan: str,
+    *,
+    reset_credits: bool,
+    event_id: str | None = None,
+    event_type: str | None = None,
+) -> None:
     settings = get_settings()
     allowance = PLAN_ALLOWANCE.get(plan, 5)
+
+    if event_id:
+        # The RPC records the Creem event and applies the profile mutation in a
+        # single database transaction. A webhook retry returns false and does
+        # not refill or otherwise mutate the user's credits a second time.
+        body = {
+            "p_event_id": event_id,
+            "p_user_id": user_id,
+            "p_event_type": event_type or "creem.webhook",
+            "p_plan": plan,
+            "p_allowance": allowance,
+            "p_reset_credits": reset_credits,
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                f"{settings.supabase_url.rstrip('/')}/rest/v1/rpc/apply_billing_profile_event",
+                headers=_admin_headers(),
+                json=body,
+            )
+        if response.status_code >= 400:
+            raise RuntimeError("failed to apply idempotent billing entitlement event")
+        return
+
     body: dict[str, Any] = {"plan": plan, "monthly_credit_allowance": allowance}
     if reset_credits:
         body["credits_remaining"] = allowance
@@ -445,7 +475,7 @@ def _effective_plan_for_event(
     return snapshot.effective_plan
 
 
-async def _persist_checkout_completed(obj: dict[str, Any]) -> None:
+async def _persist_checkout_completed(obj: dict[str, Any], *, event_id: str) -> None:
     if str(obj.get("status") or "") != "completed":
         return
 
@@ -482,11 +512,21 @@ async def _persist_checkout_completed(obj: dict[str, Any]) -> None:
         renews_at=subscription.get("next_transaction_date"),
         ends_at=ends_at,
     )
-    # Idempotent absolute reset: webhook retries never add credits.
-    await _apply_profile_plan(user_id, effective_plan, reset_credits=True)
+    await _apply_profile_plan(
+        user_id,
+        effective_plan,
+        reset_credits=True,
+        event_id=event_id,
+        event_type="checkout.completed",
+    )
 
 
-async def _persist_subscription_event(event_type: str, obj: dict[str, Any]) -> None:
+async def _persist_subscription_event(
+    event_type: str,
+    obj: dict[str, Any],
+    *,
+    event_id: str,
+) -> None:
     subscription_id = str(obj.get("id") or "")
     if not subscription_id:
         raise HTTPException(status_code=400, detail="Subscription webhook is missing its subscription ID.")
@@ -507,7 +547,12 @@ async def _persist_subscription_event(event_type: str, obj: dict[str, Any]) -> N
         # preserve or create paid access. Existing linked subscriptions fail
         # closed immediately and can recover on a later canonical paid event.
         if existing:
-            await _downgrade_subscription(subscription_id, provider_status="unknown_product")
+            await _downgrade_subscription(
+                subscription_id,
+                provider_status="unknown_product",
+                event_id=event_id,
+                event_type=event_type,
+            )
         return
 
     mapped_plan, mapped_cadence = entitlement
@@ -561,10 +606,22 @@ async def _persist_subscription_event(event_type: str, obj: dict[str, Any]) -> N
     )
 
     reset_credits = event_type == "subscription.paid" or effective_plan == "free"
-    await _apply_profile_plan(user_id, effective_plan, reset_credits=reset_credits)
+    await _apply_profile_plan(
+        user_id,
+        effective_plan,
+        reset_credits=reset_credits,
+        event_id=event_id,
+        event_type=event_type,
+    )
 
 
-async def _downgrade_subscription(subscription_id: str, *, provider_status: str) -> None:
+async def _downgrade_subscription(
+    subscription_id: str,
+    *,
+    provider_status: str,
+    event_id: str | None = None,
+    event_type: str | None = None,
+) -> None:
     settings = get_settings()
     existing = await _lookup_user_by_subscription(subscription_id)
     if not existing:
@@ -583,25 +640,41 @@ async def _downgrade_subscription(subscription_id: str, *, provider_status: str)
         )
     if response.status_code >= 400:
         raise HTTPException(status_code=502, detail="Averis could not persist subscription state.")
-    await _apply_profile_plan(existing[0], "free", reset_credits=True)
+    await _apply_profile_plan(
+        existing[0],
+        "free",
+        reset_credits=True,
+        event_id=event_id,
+        event_type=event_type,
+    )
 
 
-async def _persist_refund(obj: dict[str, Any]) -> None:
+async def _persist_refund(obj: dict[str, Any], *, event_id: str) -> None:
     subscription = _object_dict(obj.get("subscription"))
     subscription_id = str(subscription.get("id") or "")
     if not subscription_id or str(subscription.get("status") or "") != "canceled":
         return
-    await _downgrade_subscription(subscription_id, provider_status="refunded")
+    await _downgrade_subscription(
+        subscription_id,
+        provider_status="refunded",
+        event_id=event_id,
+        event_type="refund.created",
+    )
 
 
-async def _persist_dispute(obj: dict[str, Any]) -> None:
+async def _persist_dispute(obj: dict[str, Any], *, event_id: str) -> None:
     # Creem dispute payloads include the affected subscription. A chargeback is
     # treated as an immediate fail-closed entitlement event.
     subscription = _object_dict(obj.get("subscription"))
     subscription_id = str(subscription.get("id") or "")
     if not subscription_id:
         return
-    await _downgrade_subscription(subscription_id, provider_status="disputed")
+    await _downgrade_subscription(
+        subscription_id,
+        provider_status="disputed",
+        event_id=event_id,
+        event_type="dispute.created",
+    )
 
 
 async def persist_webhook(payload: dict[str, Any]) -> None:
@@ -609,11 +682,15 @@ async def persist_webhook(payload: dict[str, Any]) -> None:
     if not settings.supabase_url or not settings.supabase_secret_key:
         raise HTTPException(status_code=503, detail="Billing persistence is not configured.")
 
+    event_id = str(payload.get("id") or "")
+    if not event_id:
+        raise HTTPException(status_code=400, detail="Billing webhook event ID is required.")
+
     event_type = str(payload.get("eventType") or "")
     obj = _object_dict(payload.get("object"))
 
     if event_type == "checkout.completed":
-        await _persist_checkout_completed(obj)
+        await _persist_checkout_completed(obj, event_id=event_id)
         return
 
     if event_type in {
@@ -628,12 +705,12 @@ async def persist_webhook(payload: dict[str, Any]) -> None:
         "subscription.trialing",
         "subscription.paused",
     }:
-        await _persist_subscription_event(event_type, obj)
+        await _persist_subscription_event(event_type, obj, event_id=event_id)
         return
 
     if event_type == "refund.created":
-        await _persist_refund(obj)
+        await _persist_refund(obj, event_id=event_id)
         return
 
     if event_type == "dispute.created":
-        await _persist_dispute(obj)
+        await _persist_dispute(obj, event_id=event_id)
