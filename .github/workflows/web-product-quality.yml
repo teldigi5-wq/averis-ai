@@ -80,6 +80,10 @@ jobs:
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
         run: node scripts/onboarding-quality-smoke-v37.mjs
+      - name: Run Pricing v40 desktop/mobile quality smoke
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/pricing-quality-smoke-v40.mjs
       - name: Show preview server log on failure
         if: failure()
         run: cat /tmp/averis-web.log || true
