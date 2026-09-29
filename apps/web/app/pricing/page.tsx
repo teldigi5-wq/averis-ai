@@ -1,15 +1,17 @@
 "use client";
 
+import type { Session } from "@supabase/supabase-js";
 import { useEffect, useMemo, useState } from "react";
 
 import { supabase, supabaseConfigured } from "../../lib/supabase";
-import styles from "./pricing-v40.module.css";
+import styles from "./pricing.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type Currency = "USD" | "LKR";
 type Cadence = "monthly" | "yearly";
 type PlanId = "free" | "student" | "pro";
+type SessionState = "checking" | "signed-out" | "signed-in";
 
 type BillingStatus = {
   billing_enabled: boolean;
@@ -81,6 +83,7 @@ export default function PricingPage() {
   const [cadence, setCadence] = useState<Cadence>("monthly");
   const [status, setStatus] = useState<BillingStatus | null>(null);
   const [statusChecked, setStatusChecked] = useState(false);
+  const [sessionState, setSessionState] = useState<SessionState>("checking");
   const [loadingPlan, setLoadingPlan] = useState<PlanId | null>(null);
   const [message, setMessage] = useState("");
 
@@ -90,33 +93,62 @@ export default function PricingPage() {
       : "Paid plans can be managed or cancelled from the billing portal.",
     [cadence],
   );
-  const billingReady = statusChecked && status?.billing_enabled === true;
+
+  const billingReady = sessionState === "signed-in" && statusChecked && status?.billing_enabled === true;
+  const signedOut = sessionState === "signed-out" && statusChecked;
+  const billingUnavailable = sessionState === "signed-in" && statusChecked && !billingReady;
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
+      setSessionState("signed-out");
       setStatusChecked(true);
       return;
     }
+
     let active = true;
-    void supabase.auth.getSession().then(async ({ data }) => {
-      const token = data.session?.access_token;
-      if (!token || !active) {
-        if (active) setStatusChecked(true);
+
+    async function syncBilling(session: Session | null) {
+      if (!active) return;
+      const token = session?.access_token;
+
+      if (!token) {
+        setSessionState("signed-out");
+        setStatus(null);
+        setStatusChecked(true);
         return;
       }
+
+      setSessionState("signed-in");
+      setStatusChecked(false);
+
       try {
         const response = await fetch(`${API_URL}/api/v1/billing/status`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         });
-        if (response.ok && active) setStatus(await response.json());
+        if (!active) return;
+        if (!response.ok) {
+          setStatus(null);
+          return;
+        }
+        setStatus(await response.json());
+        setMessage("");
       } catch {
-        // Fail closed: checkout stays disabled until the API explicitly confirms readiness.
+        if (active) setStatus(null);
       } finally {
         if (active) setStatusChecked(true);
       }
+    }
+
+    void supabase.auth.getSession().then(({ data }) => syncBilling(data.session));
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      void syncBilling(session);
     });
-    return () => { active = false; };
+
+    return () => {
+      active = false;
+      subscription.subscription.unsubscribe();
+    };
   }, []);
 
   async function sessionToken() {
@@ -125,18 +157,25 @@ export default function PricingPage() {
     return data.session?.access_token ?? null;
   }
 
+  function requestSignIn() {
+    setMessage("Sign in to securely link the subscription to your Averis account.");
+    window.dispatchEvent(new Event("averis:auth-open"));
+  }
+
   async function checkout(plan: "student" | "pro") {
     setMessage("");
-    if (!billingReady) {
-      setMessage("Subscriptions are not accepting payments yet. The free student toolkit remains available.");
-      return;
-    }
     const token = await sessionToken();
+
     if (!token) {
-      setMessage("Sign in first so the subscription can be securely linked to your Averis account.");
-      window.dispatchEvent(new Event("averis:auth-open"));
+      requestSignIn();
       return;
     }
+
+    if (!billingReady) {
+      setMessage("Averis could not verify billing readiness. Checkout stays disabled until the server confirms it is available.");
+      return;
+    }
+
     setLoadingPlan(plan);
     try {
       const response = await fetch(`${API_URL}/api/v1/billing/checkout`, {
@@ -159,7 +198,11 @@ export default function PricingPage() {
 
   async function openPortal() {
     const token = await sessionToken();
-    if (!token) return setMessage("Sign in to manage your subscription.");
+    if (!token) {
+      requestSignIn();
+      return;
+    }
+
     setLoadingPlan(status?.plan ?? "free");
     try {
       const response = await fetch(`${API_URL}/api/v1/billing/portal`, {
@@ -178,14 +221,22 @@ export default function PricingPage() {
     }
   }
 
+  function paidCtaLabel(plan: (typeof plans)[number]) {
+    if (loadingPlan === plan.id) return "Opening secure checkout…";
+    if (!statusChecked || sessionState === "checking") return "Checking subscription…";
+    if (signedOut) return `Sign in to choose ${plan.name}`;
+    if (billingReady) return `Choose ${plan.name}`;
+    return "Subscriptions unavailable";
+  }
+
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
         <span className={styles.eyebrow}>AVERIS STUDENT PLANS</span>
         <h1>Simple plans for your study workload.</h1>
         <p>
-          Use Averis free for core review work. Upgrade only when you need more server scans or optional Cloud AI revision.
-          Payments open in the provider&apos;s secure checkout, so Averis never sees or stores your card number or CVV.
+          Start free and upgrade only when you need more server scans or optional Cloud AI revision.
+          Card details stay with the payment provider, never inside Averis.
         </p>
         <div className={styles.toggles}>
           <div className={styles.segment} aria-label="Billing currency display">
@@ -199,7 +250,7 @@ export default function PricingPage() {
             ))}
           </div>
         </div>
-        <p className={styles.microcopy}>{billingNote} LKR is a localized display reference; secure checkout shows the authoritative charged amount before payment.</p>
+        <p className={styles.microcopy}>{billingNote} LKR is a display reference; secure checkout shows the authoritative charged amount before payment.</p>
       </section>
 
       {status && (
@@ -211,12 +262,26 @@ export default function PricingPage() {
         </section>
       )}
 
-      {message && <div className={styles.notice} role="status">{message}</div>}
+      {signedOut && (
+        <section className={styles.sessionHint} aria-label="Sign in for subscriptions">
+          <div><strong>Ready to upgrade?</strong><span>Sign in first so checkout can securely link the plan to your account.</span></div>
+          <button type="button" onClick={requestSignIn}>Sign in</button>
+        </section>
+      )}
+
+      {billingUnavailable && (
+        <div className={styles.notice} role="status">
+          Billing could not be verified for this signed-in session. Paid checkout remains disabled until the API confirms readiness.
+        </div>
+      )}
+
+      {message && <div className={styles.notice} role="status" aria-live="polite">{message}</div>}
 
       <section className={styles.grid} aria-label="Student subscription plans">
         {plans.map((plan) => {
           const amount = plan[cadence][currency];
           const current = status?.plan === plan.id;
+          const disabled = plan.id !== "free" && (loadingPlan !== null || !statusChecked || (sessionState === "signed-in" && !billingReady));
           return (
             <article key={plan.id} className={`${styles.card} ${plan.featured ? styles.featured : ""}`}>
               {plan.featured && <span className={styles.badge}>Best for most students</span>}
@@ -235,8 +300,8 @@ export default function PricingPage() {
               ) : current ? (
                 <button className={styles.primaryAction} type="button" onClick={openPortal}>Manage current plan</button>
               ) : (
-                <button className={styles.primaryAction} type="button" disabled={loadingPlan !== null || !billingReady} onClick={() => checkout(plan.id)}>
-                  {loadingPlan === plan.id ? "Opening secure checkout…" : billingReady ? `Choose ${plan.name}` : "Subscriptions activating soon"}
+                <button className={styles.primaryAction} type="button" disabled={disabled} onClick={() => checkout(plan.id)}>
+                  {paidCtaLabel(plan)}
                 </button>
               )}
             </article>
@@ -247,8 +312,8 @@ export default function PricingPage() {
       <section className={styles.securityStrip} aria-label="Subscription protections">
         <div><strong>Secure checkout</strong><span>Card details stay with the payment provider, not Averis.</span></div>
         <div><strong>Verified billing</strong><span>Plan changes are accepted only after signed server verification.</span></div>
-        <div><strong>Protected plan access</strong><span>Editing browser state cannot unlock paid features.</span></div>
-        <div><strong>No surprise AI charges</strong><span>Cloud AI stops when the configured free quota is unavailable.</span></div>
+        <div><strong>Protected access</strong><span>Editing browser state cannot unlock paid features.</span></div>
+        <div><strong>Bounded AI usage</strong><span>Cloud AI stops when the configured provider quota is unavailable.</span></div>
       </section>
     </main>
   );
