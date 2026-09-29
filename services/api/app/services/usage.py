@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 
 from app.core.config import get_settings
 from app.services.auth import AuthContext
+from app.services.billing import billing_configured, reconcile_profile_entitlement
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,12 @@ async def record_scan_usage(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Scan accounting is not configured.",
         )
+
+    # Keep paid scan allowances fail-closed after a scheduled/canceled period
+    # actually ends. The webhook stores the paid-through timestamp; this check
+    # prevents stale profile credits from surviving indefinitely after it.
+    if billing_configured():
+        await reconcile_profile_entitlement(auth)
 
     headers = {
         "Authorization": f"Bearer {auth.access_token}",
