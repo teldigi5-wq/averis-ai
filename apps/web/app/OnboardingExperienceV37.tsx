@@ -56,7 +56,9 @@ function rememberOnboarding(value: "completed" | "dismissed") {
 
 function onboardingCanOpen() {
   const root = document.documentElement;
-  return root.dataset.averisIntroVisible !== "true" && root.getAttribute("data-averis-auth-modal") !== "open";
+  return root.dataset.averisIntroVisible !== "true"
+    && root.getAttribute("data-averis-auth-modal") !== "open"
+    && root.dataset.averisOnboarding !== "open";
 }
 
 export default function OnboardingExperienceV37() {
@@ -232,7 +234,7 @@ export default function OnboardingExperienceV37() {
             )}
 
             {step === 1 && (
-              <div className={styles.workspaceDiagram} aria-label="Assignment workspace contents">
+              <div className={styles.workspaceDiagram} role="group" aria-label="Assignment workspace contents">
                 <span>BRIEF</span><span>DRAFT</span><span>SOURCES</span><span>REFERENCES</span><span>DEADLINE</span><span>NOTES</span>
                 <strong>Browser-local assignment workspace</strong>
                 <small>Dashboard shows durable workflow facts; evidence/readiness is re-run on the current document.</small>
@@ -272,7 +274,7 @@ export default function OnboardingExperienceV37() {
 
         <footer className={styles.footer}>
           <button className={styles.skip} type="button" onClick={() => close(true)}>Skip guide</button>
-          <div className={styles.stepDots} aria-label={`Step ${step + 1} of ${steps.length}`}>
+          <div className={styles.stepDots} aria-hidden="true">
             {steps.map((_item, index) => <i key={index} data-active={index === step ? "true" : "false"} />)}
           </div>
           <div className={styles.actions}>
