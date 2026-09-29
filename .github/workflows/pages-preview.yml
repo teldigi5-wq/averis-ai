@@ -50,12 +50,21 @@ jobs:
       - name: Build static export
         run: npm run build
 
-      - name: Verify static routes
+      - name: Verify beta-critical static routes
         run: |
-          test -f out/index.html
-          test -f out/multi-source/index.html
-          test -f out/revision/index.html
-          test -f out/privacy/index.html
+          set -euo pipefail
+          for route in \
+            index.html \
+            dashboard/index.html \
+            multi-source/index.html \
+            revision/index.html \
+            refine/index.html \
+            studio/index.html \
+            private-ai/index.html \
+            privacy/index.html
+          do
+            test -f "out/$route" || { echo "Missing static route: out/$route"; exit 1; }
+          done
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

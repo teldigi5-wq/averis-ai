@@ -11,6 +11,11 @@ on:
   pull_request:
     paths:
       - ".github/workflows/web-product-quality.yml"
+      - ".github/workflows/beta-release-certification.yml"
+      - "scripts/release/**"
+      - "services/api/app/core/config.py"
+      - "services/api/tests/test_cors_config.py"
+      - ".env.example"
       - "apps/web/**"
   workflow_dispatch:
 
@@ -67,6 +72,14 @@ jobs:
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
         run: node scripts/browser-quality-smoke.mjs
+      - name: Run Student Dashboard v36 desktop/mobile quality smoke
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/dashboard-quality-smoke-v36.mjs
+      - name: Run First-run Onboarding v37 desktop/mobile quality smoke
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/onboarding-quality-smoke-v37.mjs
       - name: Show preview server log on failure
         if: failure()
         run: cat /tmp/averis-web.log || true

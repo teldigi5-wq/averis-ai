@@ -9,8 +9,13 @@ const artifactDir = path.resolve(process.cwd(), "../../artifacts/web-quality");
 
 const routes = [
   { name: "home", path: "/" },
+  { name: "review-center", path: "/?review-center=1", reviewCenter: true },
+  { name: "workspace", path: "/", workspace: true },
   { name: "multi-source", path: "/multi-source/" },
   { name: "revision", path: "/revision/" },
+  { name: "refine", path: "/refine/" },
+  { name: "studio", path: "/studio/", studio: true },
+  { name: "private-ai", path: "/private-ai/" },
   { name: "privacy", path: "/privacy/" },
 ];
 
@@ -38,11 +43,119 @@ function compactViolation(violation) {
   };
 }
 
+async function prepareStudio(page) {
+  const originalText = "Averis supports evidence-first academic review (Smith, 2024). The pilot included 42 students and recorded citation context before revision. Human reviewers made the final interpretation.";
+  const suggestedText = "Averis supports evidence-first academic review (Smith, 2024). The pilot recorded citation context before revision. Human reviewers retained responsibility for the final interpretation.";
+
+  await page.route("**/api/v1/ai/revision/preflight", async (requestRoute) => {
+    const request = requestRoute.request();
+    let submittedText = originalText;
+    try {
+      submittedText = JSON.parse(request.postData() || "{}").text || originalText;
+    } catch {
+      submittedText = originalText;
+    }
+    const wordCount = submittedText.trim().split(/\s+/).filter(Boolean).length;
+    await requestRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        writing: {
+          word_count: wordCount,
+          sentence_count: 3,
+          paragraph_count: 1,
+          lexical_diversity_percent: 82.1,
+          sentence_length_cv_percent: 24.3,
+          paragraph_length_cv_percent: 0,
+          repeated_trigram_ratio_percent: 0,
+          style_uniformity_signal: submittedText === originalText ? 28 : 24,
+          style_uniformity_band: "low review",
+        },
+        source_evidence: null,
+        generation_eligible: true,
+        boundary: "evidence_first_revision",
+        blocked_reason: null,
+        evidence_first_actions: ["Review the proposal sentence by sentence and keep attribution attached to borrowed ideas."],
+        caution: "Writing and source metrics are review evidence, not authorship or misconduct verdicts.",
+        evidence_version: "writing-preflight-v1",
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/ai/revision/refine", async (requestRoute) => {
+    await requestRoute.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        generation_eligible: true,
+        runtime_available: true,
+        boundary: "evidence_first_revision",
+        blocked_reason: null,
+        original_text: originalText,
+        suggested_text: suggestedText,
+        preservation: {
+          citations_before: ["(Smith, 2024)"],
+          citations_after: ["(Smith, 2024)"],
+          missing_citations: [],
+          numbers_before: ["2024", "42"],
+          numbers_after: ["2024"],
+          missing_numbers: ["42"],
+          length_change_percent: -5.2,
+          acceptance_eligible: false,
+        },
+        source_evidence_before: null,
+        source_evidence_after: null,
+        caution: "Review every suggestion and re-run evidence before accepting it.",
+        evidence_version: "writing-refinement-v1",
+      }),
+    });
+  });
+
+  const editor = page.locator("textarea").first();
+  await editor.fill(originalText);
+  await page.getByRole("button", { name: "Run evidence gate" }).click();
+  await page.getByText("Evidence before generation").waitFor({ timeout: 5000 });
+  await page.getByRole("button", { name: "Generate revision proposal" }).click();
+  await page.getByText("Accept changes one unit at a time").waitFor({ timeout: 5000 });
+}
+
+async function prepareRoute(page, route) {
+  if (route.studio) {
+    await prepareStudio(page);
+    return;
+  }
+  if (!route.workspace && !route.reviewCenter) return;
+  await page.evaluate((mode) => {
+    document.querySelector('section[aria-label="Averis product introduction"]')?.remove();
+    document.documentElement.dataset.averisIntroVisible = "false";
+    document.documentElement.dataset.averisAuthBootstrap = "ready";
+    document.documentElement.dataset.averisWorkspaceOpen = "true";
+    if (mode === "workspace") delete document.documentElement.dataset.averisReviewCenter;
+  }, route.workspace ? "workspace" : "review-center");
+  await page.waitForTimeout(route.reviewCenter ? 320 : 120);
+}
+
+async function exerciseScrollExperience(page) {
+  const { scrollHeight, viewportHeight } = await page.evaluate(() => ({
+    scrollHeight: document.documentElement.scrollHeight,
+    viewportHeight: window.innerHeight,
+  }));
+  const step = Math.max(320, Math.floor(viewportHeight * 0.72));
+  for (let y = 0; y < scrollHeight; y += step) {
+    await page.evaluate((offset) => window.scrollTo({ top: offset, behavior: "instant" }), y);
+    await page.waitForTimeout(70);
+  }
+  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+  await page.waitForTimeout(140);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(180);
+}
+
 await fs.mkdir(artifactDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const report = {
-  schema_version: "averis.web-quality/v1",
+  schema_version: "averis.web-quality/v5",
   base_url: baseUrl,
   generated_at: new Date().toISOString(),
   checks: [],
@@ -70,6 +183,8 @@ try {
       const url = routeUrl(route.path);
       const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30_000 });
       await page.waitForTimeout(600);
+      await prepareRoute(page, route);
+      await exerciseScrollExperience(page);
 
       const status = response?.status() ?? 0;
       const title = await page.title();
@@ -110,19 +225,13 @@ try {
       const brokenImages = await page.locator("img").evaluateAll((images) =>
         images
           .filter((image) => !image.complete || image.naturalWidth === 0)
-          .map((image) => ({
-            src: image.getAttribute("src"),
-            alt: image.getAttribute("alt"),
-          })),
+          .map((image) => ({ src: image.getAttribute("src"), alt: image.getAttribute("alt") })),
       );
 
       await page.addScriptTag({ content: axe.source });
       const axeResults = await page.evaluate(async () => {
         const results = await window.axe.run(document, {
-          runOnly: {
-            type: "tag",
-            values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
-          },
+          runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
           resultTypes: ["violations"],
         });
         return results.violations;
@@ -148,6 +257,7 @@ try {
 
       const check = {
         route: route.path,
+        mode: route.reviewCenter ? "review-center" : route.workspace ? "workspace" : route.studio ? "studio-decision-qa" : "default",
         profile: profile.name,
         viewport: profile.viewport,
         url,
@@ -164,12 +274,8 @@ try {
       report.summary.pages_checked += 1;
       report.summary.serious_or_critical_accessibility_violations += severeViolations.length;
 
-      if (!response || status < 200 || status >= 400) {
-        failed = true;
-      }
-      if (!title.toLowerCase().includes("averis")) {
-        failed = true;
-      }
+      if (!response || status < 200 || status >= 400) failed = true;
+      if (!title.toLowerCase().includes("averis")) failed = true;
       if (horizontalOverflow > 2) {
         failed = true;
         report.summary.overflow_failures += 1;
@@ -182,16 +288,14 @@ try {
         failed = true;
         report.summary.keyboard_focus_failures += 1;
       }
-      if (severeViolations.length > 0) {
-        failed = true;
-      }
+      if (severeViolations.length > 0) failed = true;
 
       console.log(
-        `[${profile.name}] ${route.path} status=${status} overflow=${horizontalOverflow}px ` +
+        `[${profile.name}] ${route.name} status=${status} overflow=${horizontalOverflow}px ` +
           `brokenImages=${brokenImages.length} severeA11y=${severeViolations.length} focus=${focusState.tag}`,
       );
       if (overflowOffenders.length > 0) {
-        console.log(`overflow offenders for [${profile.name}] ${route.path}: ${JSON.stringify(overflowOffenders, null, 2)}`);
+        console.log(`overflow offenders for [${profile.name}] ${route.name}: ${JSON.stringify(overflowOffenders, null, 2)}`);
       }
 
       await page.close();

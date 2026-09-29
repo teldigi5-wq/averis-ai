@@ -1,0 +1,8 @@
+/* v25 certification fix: do not virtualize evidence/review surfaces.
+   Full rendering avoids blank off-screen cards and scroll-time pop-in. */
+.studioV25Scope [class*="diffRow"],
+.studioV25Scope section[aria-labelledby="similarity-readiness-title"],
+.studioV25Scope [class*="acceptedPreview"] {
+  content-visibility: visible !important;
+  contain-intrinsic-size: none !important;
+}

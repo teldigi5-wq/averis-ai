@@ -1,0 +1,22 @@
+/* Keep the rebuilt cinematic introduction isolated from the legacy home workspace. */
+html[data-averis-intro-visible="true"] body > main,
+body > [aria-label="Averis product introduction"] ~ main {
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+}
+
+html[data-averis-intro-visible="true"] body > main > :not(.accountGrid),
+body > [aria-label="Averis product introduction"] ~ main > :not(.accountGrid) {
+  display: none !important;
+}
+
+html[data-averis-intro-visible="true"] body > main > .accountGrid,
+body > [aria-label="Averis product introduction"] ~ main > .accountGrid {
+  display: none !important;
+}
+
+html[data-averis-intro-visible="true"][data-averis-auth-modal="open"] body > main > .accountGrid,
+html[data-averis-auth-modal="open"] body > [aria-label="Averis product introduction"] ~ main > .accountGrid {
+  display: grid !important;
+}

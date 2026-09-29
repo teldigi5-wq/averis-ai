@@ -1,0 +1,232 @@
+/* Averis auth shell v16 — prevent legacy-page flash and present auth as a deliberate modal. */
+
+html[data-averis-auth-bootstrap="pending"] body > main {
+  visibility: hidden !important;
+}
+
+html[data-averis-home-public="true"] body > main {
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+}
+
+html[data-averis-home-public="true"] body > main > :not(.accountGrid) {
+  display: none !important;
+}
+
+.accountGrid {
+  display: none !important;
+}
+
+html[data-averis-auth-modal="open"] {
+  overflow: hidden !important;
+}
+
+html[data-averis-auth-modal="open"] .accountGrid {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 120000 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(20px, 4vw, 48px) !important;
+  display: grid !important;
+  place-items: center !important;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(24, 139, 255, .18), transparent 38%),
+    rgba(1, 8, 18, .86) !important;
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+}
+
+html[data-averis-auth-modal="open"] .accountIntro {
+  display: none !important;
+}
+
+html[data-averis-auth-modal="open"] .authPanel {
+  position: relative !important;
+  width: min(100%, 470px) !important;
+  max-width: 470px !important;
+  margin: 0 !important;
+  padding: 34px !important;
+  border: 1px solid rgba(76, 191, 247, .28) !important;
+  border-radius: 24px !important;
+  color: #f5fbff !important;
+  background:
+    linear-gradient(180deg, rgba(9, 28, 48, .98), rgba(4, 17, 31, .99)) padding-box,
+    linear-gradient(135deg, rgba(86, 226, 255, .34), rgba(29, 112, 255, .08)) border-box !important;
+  box-shadow:
+    0 34px 100px rgba(0, 0, 0, .54),
+    0 0 0 1px rgba(255, 255, 255, .025) inset,
+    0 0 68px rgba(13, 123, 255, .08) !important;
+  overflow: hidden;
+}
+
+html[data-averis-auth-modal="open"] .authPanel::before {
+  content: "AVERIS SECURE ACCESS";
+  display: block;
+  margin: 0 50px 22px 0;
+  color: #72e9f7;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .17em;
+}
+
+html[data-averis-auth-modal="open"] .authPanel::after {
+  content: "";
+  position: absolute;
+  top: -120px;
+  right: -110px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(31, 158, 255, .18), transparent 68%);
+  pointer-events: none;
+}
+
+.authModalClose {
+  position: absolute !important;
+  z-index: 5;
+  top: 20px;
+  right: 20px;
+  width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center;
+  border: 1px solid rgba(119, 184, 223, .2) !important;
+  border-radius: 10px !important;
+  color: #b9cede !important;
+  background: rgba(7, 24, 42, .72) !important;
+  box-shadow: none !important;
+  font-size: 23px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+}
+
+.authModalClose:hover,
+.authModalClose:focus-visible {
+  color: #fff !important;
+  border-color: rgba(79, 213, 255, .48) !important;
+  background: rgba(17, 49, 76, .86) !important;
+  transform: none !important;
+}
+
+html[data-averis-auth-modal="open"] .authTabs {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 24px !important;
+  padding: 4px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px !important;
+  border: 1px solid rgba(104, 169, 213, .16) !important;
+  border-radius: 13px !important;
+  background: rgba(2, 12, 23, .72) !important;
+}
+
+html[data-averis-auth-modal="open"] .authTab {
+  min-height: 43px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  color: #8fa8bc !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 760 !important;
+}
+
+html[data-averis-auth-modal="open"] .authTab.active {
+  color: #f6fcff !important;
+  background: linear-gradient(135deg, rgba(27, 204, 233, .16), rgba(28, 112, 255, .18)) !important;
+  box-shadow: inset 0 0 0 1px rgba(74, 215, 255, .18) !important;
+}
+
+html[data-averis-auth-modal="open"] .authForm {
+  position: relative;
+  z-index: 2;
+  display: grid !important;
+  gap: 16px !important;
+}
+
+html[data-averis-auth-modal="open"] .authForm label {
+  display: grid !important;
+  gap: 7px !important;
+}
+
+html[data-averis-auth-modal="open"] .authForm label > span {
+  color: #b7cad9 !important;
+  font-size: 11px !important;
+  font-weight: 760 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase;
+}
+
+html[data-averis-auth-modal="open"] .authForm input {
+  min-height: 50px !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  border: 1px solid rgba(102, 169, 215, .2) !important;
+  border-radius: 11px !important;
+  color: #f6fbff !important;
+  background: rgba(2, 13, 24, .82) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .02) !important;
+  font-size: 16px !important;
+}
+
+html[data-averis-auth-modal="open"] .authForm input:focus {
+  border-color: rgba(57, 218, 244, .52) !important;
+  outline: 3px solid rgba(34, 221, 236, .09) !important;
+}
+
+html[data-averis-auth-modal="open"] .authForm button[type="submit"] {
+  min-height: 50px !important;
+  margin: 4px 0 0 !important;
+  border: 1px solid rgba(119, 235, 255, .4) !important;
+  border-radius: 11px !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, #22ddec 0%, #148bff 56%, #1555f0 100%) !important;
+  box-shadow: 0 15px 34px rgba(18, 111, 255, .2), inset 0 1px rgba(255, 255, 255, .3) !important;
+  font-weight: 820 !important;
+}
+
+html[data-averis-auth-modal="open"] .authFeedback {
+  margin-top: 15px !important;
+}
+
+@media (max-width: 600px) {
+  html[data-averis-auth-modal="open"] .accountGrid {
+    padding: 0 !important;
+    place-items: end stretch !important;
+    background: rgba(1, 8, 18, .82) !important;
+  }
+
+  html[data-averis-auth-modal="open"] .authPanel {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 92dvh;
+    overflow-y: auto;
+    padding: 30px 20px calc(24px + env(safe-area-inset-bottom)) !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    border-left: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  .authModalClose {
+    top: 16px;
+    right: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-averis-auth-modal="open"] .accountGrid,
+  html[data-averis-auth-modal="open"] .authPanel {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

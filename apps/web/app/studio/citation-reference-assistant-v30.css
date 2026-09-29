@@ -1,0 +1,555 @@
+.studioV30ReferenceLauncher {
+  position: fixed;
+  z-index: 88;
+  right: max(22px, calc((100vw - 1500px) / 2 + 22px));
+  left: auto !important;
+  top: 220px;
+  width: max-content !important;
+  max-width: min(240px, calc(100vw - 44px));
+  flex: 0 0 auto !important;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-width: 176px;
+  min-height: 54px;
+  border: 1px solid rgba(134, 126, 255, .24);
+  border-radius: 15px;
+  padding: 8px 11px;
+  color: #edf5ff;
+  background: linear-gradient(145deg, rgba(22, 34, 71, .96), rgba(5, 22, 38, .96));
+  box-shadow: 0 18px 50px rgba(0, 5, 13, .28), inset 0 1px rgba(255,255,255,.03);
+  backdrop-filter: blur(12px);
+}
+
+.studioV30ReferenceLauncher:hover {
+  border-color: rgba(151, 145, 255, .46);
+  transform: translateY(-1px);
+}
+
+.studioV30ReferenceLauncher > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(142, 133, 255, .24);
+  border-radius: 10px;
+  color: #a9a4ff;
+  background: rgba(60, 55, 132, .36);
+  font-size: 18px;
+}
+
+.studioV30ReferenceLauncher > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.studioV30ReferenceLauncher strong {
+  color: #f1f6ff;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.studioV30ReferenceLauncher small {
+  color: #8398ad;
+  font-size: 7.8px;
+  white-space: nowrap;
+}
+
+.studioV30ReferenceLauncher:focus-visible,
+.citationV30Drawer button:focus-visible,
+.citationV30Drawer select:focus-visible,
+.citationV30Drawer textarea:focus-visible {
+  outline: 2px solid #8bdbff;
+  outline-offset: 3px;
+}
+
+.citationV30Backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(0, 7, 14, .76);
+  backdrop-filter: blur(11px);
+}
+
+.citationV30Drawer {
+  width: min(920px, 100%);
+  height: 100dvh;
+  overflow: hidden;
+  border-left: 1px solid rgba(115, 143, 236, .22);
+  background:
+    radial-gradient(circle at 92% 2%, rgba(110, 99, 255, .11), transparent 27%),
+    radial-gradient(circle at 8% 12%, rgba(49, 190, 224, .07), transparent 25%),
+    linear-gradient(180deg, #071725 0%, #03101b 56%, #020a12 100%);
+  box-shadow: -36px 0 96px rgba(0, 3, 10, .46);
+  animation: citationV30Enter .22s ease-out;
+}
+
+@keyframes citationV30Enter {
+  from { transform: translateX(28px); opacity: .25; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.citationV30Header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 22px;
+  align-items: start;
+  padding: 28px 30px 22px;
+  border-bottom: 1px solid rgba(99, 148, 202, .15);
+  background: rgba(5, 19, 33, .78);
+}
+
+.citationV30Header > div > span,
+.citationV30PanelHead span,
+.citationV30Empty > span,
+.citationV30Inputs label > span,
+.citationV30Toolbar label > span {
+  color: #75dfe8;
+  font-size: 8.5px;
+  font-weight: 850;
+  letter-spacing: .16em;
+}
+
+.citationV30Header h2 {
+  max-width: 720px;
+  margin: 7px 0 9px;
+  color: #f4f9ff;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.citationV30Header p {
+  max-width: 720px;
+  margin: 0;
+  color: #8ea5b7;
+  font-size: 11.5px;
+  line-height: 1.58;
+}
+
+.citationV30Close {
+  width: 42px !important;
+  height: 42px;
+  min-width: 42px !important;
+  border: 1px solid rgba(97, 163, 211, .22);
+  border-radius: 12px;
+  color: #e7f6ff;
+  background: rgba(7, 31, 51, .82);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.citationV30Body {
+  position: relative;
+  height: calc(100dvh - 154px);
+  overflow-y: auto;
+  padding: 22px 26px 38px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(84, 164, 205, .32) transparent;
+}
+
+.citationV30Setup,
+.citationV30Empty,
+.citationV30Panel,
+.citationV30Score {
+  border: 1px solid rgba(80, 148, 190, .16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(7, 29, 47, .88), rgba(3, 16, 27, .95));
+  box-shadow: 0 22px 65px rgba(0, 4, 12, .17), inset 0 1px rgba(255,255,255,.021);
+}
+
+.citationV30Setup,
+.citationV30Panel,
+.citationV30Empty {
+  padding: 18px;
+}
+
+.citationV30Toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.citationV30Toolbar label {
+  display: grid;
+  gap: 6px;
+}
+
+.citationV30Toolbar select,
+.citationV30Toolbar button,
+.citationV30PanelHead button {
+  min-height: 40px;
+  border: 1px solid rgba(86, 171, 214, .20);
+  border-radius: 10px;
+  padding: 0 12px;
+  color: #e7f7ff;
+  background: rgba(6, 34, 55, .78);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.citationV30Toolbar select {
+  width: 100%;
+}
+
+.citationV30Toolbar button:hover,
+.citationV30PanelHead button:hover {
+  border-color: rgba(103, 215, 230, .42);
+  background: rgba(10, 55, 78, .86);
+}
+
+.citationV30Primary {
+  border-color: rgba(90, 184, 238, .34) !important;
+  background: linear-gradient(135deg, rgba(31, 135, 190, .88), rgba(61, 89, 212, .88)) !important;
+}
+
+.citationV30Toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: .44;
+}
+
+.citationV30Inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 13px;
+}
+
+.citationV30Inputs label {
+  display: grid;
+  gap: 7px;
+}
+
+.citationV30Inputs textarea,
+.citationV30Normalized textarea {
+  width: 100%;
+  min-height: 235px;
+  resize: vertical;
+  border: 1px solid rgba(87, 158, 197, .17);
+  border-radius: 13px;
+  padding: 14px 15px;
+  color: #e9f7ff;
+  background: rgba(2, 13, 23, .78);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.62;
+}
+
+.citationV30Inputs textarea::placeholder {
+  color: #536f82;
+}
+
+.citationV30Inputs label > small {
+  color: #69889c;
+  font-size: 8.5px;
+}
+
+.citationV30Empty {
+  min-height: 210px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  margin-top: 14px;
+}
+
+.citationV30Empty strong {
+  margin: 8px 0 7px;
+  color: #edf8ff;
+  font-size: 19px;
+}
+
+.citationV30Empty p {
+  max-width: 610px;
+  margin: 0 auto;
+  color: #7896aa;
+  font-size: 10.5px;
+  line-height: 1.6;
+}
+
+.citationV30Score {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 14px;
+  overflow: hidden;
+  background: rgba(83, 154, 194, .11);
+}
+
+.citationV30Score article {
+  min-height: 128px;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(7, 28, 45, .98), rgba(3, 15, 26, .98));
+}
+
+.citationV30Score article > span {
+  color: #7092a8;
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: .12em;
+}
+
+.citationV30Score strong {
+  color: #f1f8ff;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.citationV30Score strong small {
+  color: #718fa2;
+  font-size: 10px;
+}
+
+.citationV30Score p {
+  margin: 0;
+  color: #7e9aae;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.citationV30Panel {
+  margin-top: 14px;
+}
+
+.citationV30PanelHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.citationV30PanelHead > div {
+  display: grid;
+  gap: 4px;
+}
+
+.citationV30PanelHead strong {
+  color: #e9f5fc;
+  font-size: 14px;
+}
+
+.citationV30PanelHead > small {
+  color: #6e8ea2;
+  font-size: 8.5px;
+}
+
+.citationV30IssueGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.citationV30IssueGrid article {
+  min-height: 146px;
+  padding: 13px;
+  border: 1px solid rgba(85, 154, 190, .13);
+  border-radius: 13px;
+  background: rgba(2, 14, 24, .57);
+}
+
+.citationV30IssueGrid article[data-state="warn"] { border-color: rgba(235, 168, 86, .25); }
+.citationV30IssueGrid article[data-state="review"] { border-color: rgba(117, 139, 246, .24); }
+.citationV30IssueGrid article[data-state="pass"] { border-color: rgba(74, 199, 175, .19); }
+
+.citationV30IssueGrid article > span {
+  color: #6e91a7;
+  font-size: 7.5px;
+  font-weight: 820;
+  letter-spacing: .11em;
+}
+
+.citationV30IssueGrid article > strong {
+  display: block;
+  margin: 5px 0 8px;
+  color: #f0f8ff;
+  font-size: 24px;
+}
+
+.citationV30IssueGrid article p {
+  margin: 4px 0;
+  color: #8ca5b5;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.citationV30ReferenceList {
+  display: grid;
+  gap: 9px;
+}
+
+.citationV30ReferenceList article {
+  padding: 13px 14px;
+  border: 1px solid rgba(83, 153, 190, .13);
+  border-radius: 13px;
+  background: rgba(2, 14, 24, .58);
+}
+
+.citationV30ReferenceTop {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 9px;
+  align-items: center;
+}
+
+.citationV30ReferenceTop span {
+  color: #6ddfe9;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.citationV30ReferenceTop strong {
+  min-width: 0;
+  color: #dcecf5;
+  font-size: 10.5px;
+}
+
+.citationV30ReferenceTop b {
+  color: #92a9b9;
+  font-size: 7.5px;
+  letter-spacing: .10em;
+}
+
+.citationV30ReferenceList article > p {
+  margin: 9px 0 5px;
+  color: #b7cad5;
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
+.citationV30ReferenceList article > small {
+  color: #6f98ad;
+  font-size: 8.5px;
+  overflow-wrap: anywhere;
+}
+
+.citationV30ReferenceList ul {
+  margin: 9px 0 0 17px;
+  padding: 0;
+  color: #b9a489;
+  font-size: 8.5px;
+  line-height: 1.55;
+}
+
+.citationV30Normalized textarea {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.citationV30Normalized > p {
+  margin: 9px 2px 0;
+  color: #6f8fa3;
+  font-size: 8.5px;
+  line-height: 1.5;
+}
+
+.citationV30Toast {
+  position: sticky;
+  bottom: 10px;
+  width: fit-content;
+  margin: 12px 0 0 auto;
+  padding: 9px 12px;
+  border: 1px solid rgba(85, 205, 204, .26);
+  border-radius: 10px;
+  color: #dffcff;
+  background: rgba(7, 55, 66, .94);
+  box-shadow: 0 14px 38px rgba(0, 4, 12, .28);
+  font-size: 9px;
+}
+
+@media (max-width: 1180px) {
+  .studioV30ReferenceLauncher {
+    top: auto;
+    right: 18px;
+    bottom: 154px;
+  }
+}
+
+@media (max-width: 760px) {
+  .studioV30ReferenceLauncher {
+    top: auto;
+    right: 12px;
+    bottom: 142px;
+    min-width: 0;
+    width: max-content !important;
+    max-width: calc(100vw - 24px);
+    grid-template-columns: 30px auto;
+    min-height: 48px;
+    border-radius: 14px;
+    padding: 7px 10px;
+  }
+
+  .studioV30ReferenceLauncher > span {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+    font-size: 15px;
+  }
+
+  .studioV30ReferenceLauncher small {
+    display: none;
+  }
+
+  .citationV30Header {
+    padding: 22px 18px 17px;
+  }
+
+  .citationV30Header h2 {
+    font-size: 29px;
+  }
+
+  .citationV30Body {
+    height: calc(100dvh - 146px);
+    padding: 14px 14px 30px;
+  }
+
+  .citationV30Setup,
+  .citationV30Panel,
+  .citationV30Empty {
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  .citationV30Toolbar,
+  .citationV30Inputs,
+  .citationV30Score,
+  .citationV30IssueGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .citationV30Toolbar button,
+  .citationV30PanelHead button {
+    width: 100%;
+  }
+
+  .citationV30Inputs textarea {
+    min-height: 190px;
+  }
+
+  .citationV30Score {
+    border-radius: 15px;
+  }
+
+  .citationV30Score article {
+    min-height: 94px;
+  }
+
+  .citationV30PanelHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .citationV30Drawer { animation: none; }
+  .studioV30ReferenceLauncher:hover { transform: none; }
+}

@@ -1,0 +1,227 @@
+.workbench {
+  margin-top: 16px;
+  padding: clamp(18px, 2.2vw, 28px);
+  border: 1px solid rgba(82, 176, 213, .17);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(31, 208, 226, .08), transparent 28%),
+    linear-gradient(160deg, rgba(7, 29, 47, .96), rgba(3, 16, 28, .98));
+  box-shadow: inset 0 1px rgba(255,255,255,.03), 0 24px 70px rgba(0, 5, 15, .16);
+  color: #eaf7fc;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.head > div:first-child { max-width: 900px; }
+.head p,
+.bibliographyPanel > div > span,
+.resultHead span,
+.sentenceCell > span,
+.sourceCell > span,
+.citationCell > span,
+.recommendationCell > span,
+.controlMeta span,
+.actions span,
+.metrics span {
+  display: block;
+  margin: 0 0 6px;
+  color: #64deea;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .14em;
+}
+
+.head h2 {
+  margin: 0;
+  color: #f4fbff;
+  font-size: clamp(25px, 3vw, 36px);
+  letter-spacing: -.04em;
+}
+
+.head > div:first-child > span {
+  display: block;
+  max-width: 790px;
+  margin-top: 9px;
+  color: #91adbd;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.boundaryBadge {
+  min-width: 210px;
+  padding: 13px 14px;
+  border: 1px solid rgba(66, 205, 188, .20);
+  border-radius: 12px;
+  background: rgba(18, 102, 91, .09);
+}
+.boundaryBadge small,.boundaryBadge strong,.boundaryBadge span { display:block; }
+.boundaryBadge small { color:#6bdcca; font-size:8px; font-weight:850; letter-spacing:.12em; }
+.boundaryBadge strong { margin-top:5px; color:#e2fff8; font-size:12px; }
+.boundaryBadge span { margin-top:4px; color:#7fa9a2; font-size:8px; line-height:1.4; }
+
+.controls {
+  display: grid;
+  grid-template-columns: auto minmax(180px, .55fr) minmax(280px, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.targetSwitch,
+.controlMeta,
+.verifyToggle {
+  min-height: 62px;
+  border: 1px solid rgba(78, 154, 196, .12);
+  border-radius: 12px;
+  background: rgba(2, 15, 26, .55);
+}
+.targetSwitch { display:flex; gap:6px; padding:7px; }
+.targetSwitch button {
+  min-width: 120px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #809dad;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 760;
+  cursor: pointer;
+}
+.targetSwitch button.active {
+  border-color: rgba(61, 214, 228, .28);
+  color: #edfdff;
+  background: rgba(16, 109, 138, .28);
+}
+.controlMeta { display:grid; align-content:center; padding:10px 13px; }
+.controlMeta strong { color:#ddecf4; font-size:11px; overflow-wrap:anywhere; }
+.verifyToggle { display:flex; align-items:center; gap:10px; padding:10px 13px; cursor:pointer; }
+.verifyToggle input { accent-color:#32d8e6; }
+.verifyToggle span,.verifyToggle b,.verifyToggle small { display:block; }
+.verifyToggle b { color:#d7edf4; font-size:10px; }
+.verifyToggle small { margin-top:3px; color:#708c9d; font-size:8px; line-height:1.4; }
+
+.bibliographyPanel {
+  display: grid;
+  grid-template-columns: minmax(220px, .55fr) minmax(0, 1.45fr);
+  gap: 14px;
+  margin-top: 12px;
+  padding: 15px;
+  border: 1px solid rgba(79, 158, 199, .13);
+  border-radius: 14px;
+  background: rgba(3, 17, 29, .58);
+}
+.bibliographyPanel strong { display:block; color:#e4f3f8; font-size:12px; }
+.bibliographyPanel small { display:block; margin-top:5px; color:#7692a3; font-size:9px; line-height:1.5; }
+.bibliographyPanel textarea {
+  width:100%; min-height:130px; box-sizing:border-box; resize:vertical;
+  padding:12px 13px; border:1px solid rgba(88, 159, 198, .16); border-radius:10px;
+  color:#dcebf3; background:rgba(1,11,20,.68); font:inherit; font-size:10px; line-height:1.6;
+}
+.bibliographyActions { grid-column:2; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.bibliographyActions span { color:#668497; font-size:8px; }
+.bibliographyActions button,.resultHead button,.actions button {
+  min-height:40px; padding:0 14px; border:1px solid rgba(59, 213, 228, .28); border-radius:9px;
+  color:#f0fdff; background:linear-gradient(135deg, rgba(14,142,187,.9), rgba(27,101,219,.9));
+  font:inherit; font-size:10px; font-weight:780; cursor:pointer;
+}
+.bibliographyActions button:disabled,.resultHead button:disabled { opacity:.48; cursor:not-allowed; }
+
+.error,.empty {
+  display:grid; gap:4px; margin-top:12px; padding:14px 15px; border-radius:11px;
+}
+.error { border:1px solid rgba(255,112,137,.25); background:rgba(153,36,60,.09); }
+.error b { color:#ffd4dc; font-size:10px; }
+.error span { color:#c9a1aa; font-size:9px; }
+.empty { border:1px dashed rgba(79,161,200,.18); background:rgba(2,14,24,.36); }
+.empty strong { color:#dcecf3; font-size:11px; }
+.empty span { color:#7591a2; font-size:9px; line-height:1.55; }
+
+.metrics {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-top:14px;
+}
+.metrics article { min-height:102px; display:flex; flex-direction:column; justify-content:flex-end; gap:5px; padding:13px; border:1px solid rgba(77,150,190,.11); border-radius:11px; background:rgba(3,16,27,.55); }
+.metrics article[data-tone="warn"] { border-color:rgba(238,171,70,.22); background:rgba(126,75,12,.07); }
+.metrics strong { color:#effaff; font-size:22px; line-height:1; }
+.metrics small { color:#6d899a; font-size:8px; line-height:1.4; }
+
+.workflowBar {
+  display:grid; grid-template-columns:repeat(9,auto); align-items:center; justify-content:center; gap:9px;
+  margin-top:12px; padding:12px; border:1px solid rgba(76,157,198,.11); border-radius:11px; background:rgba(2,14,24,.43);
+}
+.workflowBar div { display:flex; align-items:center; gap:6px; }
+.workflowBar span { width:22px;height:22px;display:grid;place-items:center;border-radius:7px;background:rgba(30,157,185,.12);color:#64ddea;font-size:8px;font-weight:850; }
+.workflowBar b { color:#a9c0cc; font-size:9px; white-space:nowrap; }
+.workflowBar i { color:#476f83; font-style:normal; }
+
+.resultHead { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:16px; padding:0 2px 8px; }
+.resultHead strong { display:block; color:#dcebf3; font-size:12px; }
+.resultHead button { min-height:36px; background:rgba(5,34,54,.76); border-color:rgba(77,161,201,.18); }
+
+.rows { display:grid; gap:9px; }
+.row {
+  display:grid; grid-template-columns:40px minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr) minmax(0,1fr); gap:8px;
+  padding:9px; border:1px solid rgba(77,151,191,.13); border-radius:14px; background:rgba(2,14,24,.56);
+}
+.row[data-priority="high_attention"] { border-color:rgba(239,169,67,.26); background:linear-gradient(90deg,rgba(118,69,10,.075),rgba(2,14,24,.58)); }
+.rowIndex { width:34px;height:34px;display:grid;place-items:center;border:1px solid rgba(74,179,210,.17);border-radius:9px;color:#64dce8;background:rgba(12,61,82,.22);font-size:9px;font-weight:850; }
+.sentenceCell,.sourceCell,.citationCell,.recommendationCell { min-width:0; padding:12px; border:1px solid rgba(83,149,184,.09); border-radius:10px; background:rgba(6,25,39,.48); }
+.sourceCell { background:rgba(6,31,42,.52); }
+.citationCell { background:rgba(5,27,43,.56); }
+.recommendationCell { background:linear-gradient(150deg,rgba(8,48,60,.55),rgba(4,25,38,.56)); }
+.sentenceCell p,.sourceCell p,.recommendationCell p { margin:0; color:#cadde6; font-size:10px; line-height:1.58; overflow-wrap:anywhere; }
+.sourceCell small,.citationCell small,.recommendationCell small { display:block; margin-top:7px; color:#718c9d; font-size:8px; line-height:1.45; overflow-wrap:anywhere; }
+.citationCell > strong { display:block; color:#e1f2f7; font-size:10px; overflow-wrap:anywhere; }
+.tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+.tags em { padding:4px 6px; border-radius:999px; color:#86bac5; background:rgba(35,130,150,.10); font-size:7px; font-style:normal; }
+.referenceCard { display:grid; gap:3px; margin-top:8px; padding:8px; border:1px solid rgba(76,151,191,.11); border-radius:8px; background:rgba(1,12,21,.52); }
+.referenceCard b { color:#cfe3eb; font-size:8px; line-height:1.35; overflow-wrap:anywhere; }
+.referenceCard > span { color:#7295a7; font-size:7px; overflow-wrap:anywhere; }
+.referenceCard em { width:max-content; max-width:100%; padding:3px 6px; border-radius:999px; color:#8bdcc8; background:rgba(35,130,108,.10); font-size:7px; font-style:normal; }
+.referenceCard em[data-state="review"] { color:#f3c37d; background:rgba(151,92,18,.10); }
+
+.actions { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-top:14px; padding:15px; border:1px solid rgba(60,201,216,.16); border-radius:12px; background:linear-gradient(90deg,rgba(8,49,65,.44),rgba(3,20,34,.68)); }
+.actions strong { display:block; color:#e1f1f6; font-size:11px; }
+.actions small { display:block; margin-top:4px; color:#7591a2; font-size:8px; line-height:1.45; }
+.actions button { flex:0 0 auto; min-width:210px; }
+.caution { margin:12px 2px 0; color:#6f8999; font-size:8px; line-height:1.5; }
+
+@media (max-width:1200px) {
+  .row { grid-template-columns:38px repeat(2,minmax(0,1fr)); }
+  .citationCell,.recommendationCell { grid-column:auto; }
+  .rowIndex { grid-row:1 / 3; }
+}
+
+@media (max-width:900px) {
+  .head,.actions { flex-direction:column; }
+  .boundaryBadge { width:100%; box-sizing:border-box; }
+  .controls { grid-template-columns:1fr; }
+  .bibliographyPanel { grid-template-columns:1fr; }
+  .bibliographyActions { grid-column:auto; }
+  .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .workflowBar { grid-template-columns:repeat(5,minmax(0,1fr)); justify-content:stretch; }
+  .workflowBar i { display:none; }
+  .workflowBar div { justify-content:center; }
+  .actions button { width:100%; min-width:0; }
+}
+
+@media (max-width:680px) {
+  .workbench { padding:14px; border-radius:16px; }
+  .targetSwitch { display:grid; grid-template-columns:1fr 1fr; }
+  .targetSwitch button { min-width:0; min-height:42px; }
+  .metrics { grid-template-columns:1fr 1fr; }
+  .workflowBar { display:none; }
+  .resultHead { align-items:flex-start; flex-direction:column; }
+  .resultHead button { width:100%; }
+  .row { grid-template-columns:1fr; }
+  .rowIndex { grid-row:auto; }
+  .bibliographyActions { align-items:flex-start; flex-direction:column; }
+  .bibliographyActions button { width:100%; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .targetSwitch button { transition:none; }
+}

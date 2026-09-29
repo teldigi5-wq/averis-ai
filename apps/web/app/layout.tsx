@@ -11,19 +11,32 @@ import "./report-evidence-ui-v1.css";
 import "./enterprise-ui-v10.css";
 import "./browser-quality-v12.css";
 import "./print-report.css";
+import "./enterprise-rebuild-v14.css";
+import "./enterprise-a11y-v14.css";
+import "./auth-modal-v16.css";
+import "./intro-isolation-v16.css";
+import "./authenticated-workspace-v16.css";
+import "./workspace-polish-v16.css";
+import "./workspace-depth-v17.css";
+import "./review-center-v18.css";
+import "./review-center-v18-fixes.css";
+import "./revision-studio-v19-fixes.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
+import IntroLayerIsolation from "./IntroLayerIsolation";
+import OnboardingExperienceV37 from "./OnboardingExperienceV37";
+import ReviewCenterV18 from "./ReviewCenterV18";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const githubPages = process.env.GITHUB_PAGES === "true";
 const repositoryName = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "averis-ai";
 const basePath = githubPages ? `/${repositoryName}` : "";
-const brandIcon = `${basePath}/brand/averis-selected-symbol.webp`;
+const brandIcon = `${basePath}/brand/averis-enterprise-symbol.svg`;
 
 export const metadata: Metadata = {
   title: "Averis — Academic Integrity Intelligence",
-  description: "Evidence-first similarity, scholarly source, citation and revision review for students.",
+  description: "Evidence-first similarity, scholarly source, citation and guided revision review for students.",
   applicationName: "Averis",
   icons: {
     icon: brandIcon,
@@ -34,12 +47,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-base-path={basePath || undefined}>
+    <html
+      lang="en"
+      data-base-path={basePath || undefined}
+      data-averis-auth-bootstrap="pending"
+      suppressHydrationWarning
+    >
       <body>
         <CinematicIntroGate />
+        <IntroLayerIsolation />
+        <ReviewCenterV18 />
         {children}
         <AuthExperience />
         <WorkspaceSwitcher />
+        <OnboardingExperienceV37 />
       </body>
     </html>
   );

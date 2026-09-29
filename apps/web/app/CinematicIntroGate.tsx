@@ -8,11 +8,61 @@ import styles from "./cinematic-intro-v13.module.css";
 
 const QA_FORCE = process.env.NEXT_PUBLIC_CINEMATIC_QA === "true";
 
+const workflow = [
+  {
+    index: "01",
+    title: "Similarity evidence",
+    copy: "Inspect exact and fuzzy overlap at passage level instead of treating one percentage as a verdict.",
+    icon: "compare",
+  },
+  {
+    index: "02",
+    title: "Source trace",
+    copy: "Keep matched wording connected to source context, DOI metadata and evidence provenance.",
+    icon: "source",
+  },
+  {
+    index: "03",
+    title: "Citation checks",
+    copy: "Review citation proximity, bibliography linkage and reference metadata before submission.",
+    icon: "citation",
+  },
+  {
+    index: "04",
+    title: "Writing refinement",
+    copy: "Improve clarity, structure and academic tone while keeping meaning, citations and source context intact.",
+    icon: "revision",
+  },
+  {
+    index: "05",
+    title: "Privacy controls",
+    copy: "Use an evidence workflow designed around bounded retention and explicit human review.",
+    icon: "privacy",
+  },
+] as const;
+
+function FeatureIcon({ name }: { name: (typeof workflow)[number]["icon"] }) {
+  if (name === "compare") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h11M4 9h8M4 13h6M15 13l5 5m0-5-5 5" /></svg>;
+  }
+  if (name === "source") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4-8 4-8-4 8-4Zm-8 8 8 4 8-4M4 15l8 4 8-4" /></svg>;
+  }
+  if (name === "citation") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8H4v4h3v5H3v-6c0-3 1-5 4-6v3Zm11 0h-3v4h3v5h-4v-6c0-3 1-5 4-6v3Z" /></svg>;
+  }
+  if (name === "revision") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L20 8l-4-4L4 16Z" /><path d="m13 7 4 4" /></svg>;
+  }
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v5c0 4.6 2.9 7.4 7 9 4.1-1.6 7-4.4 7-9V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg>;
+}
+
 export default function CinematicIntroGate() {
   const pathname = usePathname();
   const rootRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [visible, setVisible] = useState(QA_FORCE);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (QA_FORCE) {
@@ -59,9 +109,9 @@ export default function CinematicIntroGate() {
         gsap.registerPlugin(ScrollTrigger);
         const lenis = new Lenis({
           smoothWheel: true,
-          duration: 1.05,
+          duration: 1.02,
           anchors: true,
-          wheelMultiplier: 0.92,
+          wheelMultiplier: 0.9,
         });
         const ticker = (time: number) => lenis.raf(time * 1000);
         lenis.on("scroll", ScrollTrigger.update);
@@ -69,45 +119,47 @@ export default function CinematicIntroGate() {
         gsap.ticker.lagSmoothing(0);
 
         const context = gsap.context(() => {
-          gsap.from("[data-intro-line]", {
-            yPercent: 112,
+          gsap.from("[data-hero-line]", {
+            yPercent: 118,
             opacity: 0,
-            duration: 1.05,
-            stagger: 0.11,
+            duration: 0.95,
+            stagger: 0.095,
             ease: "power4.out",
           });
-          gsap.from("[data-intro-support]", {
-            y: 22,
+          gsap.from("[data-hero-support]", {
+            y: 20,
             opacity: 0,
-            duration: 0.8,
-            stagger: 0.08,
-            delay: 0.44,
+            duration: 0.72,
+            stagger: 0.07,
+            delay: 0.35,
+            ease: "power3.out",
+          });
+          gsap.from("[data-product-frame]", {
+            y: 30,
+            rotateX: 4,
+            opacity: 0,
+            duration: 1.1,
+            delay: 0.24,
             ease: "power3.out",
           });
 
           root.querySelectorAll<HTMLElement>("[data-reveal]").forEach((element) => {
             gsap.from(element, {
-              y: 34,
+              y: 28,
               opacity: 0,
-              duration: 0.8,
+              duration: 0.76,
               ease: "power3.out",
               scrollTrigger: {
                 trigger: element,
-                start: "top 88%",
+                start: "top 90%",
                 once: true,
               },
             });
           });
 
-          gsap.to("[data-orbit-one]", {
-            rotate: 360,
-            duration: 20,
-            repeat: -1,
-            ease: "none",
-          });
-          gsap.to("[data-orbit-two]", {
-            rotate: -360,
-            duration: 27,
+          gsap.to("[data-scan-line]", {
+            xPercent: 210,
+            duration: 4.4,
             repeat: -1,
             ease: "none",
           });
@@ -129,7 +181,7 @@ export default function CinematicIntroGate() {
           const host = canvas.parentElement;
           if (!host) return;
 
-          let renderer;
+          let renderer: InstanceType<typeof THREE.WebGLRenderer>;
           try {
             renderer = new THREE.WebGLRenderer({
               canvas,
@@ -142,79 +194,58 @@ export default function CinematicIntroGate() {
           }
 
           const scene = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-          camera.position.set(0, 0, 7.1);
+          const camera = new THREE.PerspectiveCamera(44, 1, 0.1, 100);
+          camera.position.set(0, 0.35, 6.4);
 
-          const group = new THREE.Group();
-          scene.add(group);
+          const field = new THREE.Group();
+          field.rotation.x = -0.56;
+          field.rotation.z = -0.12;
+          field.position.set(0.4, -0.6, -1.2);
+          scene.add(field);
 
-          const geometry = new THREE.IcosahedronGeometry(1.65, 2);
-          const material = new THREE.MeshStandardMaterial({
-            color: 0x58d8cc,
-            metalness: 0.28,
-            roughness: 0.42,
+          const planeGeometry = new THREE.PlaneGeometry(9.2, 6.4, 24, 16);
+          const position = planeGeometry.attributes.position;
+          for (let index = 0; index < position.count; index += 1) {
+            const x = position.getX(index);
+            const y = position.getY(index);
+            position.setZ(index, Math.sin(x * 0.75) * 0.17 + Math.cos(y * 1.15) * 0.1);
+          }
+          const planeMaterial = new THREE.MeshBasicMaterial({
+            color: 0x188dff,
             wireframe: true,
             transparent: true,
-            opacity: 0.72,
+            opacity: 0.105,
           });
-          const evidenceCore = new THREE.Mesh(geometry, material);
-          group.add(evidenceCore);
+          const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+          field.add(plane);
 
-          const innerGeometry = new THREE.IcosahedronGeometry(1.06, 1);
-          const innerMaterial = new THREE.MeshBasicMaterial({
-            color: 0x7baef4,
+          const pointCount = 100;
+          const pointData = new Float32Array(pointCount * 3);
+          for (let index = 0; index < pointCount; index += 1) {
+            const i = index * 3;
+            const angle = index * 2.399963;
+            const radius = 0.8 + (index % 17) * 0.15;
+            pointData[i] = Math.cos(angle) * radius;
+            pointData[i + 1] = Math.sin(angle) * radius * 0.62;
+            pointData[i + 2] = ((index % 9) - 4) * 0.08;
+          }
+          const pointGeometry = new THREE.BufferGeometry();
+          pointGeometry.setAttribute("position", new THREE.BufferAttribute(pointData, 3));
+          const pointMaterial = new THREE.PointsMaterial({
+            color: 0x68efff,
+            size: 0.035,
             transparent: true,
-            opacity: 0.11,
+            opacity: 0.58,
+            sizeAttenuation: true,
           });
-          const inner = new THREE.Mesh(innerGeometry, innerMaterial);
-          group.add(inner);
-
-          const orbitGeometry = new THREE.TorusGeometry(2.18, 0.012, 8, 128);
-          const orbitMaterial = new THREE.MeshBasicMaterial({
-            color: 0x86f0e5,
-            transparent: true,
-            opacity: 0.36,
-          });
-          const orbitA = new THREE.Mesh(orbitGeometry, orbitMaterial);
-          orbitA.rotation.x = 1.12;
-          orbitA.rotation.y = 0.28;
-          group.add(orbitA);
-
-          const orbitB = new THREE.Mesh(orbitGeometry, orbitMaterial.clone());
-          orbitB.rotation.x = 0.38;
-          orbitB.rotation.y = 1.08;
-          orbitB.scale.setScalar(0.83);
-          group.add(orbitB);
-
-          const nodeGeometry = new THREE.SphereGeometry(0.055, 14, 14);
-          const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0xc4fff8 });
-          const nodes: InstanceType<typeof THREE.Mesh>[] = [];
-          [
-            [2.04, 0.45, 0.22],
-            [-1.64, 1.18, -0.28],
-            [0.42, -1.96, 0.36],
-            [-0.48, 1.98, 0.54],
-            [1.55, -1.17, -0.32],
-          ].forEach(([x, y, z]) => {
-            const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
-            node.position.set(x, y, z);
-            group.add(node);
-            nodes.push(node);
-          });
-
-          scene.add(new THREE.AmbientLight(0xbce7ff, 1.45));
-          const key = new THREE.DirectionalLight(0x9dfff4, 2.6);
-          key.position.set(3.5, 4, 5);
-          scene.add(key);
-          const rim = new THREE.PointLight(0x6d8cff, 20, 12);
-          rim.position.set(-3, -1.5, 4);
-          scene.add(rim);
+          const points = new THREE.Points(pointGeometry, pointMaterial);
+          scene.add(points);
 
           const pointer = { x: 0, y: 0 };
           const onPointerMove = (event: PointerEvent) => {
             const rect = host.getBoundingClientRect();
-            pointer.x = ((event.clientX - rect.left) / Math.max(1, rect.width) - 0.5) * 0.42;
-            pointer.y = ((event.clientY - rect.top) / Math.max(1, rect.height) - 0.5) * 0.28;
+            pointer.x = ((event.clientX - rect.left) / Math.max(1, rect.width) - 0.5) * 0.12;
+            pointer.y = ((event.clientY - rect.top) / Math.max(1, rect.height) - 0.5) * 0.08;
           };
           host.addEventListener("pointermove", onPointerMove, { passive: true });
 
@@ -222,7 +253,7 @@ export default function CinematicIntroGate() {
             const rect = host.getBoundingClientRect();
             const width = Math.max(1, rect.width);
             const height = Math.max(1, rect.height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.45));
             renderer.setSize(width, height, false);
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
@@ -236,16 +267,10 @@ export default function CinematicIntroGate() {
           const render = () => {
             frame = requestAnimationFrame(render);
             const elapsed = clock.getElapsedTime();
-            group.rotation.y += (pointer.x - group.rotation.y) * 0.035;
-            group.rotation.x += (-pointer.y - group.rotation.x) * 0.035;
-            evidenceCore.rotation.y = elapsed * 0.14;
-            evidenceCore.rotation.z = elapsed * 0.07;
-            inner.rotation.x = -elapsed * 0.12;
-            orbitA.rotation.z = elapsed * 0.09;
-            orbitB.rotation.z = -elapsed * 0.075;
-            nodes.forEach((node, index) => {
-              node.scale.setScalar(0.84 + Math.sin(elapsed * 1.8 + index) * 0.14);
-            });
+            field.rotation.z = -0.12 + Math.sin(elapsed * 0.12) * 0.015 + pointer.x;
+            field.rotation.x = -0.56 + pointer.y;
+            points.rotation.z = elapsed * 0.015;
+            points.rotation.y = elapsed * 0.025;
             renderer.render(scene, camera);
           };
           render();
@@ -254,15 +279,10 @@ export default function CinematicIntroGate() {
             cancelAnimationFrame(frame);
             observer.disconnect();
             host.removeEventListener("pointermove", onPointerMove);
-            geometry.dispose();
-            material.dispose();
-            innerGeometry.dispose();
-            innerMaterial.dispose();
-            orbitGeometry.dispose();
-            orbitMaterial.dispose();
-            (orbitB.material as typeof orbitMaterial).dispose();
-            nodeGeometry.dispose();
-            nodeMaterial.dispose();
+            planeGeometry.dispose();
+            planeMaterial.dispose();
+            pointGeometry.dispose();
+            pointMaterial.dispose();
             renderer.dispose();
           };
         })();
@@ -276,9 +296,19 @@ export default function CinematicIntroGate() {
     };
   }, [pathname, visible]);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [menuOpen]);
+
   if (!visible || pathname !== "/") return null;
 
   const openAccess = () => {
+    setMenuOpen(false);
     const target = document.querySelector<HTMLElement>(".accountGrid");
     target?.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
@@ -286,88 +316,231 @@ export default function CinematicIntroGate() {
     });
   };
 
+  const scrollTo = (selector: string) => {
+    setMenuOpen(false);
+    document.querySelector<HTMLElement>(selector)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <section ref={rootRef} className={styles.intro} aria-label="Averis product introduction">
       <div className={styles.ambient} aria-hidden="true" />
       <div className={styles.frame}>
-        <div className={styles.introNav} data-intro-support>
-          <a className={styles.lockup} href="#averis-intro" aria-label="Averis home">
-            <span className={styles.lockupMark} aria-hidden="true" />
-            <span><strong>Averis</strong><small>Evidence before submission</small></span>
-          </a>
-          <button type="button" className={styles.navAccess} onClick={openAccess}>Sign in</button>
-        </div>
+        <header className={styles.introNav} data-hero-support>
+          <button type="button" className={styles.brandHome} onClick={() => scrollTo("#averis-intro")} aria-label="Averis home">
+            <span className={styles.brandLockup} aria-hidden="true" />
+          </button>
+
+          <nav className={styles.desktopNav} aria-label="Product navigation">
+            <button type="button" onClick={() => scrollTo("#platform")}>Product</button>
+            <button type="button" onClick={() => scrollTo("#workflow")}>Evidence</button>
+            <button type="button" onClick={() => scrollTo("#revision-safety")}>Revision</button>
+            <button type="button" onClick={() => scrollTo("#trust-boundary")}>Privacy</button>
+          </nav>
+
+          <div className={styles.navActions}>
+            <button type="button" className={styles.signIn} onClick={openAccess}>Sign in</button>
+            <button type="button" className={styles.startButton} onClick={openAccess}>Start free <span>→</span></button>
+            <button
+              type="button"
+              className={styles.menuButton}
+              aria-label="Open navigation"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((value) => !value)}
+            >
+              <span /><span /><span />
+            </button>
+          </div>
+
+          {menuOpen ? (
+            <div className={styles.mobileMenu}>
+              <button type="button" onClick={() => scrollTo("#platform")}>Product</button>
+              <button type="button" onClick={() => scrollTo("#workflow")}>Evidence workflow</button>
+              <button type="button" onClick={() => scrollTo("#revision-safety")}>Writing refinement</button>
+              <button type="button" onClick={() => scrollTo("#trust-boundary")}>Privacy & trust</button>
+              <button type="button" className={styles.mobilePrimary} onClick={openAccess}>Open Averis</button>
+            </div>
+          ) : null}
+        </header>
 
         <div id="averis-intro" className={styles.heroStage}>
           <div className={styles.heroCopy}>
-            <p className={styles.kicker} data-intro-support>ACADEMIC INTEGRITY · SOURCE INTELLIGENCE · REVISION EVIDENCE</p>
-            <h1 aria-label="Know what needs attention before you submit">
-              <span className={styles.lineMask}><span data-intro-line>Know what needs</span></span>
-              <span className={styles.lineMask}><span data-intro-line>attention <em>before</em></span></span>
-              <span className={styles.lineMask}><span data-intro-line>you submit.</span></span>
+            <div className={styles.kicker} data-hero-support>
+              <span className={styles.kickerIcon}>A</span>
+              BUILT FOR EVIDENCE-FIRST ACADEMIC REVIEW
+            </div>
+            <h1 aria-label="Academic review with evidence. Writing integrity with confidence.">
+              <span className={styles.lineMask}><span data-hero-line>Academic review</span></span>
+              <span className={styles.lineMask}><span data-hero-line>with <em>evidence.</em></span></span>
+              <span className={styles.lineMask}><span data-hero-line>Writing integrity</span></span>
+              <span className={styles.lineMask}><span data-hero-line>with <em>confidence.</em></span></span>
             </h1>
-            <p className={styles.lede} data-intro-support>
-              Averis turns similarity, source, citation and writing signals into reviewable evidence — so students can improve their work without black-box accusations.
+            <p className={styles.lede} data-hero-support>
+              Averis connects similarity evidence, scholarly sources, citation context and guided revision in one professional workspace — with human review kept at the center of every decision.
             </p>
-            <div className={styles.heroActions} data-intro-support>
-              <button type="button" className={styles.primaryAction} onClick={openAccess}>Enter Averis <span>↗</span></button>
-              <a className={styles.textAction} href="#evidence-journey">See the evidence flow <span>↓</span></a>
+            <div className={styles.heroActions} data-hero-support>
+              <button type="button" className={styles.primaryAction} onClick={openAccess}>Start free <span>→</span></button>
+              <button type="button" className={styles.secondaryAction} onClick={() => scrollTo("#workflow")}><i /> View workflow</button>
             </div>
-            <div className={styles.trustRow} data-intro-support>
-              <span><i /> Evidence, not verdicts</span>
+            <div className={styles.trustRow} data-hero-support>
+              <span><i /> No automatic misconduct verdict</span>
               <span><i /> Original upload not retained</span>
-              <span><i /> Student-controlled revision</span>
+              <span><i /> Local Ollama-ready AI path</span>
             </div>
           </div>
 
-          <div className={styles.visualStage} aria-label="Interactive evidence network visualization">
+          <div className={styles.productVisual} data-product-frame>
             <canvas ref={canvasRef} className={styles.scene} aria-hidden="true" />
-            <div className={styles.fallbackGlyph} aria-hidden="true" />
-            <div className={`${styles.orbitLabel} ${styles.labelA}`} data-orbit-one><span>01</span> SOURCE</div>
-            <div className={`${styles.orbitLabel} ${styles.labelB}`} data-orbit-two><span>02</span> CITATION</div>
-            <div className={styles.signalCard}>
-              <span>EVIDENCE TRACE</span>
-              <strong>Passage → Source → Citation</strong>
-              <small>Review context before deciding what to revise.</small>
+            <div className={styles.productHalo} aria-hidden="true" />
+            <div className={styles.productFrame}>
+              <div className={styles.browserBar}>
+                <span className={styles.browserDots}><i /><i /><i /></span>
+                <span className={styles.browserUrl}>averis · evidence workspace</span>
+                <span className={styles.privateChip}>PRIVATE REVIEW</span>
+              </div>
+
+              <div className={styles.appShell}>
+                <aside className={styles.previewSidebar} aria-hidden="true">
+                  <span className={styles.previewSymbol} />
+                  <i className={styles.sideActive}>R</i>
+                  <i>D</i><i>E</i><i>S</i><i>C</i><i>↗</i>
+                </aside>
+
+                <div className={styles.previewMain}>
+                  <div className={styles.previewHeader}>
+                    <div>
+                      <span>REVISION REVIEW</span>
+                      <strong>Research Paper · Final Draft</strong>
+                      <small>8,429 words · evidence preview</small>
+                    </div>
+                    <button type="button" tabIndex={-1}>Export report</button>
+                  </div>
+
+                  <div className={styles.previewTabs}>
+                    <span className={styles.tabActive}>Overview</span><span>Evidence</span><span>Sources</span><span>Citations</span><span>Revision</span>
+                  </div>
+
+                  <div className={styles.metricGrid}>
+                    <article>
+                      <span>Source overlap</span>
+                      <strong>18%</strong>
+                      <div className={styles.segmentBar}><i /><i /><i /><i /><i /></div>
+                      <small>review signal · not a verdict</small>
+                    </article>
+                    <article>
+                      <span>Citation context</span>
+                      <strong>84%</strong>
+                      <div className={styles.progressBar}><i style={{ width: "84%" }} /></div>
+                      <small>recognized markers near matches</small>
+                    </article>
+                    <article>
+                      <span>References linked</span>
+                      <strong>12</strong>
+                      <div className={styles.referenceDots}><i /><i /><i /><i /><i /><i /></div>
+                      <small>DOI / bibliography evidence</small>
+                    </article>
+                    <article>
+                      <span>Review priority</span>
+                      <strong>03</strong>
+                      <div className={styles.priorityStack}><b>High</b><b>Review</b><b>Context</b></div>
+                      <small>human attention order</small>
+                    </article>
+                  </div>
+
+                  <div className={styles.evidencePanel}>
+                    <div className={styles.evidenceHeading}>
+                      <div><span>PASSAGE EVIDENCE</span><strong>What deserves attention first</strong></div>
+                      <span>3 of 8 shown</span>
+                    </div>
+                    <div className={styles.evidenceRow}>
+                      <span className={styles.rowIndex}>01</span>
+                      <div><strong>High-overlap wording needs context</strong><small>Source match · quotation not detected · citation nearby</small></div>
+                      <b className={styles.highBadge}>HIGH ATTENTION</b>
+                    </div>
+                    <div className={styles.evidenceRow}>
+                      <span className={styles.rowIndex}>02</span>
+                      <div><strong>Citation marker linked to bibliography</strong><small>Crossref metadata resolved · verify source support</small></div>
+                      <b className={styles.reviewBadge}>REVIEW</b>
+                    </div>
+                    <div className={styles.evidenceRow}>
+                      <span className={styles.rowIndex}>03</span>
+                      <div><strong>Quoted passage with attribution</strong><small>Quotation detected · citation detected · reference linked</small></div>
+                      <b className={styles.contextBadge}>CONTEXTUALIZED</b>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <span className={styles.scanLine} data-scan-line aria-hidden="true" />
             </div>
           </div>
         </div>
 
-        <div id="evidence-journey" className={styles.journey}>
-          <div className={styles.journeyLead} data-reveal>
-            <p>THE AVERIS METHOD</p>
-            <h2>Review first. Revise second.</h2>
-            <span>Every improvement starts with visible evidence, not a hidden score.</span>
-          </div>
-          <div className={styles.storyGrid}>
-            <article data-reveal>
-              <span>01 / TRACE</span>
-              <h3>See the matching passages.</h3>
-              <p>Exact and fuzzy source evidence stays attached to the text that triggered it.</p>
-              <div className={styles.miniEvidence}><i /><b>“Evidence should remain reviewable…”</b><small>87 · passage match</small></div>
-            </article>
-            <article data-reveal>
-              <span>02 / VERIFY</span>
-              <h3>Connect claims to real sources.</h3>
-              <p>Crossref metadata, DOI checks and citation linkage help distinguish overlap from responsible attribution.</p>
-              <div className={styles.nodeRail}><i /><i /><i /><span>draft</span><span>source</span><span>reference</span></div>
-            </article>
-            <article data-reveal>
-              <span>03 / REVISE</span>
-              <h3>Improve with context intact.</h3>
-              <p>The Revision Coach flags weak paraphrasing, repetitive prose and citation gaps before suggesting user-controlled improvements.</p>
-              <div className={styles.diffPreview}><del>Generic copied phrasing</del><ins>Clearer attributed revision</ins></div>
-            </article>
-          </div>
+        <div id="platform" className={styles.capabilityStrip} data-reveal>
+          <div><span>01</span><strong>Evidence-first</strong><small>Passage-level context</small></div>
+          <div><span>02</span><strong>Crossref-linked</strong><small>Reference metadata checks</small></div>
+          <div><span>03</span><strong>Private by design</strong><small>Bounded data handling</small></div>
+          <div><span>04</span><strong>Local AI ready</strong><small>Optional Ollama runtime</small></div>
         </div>
 
-        <div className={styles.boundary} data-reveal>
-          <div>
-            <span>HUMAN REVIEW REMAINS THE DECISION LAYER</span>
-            <h2>Averis explains evidence. It does not accuse.</h2>
+        <section id="workflow" className={styles.workflowSection}>
+          <div className={styles.sectionLead} data-reveal>
+            <div>
+              <p>THE AVERIS PLATFORM</p>
+              <h2>A complete academic-integrity workflow.</h2>
+            </div>
+            <p>Move from source overlap to attribution and revision without losing the evidence that explains why a passage needs attention.</p>
           </div>
-          <button type="button" onClick={openAccess}>Start with the free beta</button>
-        </div>
+
+          <div className={styles.workflowGrid}>
+            {workflow.map((item) => (
+              <article key={item.index} data-reveal>
+                <div className={styles.featureIcon}><FeatureIcon name={item.icon} /></div>
+                <span>{item.index}</span>
+                <h3>{item.title}</h3>
+                <p>{item.copy}</p>
+                <i className={styles.cardArrow}>↗</i>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="revision-safety" className={styles.revisionSection}>
+          <div className={styles.revisionVisual} data-reveal>
+            <div className={styles.diffWindow}>
+              <div className={styles.diffTop}><span>WRITING REFINEMENT</span><b>Evidence checked first</b></div>
+              <div className={styles.diffBody}>
+                <div><span>ORIGINAL</span><p>The findings clearly show that the issue is very important and it is something that should be considered carefully.</p></div>
+                <div><span>REFINED</span><p>The findings indicate that the issue warrants careful consideration because it directly affects the study&apos;s central claim.</p></div>
+              </div>
+              <div className={styles.preservationRow}><span>✓ Meaning preserved</span><span>✓ Citations retained</span><span>✓ Re-check required</span></div>
+            </div>
+          </div>
+          <div className={styles.revisionCopy} data-reveal>
+            <p>GUIDED REVISION · NOT DETECTOR EVASION</p>
+            <h2>Improve the writing. Keep the evidence.</h2>
+            <span>
+              Averis can support clearer academic tone, structure, source-grounded paraphrasing and citation preservation. It does not optimize writing to hide AI use or beat detection systems.
+            </span>
+            <ul>
+              <li>Show the evidence before suggesting a change.</li>
+              <li>Keep quotations, citations and source meaning visible.</li>
+              <li>Compare original and suggested text before accepting.</li>
+              <li>Re-run evidence after revision.</li>
+            </ul>
+            <button type="button" onClick={openAccess}>Open the revision workspace <span>→</span></button>
+          </div>
+        </section>
+
+        <section id="trust-boundary" className={styles.boundary} data-reveal>
+          <div>
+            <span>TRUST BOUNDARY</span>
+            <h2>Evidence informs people. People make the decision.</h2>
+            <p>Averis is designed to surface reviewable signals, provenance and context — not unsupported accusations or hidden academic-integrity verdicts.</p>
+          </div>
+          <div className={styles.boundaryActions}>
+            <button type="button" className={styles.boundaryPrimary} onClick={openAccess}>Start with the free beta</button>
+            <button type="button" className={styles.boundarySecondary} onClick={() => scrollTo("#averis-intro")}>Back to top ↑</button>
+          </div>
+        </section>
       </div>
     </section>
   );

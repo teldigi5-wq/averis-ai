@@ -1,0 +1,90 @@
+/* Final signed-in workspace visual polish after browser review. */
+
+html[data-averis-workspace-open="true"] .brandButton {
+  min-width: 162px !important;
+  min-height: 44px;
+  position: relative;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+html[data-averis-workspace-open="true"] .brandButton::before {
+  content: "";
+  width: 152px;
+  height: 38px;
+  display: block;
+  background: var(--averis-brand-lockup) left center / contain no-repeat;
+  filter: drop-shadow(0 8px 20px rgba(22, 156, 255, .13));
+}
+
+html[data-averis-workspace-open="true"] .brandButton > .brandMark,
+html[data-averis-workspace-open="true"] .brandButton > .brandText {
+  display: none !important;
+}
+
+/* Remove the legacy text workflow pseudo-label that collides with the rebuilt tool hero.
+   The actual numbered workflow remains visible in the real panels below. */
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active) .toolHero::before,
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active):has(.uploadPanel .docCard) .toolHero::before,
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active):has(.uploadPanel .docCard):has(.sourceComparePanel textarea:not(:placeholder-shown)) .toolHero::before,
+html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active):has(.appliedControls) .toolHero::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 28px !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 112px !important;
+  height: 2px !important;
+  display: block !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, #23e2ef, #257dff, transparent) !important;
+  box-shadow: none !important;
+}
+
+html[data-averis-workspace-open="true"] .toolHero::after {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-averis-workspace-open="true"] .toolHero > div:first-child {
+  min-width: 0;
+}
+
+html[data-averis-workspace-open="true"] .toolCanvas > .metricGrid,
+html[data-averis-workspace-open="true"] .toolCanvas > .evidenceGrid {
+  gap: 10px;
+}
+
+html[data-averis-workspace-open="true"] .toolCanvas footer,
+html[data-averis-workspace-open="true"] body > main > footer {
+  margin-top: 56px;
+  opacity: .82;
+}
+
+@media (max-width: 680px) {
+  html[data-averis-workspace-open="true"] .brandButton {
+    min-width: 116px !important;
+    min-height: 38px;
+  }
+
+  html[data-averis-workspace-open="true"] .brandButton::before {
+    width: 112px;
+    height: 30px;
+  }
+
+  html[data-averis-workspace-open="true"] .toolHero {
+    padding-top: 23px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .productShell:has(.toolNav .toolButton:first-child.active) .toolHero::before {
+    left: 19px !important;
+    width: 84px !important;
+  }
+}

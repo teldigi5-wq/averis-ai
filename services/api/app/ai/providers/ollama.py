@@ -58,8 +58,7 @@ class OllamaProvider(AIProvider):
                 return None
         return normalized
 
-    async def coach(self, prompt: str) -> str | None:
-        """Generate a short evidence-grounded coaching note; never rewrite the student's submission."""
+    async def _generate(self, prompt: str, *, temperature: float, num_predict: int, max_chars: int) -> str | None:
         try:
             async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
                 response = await client.post(
@@ -68,7 +67,7 @@ class OllamaProvider(AIProvider):
                         "model": self.model,
                         "prompt": prompt,
                         "stream": False,
-                        "options": {"temperature": 0.1, "num_predict": 180},
+                        "options": {"temperature": temperature, "num_predict": num_predict},
                     },
                 )
                 response.raise_for_status()
@@ -80,4 +79,18 @@ class OllamaProvider(AIProvider):
         if not isinstance(value, str):
             return None
         cleaned = value.strip()
-        return cleaned[:1600] if cleaned else None
+        return cleaned[:max_chars] if cleaned else None
+
+    async def coach(self, prompt: str) -> str | None:
+        """Generate a short evidence-grounded coaching note; never rewrite the student's submission."""
+        return await self._generate(prompt, temperature=0.1, num_predict=180, max_chars=1600)
+
+    async def refine_writing(self, prompt: str) -> str | None:
+        """Generate a bounded writing-refinement proposal for user review.
+
+        Policy and preservation checks live in the route layer. This provider method
+        deliberately performs no detector-score optimization and returns only a
+        candidate proposal that the caller must validate before presenting as safe
+        to accept.
+        """
+        return await self._generate(prompt, temperature=0.2, num_predict=1800, max_chars=20_000)

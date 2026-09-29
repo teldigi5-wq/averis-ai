@@ -1,0 +1,29 @@
+/* v27 mobile certification fixes: keep the horizontal phase navigator compact and the next action readable. */
+@media (max-width: 760px) {
+  .studioV27Command__phases {
+    align-items: stretch;
+  }
+
+  .studioV27Command__phase {
+    width: 112px !important;
+    min-width: 112px !important;
+    max-width: 112px !important;
+    flex: 0 0 112px !important;
+  }
+
+  .studioV27Command__phase > div {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .studioV27Command__phase strong,
+  .studioV27Command__phase small {
+    max-width: 68px;
+  }
+
+  .studioV27Command__actions .studioV27Command__primary {
+    min-width: 136px;
+    max-width: 148px;
+  }
+}

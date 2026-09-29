@@ -1,0 +1,123 @@
+/* Review Center v18 certification fixes: keep mobile activity contained and accessible. */
+
+html[data-averis-review-center="true"] {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+html[data-averis-review-center="true"] body,
+html[data-averis-review-center="true"] .reviewCenterV18,
+html[data-averis-review-center="true"] .reviewCenterShell {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* v19 adds Revision Studio as a fifth first-class module. */
+@media (min-width: 1181px) {
+  .reviewToolGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  html[data-averis-review-center="true"] .reviewCenterV18 {
+    width: 100% !important;
+    padding-left: 0 !important;
+  }
+
+  html[data-averis-review-center="true"] .reviewCenterShell {
+    width: calc(100% - 24px) !important;
+  }
+
+  html[data-averis-review-center="true"] .reviewCommandBar {
+    gap: 10px !important;
+  }
+
+  /* Keep the mobile command bar compact while preserving the full accessible label. */
+  html[data-averis-review-center="true"] .reviewCommandActions button {
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    padding-inline: 0 !important;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0 !important;
+    white-space: nowrap;
+  }
+
+  html[data-averis-review-center="true"] .reviewCommandActions button::after {
+    content: "Scan";
+    color: #eaf9ff;
+    font-size: 10px;
+    font-weight: 760;
+  }
+
+  .reviewHistoryTable {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible !important;
+  }
+
+  /* Keep the required ARIA header row available to assistive tech without
+     letting its desktop column geometry force mobile horizontal overflow. */
+  .reviewHistoryHeader {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-width: 0 !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+
+  .reviewHistoryHeader > span {
+    position: absolute !important;
+    width: 1px !important;
+    min-width: 0 !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+  }
+
+  .reviewHistoryRow:not(.reviewHistoryHeader) {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px 14px !important;
+    align-items: start !important;
+    padding: 14px !important;
+  }
+
+  .reviewHistoryRow:not(.reviewHistoryHeader) > span:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .reviewHistoryRow:not(.reviewHistoryHeader) > span:nth-child(2) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .reviewHistoryRow:not(.reviewHistoryHeader) > span:nth-child(3),
+  .reviewHistoryRow:not(.reviewHistoryHeader) > span:nth-child(4) {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 430px) {
+  .reviewHistoryRow:not(.reviewHistoryHeader) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reviewHistoryRow:not(.reviewHistoryHeader) > span,
+  .reviewHistoryRow:not(.reviewHistoryHeader) > span:first-child {
+    grid-column: 1 !important;
+    justify-self: stretch !important;
+  }
+}

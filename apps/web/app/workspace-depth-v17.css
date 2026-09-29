@@ -1,0 +1,254 @@
+/* Averis workspace depth v17 — full-bleed authenticated shell, structured background, and edge integration. */
+
+html[data-averis-workspace-open="true"] {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+html[data-averis-workspace-open="true"] body {
+  max-width: 100%;
+  padding-left: 0 !important;
+  overflow-x: clip;
+  background:
+    radial-gradient(ellipse 55% 34% at 14% 8%, rgba(21, 142, 255, .15), transparent 72%),
+    radial-gradient(ellipse 48% 28% at 88% 4%, rgba(36, 224, 231, .09), transparent 72%),
+    radial-gradient(ellipse 46% 34% at 54% 104%, rgba(24, 83, 180, .10), transparent 72%),
+    linear-gradient(180deg, #020913 0%, #04101b 44%, #020912 100%) !important;
+}
+
+html[data-averis-workspace-open="true"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: .42 !important;
+  background:
+    linear-gradient(rgba(82, 145, 187, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(82, 145, 187, .045) 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0 7%, rgba(38, 170, 235, .05) 7.05% 7.1%, transparent 7.15% 92.8%, rgba(38, 170, 235, .035) 92.85% 92.9%, transparent 93%);
+  background-size: 48px 48px, 48px 48px, 100% 100%;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.96), rgba(0,0,0,.52) 64%, rgba(0,0,0,.12));
+}
+
+html[data-averis-workspace-open="true"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.24), transparent 9%, transparent 91%, rgba(0,0,0,.16)),
+    radial-gradient(circle at 22% 22%, rgba(0, 196, 255, .05), transparent 18%),
+    radial-gradient(circle at 78% 16%, rgba(86, 235, 222, .045), transparent 18%);
+}
+
+html[data-averis-workspace-open="true"] body > main {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 24px 56px 104px !important;
+  overflow-x: clip;
+}
+
+html[data-averis-workspace-open="true"] .topbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 72 !important;
+  min-height: 76px !important;
+  margin: 0 -24px 18px -16px !important;
+  padding: 0 28px 0 16px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(94, 166, 212, .13) !important;
+  background:
+    linear-gradient(180deg, rgba(3, 11, 20, .94), rgba(3, 12, 21, .84)) !important;
+  box-shadow: 0 18px 46px rgba(0, 4, 12, .18) !important;
+  backdrop-filter: blur(24px) saturate(138%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(138%) !important;
+}
+
+html[data-averis-workspace-open="true"] .topbar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 8% -35%, rgba(35, 187, 255, .15), transparent 34%),
+    radial-gradient(circle at 88% -45%, rgba(42, 232, 224, .09), transparent 28%);
+}
+
+html[data-averis-workspace-open="true"] .topbar::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(36,225,238,.42), rgba(38,128,255,.22) 24%, transparent 54%, rgba(43,210,223,.16));
+}
+
+html[data-averis-workspace-open="true"] .brandButton {
+  min-width: 188px !important;
+}
+
+html[data-averis-workspace-open="true"] .brandButton::before {
+  width: 178px !important;
+  height: 42px !important;
+  background: var(--averis-brand-lockup) left center / contain no-repeat !important;
+  filter: drop-shadow(0 10px 26px rgba(20, 164, 255, .15)) !important;
+}
+
+html[data-averis-workspace-open="true"] .productShell,
+html[data-averis-workspace-open="true"] .toolRail,
+html[data-averis-workspace-open="true"] .toolCanvas,
+html[data-averis-workspace-open="true"] .workspaceGrid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html[data-averis-workspace-open="true"] .productShell {
+  width: 100%;
+  max-width: 1560px;
+  margin: 0 auto 100px !important;
+}
+
+html[data-averis-workspace-open="true"] .toolCanvas {
+  position: relative;
+}
+
+html[data-averis-workspace-open="true"] .toolCanvas::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -70px;
+  right: 0;
+  left: 8%;
+  height: 360px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(25, 115, 255, .075), transparent 67%);
+  filter: blur(18px);
+}
+
+html[data-averis-workspace-open="true"] .toolHero,
+html[data-averis-workspace-open="true"] .toolRail,
+html[data-averis-workspace-open="true"] .panel,
+html[data-averis-workspace-open="true"] .metricCard {
+  isolation: isolate;
+}
+
+html[data-averis-workspace-open="true"] .toolHero::after,
+html[data-averis-workspace-open="true"] .toolRail::after,
+html[data-averis-workspace-open="true"] .panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.02), transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(52, 194, 255, .045), transparent 30%);
+}
+
+html[data-averis-workspace-open="true"] .toolRail {
+  min-height: calc(100svh - 118px) !important;
+  overflow: clip !important;
+}
+
+html[data-averis-workspace-open="true"] .toolNav {
+  max-width: 100%;
+}
+
+html[data-averis-workspace-open="true"] .panel,
+html[data-averis-workspace-open="true"] .metricCard,
+html[data-averis-workspace-open="true"] .toolHero {
+  box-shadow:
+    0 22px 54px rgba(0, 5, 14, .18),
+    inset 0 1px rgba(255,255,255,.026) !important;
+}
+
+html[data-averis-workspace-open="true"] .workspaceGrid > .panel:hover,
+html[data-averis-workspace-open="true"] .controlCard:hover {
+  border-color: rgba(67, 190, 231, .22) !important;
+}
+
+@media (min-width: 1280px) {
+  html[data-averis-workspace-open="true"] body > main {
+    padding-right: 30px !important;
+    padding-left: 106px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  html[data-averis-workspace-open="true"] body > main {
+    width: 100% !important;
+    padding: 0 14px calc(94px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html[data-averis-workspace-open="true"] .topbar {
+    margin: 0 -14px 14px !important;
+    padding: 0 14px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .productShell {
+    width: 100%;
+    margin-bottom: 92px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .toolRail {
+    min-height: 0 !important;
+    height: auto !important;
+    padding-bottom: 8px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .toolNav {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+  }
+
+  html[data-averis-workspace-open="true"] .toolNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  html[data-averis-workspace-open="true"] .toolButton {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  html[data-averis-workspace-open="true"] body {
+    background:
+      radial-gradient(ellipse 90% 28% at 50% 0%, rgba(23, 128, 255, .13), transparent 72%),
+      linear-gradient(180deg, #020913 0%, #04101b 55%, #020912 100%) !important;
+  }
+
+  html[data-averis-workspace-open="true"] body::before {
+    opacity: .27 !important;
+    background-size: 42px 42px, 42px 42px, 100% 100%;
+  }
+
+  html[data-averis-workspace-open="true"] .topbar {
+    min-height: 66px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .brandButton {
+    min-width: 132px !important;
+  }
+
+  html[data-averis-workspace-open="true"] .brandButton::before {
+    width: 126px !important;
+    height: 32px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-averis-workspace-open="true"] .workspaceGrid > .panel,
+  html[data-averis-workspace-open="true"] .controlCard {
+    transition: none !important;
+  }
+}

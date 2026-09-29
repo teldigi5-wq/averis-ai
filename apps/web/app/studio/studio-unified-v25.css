@@ -1,0 +1,475 @@
+/* Revision Studio v25 — presentation-only unification layer.
+   Keeps the v22-v24 runtime, evidence, preservation and human-decision behavior unchanged. */
+
+.studioV25Scope {
+  --v25-panel: rgba(5, 23, 39, .88);
+  --v25-panel-strong: rgba(4, 17, 30, .96);
+  --v25-line: rgba(91, 184, 220, .16);
+  --v25-line-strong: rgba(74, 220, 231, .30);
+  --v25-cyan: #67e3eb;
+  --v25-text: #eefaff;
+  --v25-muted: #88a6b8;
+  --v25-shadow: 0 28px 80px rgba(0, 5, 14, .24);
+  position: relative;
+  isolation: isolate;
+}
+
+body:has(.studioV25Scope) {
+  background:
+    radial-gradient(circle at 78% -8%, rgba(23, 118, 185, .10), transparent 28%),
+    radial-gradient(circle at 12% 18%, rgba(37, 218, 222, .045), transparent 24%),
+    #020b13;
+}
+
+.studioV25Scope::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(78, 154, 190, .018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(78, 154, 190, .018) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 78%);
+}
+
+/* Workspace rail: keep one relevant module visibly active and make it feel part of Studio. */
+@media (min-width: 981px) {
+  body:has(.studioV25Scope) nav[aria-label="Averis workspace modules"] {
+    top: 18px;
+    bottom: 18px;
+    left: 16px;
+    width: 74px;
+    border: 1px solid rgba(84, 190, 220, .17);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(7, 31, 49, .96), rgba(2, 14, 25, .98));
+    box-shadow: 0 26px 70px rgba(0, 4, 12, .32), inset 0 1px rgba(255,255,255,.025);
+    backdrop-filter: blur(20px) saturate(125%);
+  }
+
+  body:has(.studioV25Scope) nav[aria-label="Averis workspace modules"] a {
+    border-radius: 14px;
+    transition: transform .16s ease, background-color .16s ease, border-color .16s ease;
+  }
+
+  body:has(.studioV25Scope) nav[aria-label="Averis workspace modules"] a:hover {
+    transform: translateY(-1px);
+  }
+
+  body:has(.studioV25Scope) nav[aria-label="Averis workspace modules"] a[aria-current="page"] {
+    border-color: rgba(74, 224, 234, .32);
+    background: linear-gradient(145deg, rgba(18, 107, 145, .52), rgba(7, 47, 75, .78));
+    box-shadow: 0 10px 30px rgba(0, 142, 211, .14), inset 0 1px rgba(255,255,255,.035);
+  }
+}
+
+/* Runtime selector: enlarge, align to the main canvas, remove the compressed v21 feel. */
+.studioV25Scope [class*="runtimeBar"] {
+  width: min(1500px, calc(100% - 40px));
+  margin: 20px auto 8px;
+  grid-template-columns: minmax(240px, .72fr) minmax(620px, 1.8fr) minmax(280px, .86fr);
+  gap: 10px;
+  padding: 10px;
+  border-color: rgba(89, 190, 222, .19);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 20% -20%, rgba(35, 219, 228, .10), transparent 34%),
+    linear-gradient(145deg, rgba(8, 34, 54, .96), rgba(3, 15, 27, .98));
+  box-shadow: var(--v25-shadow), inset 0 1px rgba(255,255,255,.035);
+}
+
+.studioV25Scope [class*="runtimeTitle"],
+.studioV25Scope [class*="runtimeStatus"] {
+  border-radius: 15px;
+  background: rgba(2, 14, 24, .62);
+}
+
+.studioV25Scope [class*="runtimeTitle"] {
+  padding: 14px 15px;
+}
+
+.studioV25Scope [class*="runtimeTitle"] strong {
+  font-size: 14px;
+}
+
+.studioV25Scope [class*="runtimeChoices"] {
+  gap: 7px;
+}
+
+.studioV25Scope [class*="runtimeChoices"] button {
+  min-height: 70px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  background: rgba(2, 14, 24, .66);
+}
+
+.studioV25Scope [class*="runtimeChoices"] button[class*="active"] {
+  border-color: rgba(67, 224, 235, .40);
+  background:
+    radial-gradient(circle at 15% 0%, rgba(61, 225, 235, .10), transparent 38%),
+    linear-gradient(145deg, rgba(16, 104, 152, .34), rgba(7, 42, 67, .74));
+}
+
+.studioV25Scope [class*="runtimeChoices"] b {
+  font-size: 12.5px;
+}
+
+.studioV25Scope [class*="runtimeChoices"] small {
+  font-size: 9.5px;
+}
+
+.studioV25Scope [class*="runtimeStatus"] {
+  padding: 13px 15px;
+}
+
+.studioV25Scope [class*="runtimeBoundary"] {
+  width: min(1500px, calc(100% - 40px));
+  margin: 0 auto 4px;
+  padding: 7px 11px;
+  border-left: 2px solid rgba(70, 217, 229, .24);
+  color: #7897a8;
+  background: rgba(3, 17, 29, .32);
+  border-radius: 0 9px 9px 0;
+  font-size: 9px;
+}
+
+/* Main canvas. */
+.studioV25Scope main {
+  width: min(1500px, calc(100% - 40px));
+  padding-top: 42px;
+}
+
+.studioV25Scope [class*="hero"] {
+  gap: clamp(34px, 5vw, 76px);
+  padding-top: 22px;
+}
+
+.studioV25Scope [class*="hero"] h1 {
+  max-width: 920px;
+  text-wrap: balance;
+}
+
+.studioV25Scope [class*="boundaryCard"] {
+  border-radius: 20px;
+  border-color: rgba(80, 202, 224, .22);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(33, 213, 226, .08), transparent 40%),
+    linear-gradient(150deg, rgba(8, 39, 62, .92), rgba(3, 17, 29, .98));
+}
+
+.studioV25Scope [class*="flowStrip"] {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border-color: rgba(80, 184, 215, .17);
+  background: linear-gradient(90deg, rgba(6, 31, 49, .82), rgba(3, 17, 29, .88));
+}
+
+.studioV25Scope [class*="flowStrip"]::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(#62e1e9, #2778e8);
+  opacity: .75;
+}
+
+/* v23/v24 cards: same radius, depth and spacing. */
+.studioV25Scope [class*="proposalCard"],
+.studioV25Scope [class*="toolkit"],
+.studioV25Scope section[aria-labelledby="similarity-readiness-title"] {
+  margin-top: 18px;
+  border-radius: 20px;
+  border-color: rgba(82, 181, 216, .18);
+  box-shadow: var(--v25-shadow), inset 0 1px rgba(255,255,255,.028);
+}
+
+.studioV25Scope [class*="proposalCard"] {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(28, 174, 235, .08), transparent 30%),
+    linear-gradient(180deg, rgba(7, 31, 50, .94), rgba(3, 17, 29, .98));
+}
+
+.studioV25Scope [class*="proposalHead"] {
+  align-items: center;
+}
+
+.studioV25Scope [class*="proposalHead"] > div:first-child {
+  max-width: 860px;
+}
+
+.studioV25Scope [class*="copyButton"] {
+  min-width: 210px;
+  box-shadow: 0 12px 32px rgba(9, 126, 211, .16);
+}
+
+.studioV25Scope section[aria-labelledby="similarity-readiness-title"] {
+  background:
+    radial-gradient(circle at 92% 0%, rgba(34, 214, 225, .085), transparent 30%),
+    linear-gradient(180deg, rgba(6, 29, 47, .95), rgba(3, 16, 28, .98));
+}
+
+/* Remove the old monolithic lower layer. Its children become modern independent surfaces. */
+.studioV25Scope [class*="studioSection"] {
+  margin-top: 20px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.studioV25Scope [class*="studioSection"] > [class*="sectionHead"] {
+  margin: 0 0 10px;
+  padding: 20px 22px;
+  border: 1px solid var(--v25-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(45, 210, 227, .075), transparent 32%),
+    linear-gradient(145deg, rgba(7, 31, 50, .95), rgba(3, 17, 29, .98));
+  box-shadow: 0 20px 60px rgba(0, 5, 14, .18), inset 0 1px rgba(255,255,255,.025);
+}
+
+.studioV25Scope [class*="studioSection"] > [class*="sectionHead"] h2 {
+  font-size: clamp(25px, 3vw, 34px);
+}
+
+.studioV25Scope [class*="summaryGrid"] {
+  margin: 0 0 10px;
+  padding: 10px;
+  border: 1px solid rgba(78, 164, 202, .13);
+  border-radius: 17px;
+  background: rgba(2, 14, 24, .48);
+}
+
+.studioV25Scope [class*="summaryGrid"] > div {
+  min-height: 94px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, rgba(7, 29, 46, .72), rgba(3, 17, 28, .78));
+}
+
+.studioV25Scope [class*="reviewToolbar"] {
+  position: sticky;
+  top: 12px;
+  z-index: 16;
+  margin: 0 0 10px;
+  padding: 9px;
+  border: 1px solid rgba(80, 182, 216, .17);
+  border-radius: 15px;
+  background: rgba(4, 21, 35, .92);
+  box-shadow: 0 16px 46px rgba(0, 5, 14, .22);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.studioV25Scope [class*="reviewToolbar"] button {
+  min-height: 38px;
+  border-radius: 10px;
+  background: rgba(7, 39, 62, .78);
+}
+
+.studioV25Scope [class*="reviewToolbar"] button:first-child {
+  border-color: rgba(70, 218, 229, .28);
+  background: linear-gradient(135deg, rgba(11, 139, 181, .90), rgba(20, 94, 205, .88));
+}
+
+.studioV25Scope [class*="diffHeader"] {
+  margin: 0 6px 7px;
+  padding: 0 14px;
+}
+
+.studioV25Scope [class*="diffList"] {
+  gap: 10px;
+}
+
+.studioV25Scope [class*="diffRow"] {
+  gap: 10px;
+  padding: 10px;
+  border-color: rgba(83, 171, 208, .15);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 62% 0%, rgba(44, 208, 222, .04), transparent 32%),
+    linear-gradient(145deg, rgba(5, 25, 41, .91), rgba(2, 14, 24, .96));
+  box-shadow: 0 14px 44px rgba(0, 5, 14, .12), inset 0 1px rgba(255,255,255,.02);
+}
+
+.studioV25Scope [class*="diffRow"][class*="unchanged"] {
+  opacity: .58;
+}
+
+.studioV25Scope [class*="originalCell"],
+.studioV25Scope [class*="proposedCell"] {
+  min-height: 112px;
+  padding: 15px;
+  border-radius: 13px;
+  background: rgba(3, 17, 29, .60);
+}
+
+.studioV25Scope [class*="proposedCell"] {
+  position: relative;
+  border-color: rgba(71, 211, 224, .14);
+  background: linear-gradient(145deg, rgba(6, 38, 51, .72), rgba(3, 20, 32, .72));
+}
+
+.studioV25Scope [class*="proposedCell"]::before {
+  content: "";
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(#5ee1e8, #267ce9);
+  opacity: .55;
+}
+
+.studioV25Scope [class*="originalCell"] p,
+.studioV25Scope [class*="proposedCell"] p {
+  font-size: 12.5px;
+  line-height: 1.72;
+}
+
+.studioV25Scope [class*="decisionCell"] {
+  padding: 5px;
+  border: 1px solid rgba(75, 157, 197, .10);
+  border-radius: 13px;
+  background: rgba(1, 12, 21, .42);
+}
+
+.studioV25Scope [class*="decisionCell"] button {
+  min-height: 42px;
+  border-radius: 10px;
+}
+
+.studioV25Scope [class*="acceptedPreview"] {
+  margin-top: 12px;
+  padding: 22px;
+  border-color: rgba(74, 205, 220, .20);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(40, 218, 219, .055), transparent 30%),
+    linear-gradient(145deg, rgba(7, 34, 50, .94), rgba(3, 17, 29, .98));
+  box-shadow: 0 22px 64px rgba(0, 5, 14, .18), inset 0 1px rgba(255,255,255,.025);
+}
+
+.studioV25Scope [class*="acceptedPreview"] pre {
+  max-height: 560px;
+  border-radius: 14px;
+  border-color: rgba(78, 173, 209, .14);
+  background: rgba(1, 11, 19, .72);
+  font-size: 12.5px;
+}
+
+.studioV25Scope [class*="previewActions"] {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.3fr) minmax(180px, .8fr) minmax(180px, .8fr);
+  gap: 8px;
+}
+
+.studioV25Scope [class*="previewActions"] button {
+  min-height: 44px;
+  border-radius: 11px;
+}
+
+.studioV25Scope [class*="recheckCard"] {
+  margin-top: 12px;
+  padding: 22px;
+  border-radius: 20px;
+  border-color: rgba(71, 202, 196, .19);
+  background:
+    radial-gradient(circle at 92% 0%, rgba(46, 211, 184, .06), transparent 30%),
+    linear-gradient(145deg, rgba(6, 31, 44, .94), rgba(3, 17, 29, .98));
+  box-shadow: 0 22px 64px rgba(0, 5, 14, .16), inset 0 1px rgba(255,255,255,.025);
+}
+
+.studioV25Scope [class*="footerNote"] {
+  margin-top: 24px;
+  padding: 18px 4px 0;
+  border-top-color: rgba(84, 172, 207, .14);
+}
+
+/* Performance on long submissions without changing content or semantics. */
+.studioV25Scope [class*="diffRow"],
+.studioV25Scope section[aria-labelledby="similarity-readiness-title"],
+.studioV25Scope [class*="acceptedPreview"] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 180px;
+}
+
+@media (max-width: 1180px) {
+  .studioV25Scope [class*="runtimeBar"] {
+    grid-template-columns: 1fr 1.9fr;
+  }
+
+  .studioV25Scope [class*="runtimeStatus"] {
+    grid-column: 1 / -1;
+  }
+
+  .studioV25Scope [class*="previewActions"] {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .studioV25Scope [class*="previewActions"] button:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .studioV25Scope [class*="runtimeBar"],
+  .studioV25Scope [class*="runtimeBoundary"],
+  .studioV25Scope main {
+    width: calc(100% - 20px);
+  }
+
+  .studioV25Scope main {
+    padding-top: 28px;
+  }
+
+  .studioV25Scope [class*="runtimeBar"] {
+    margin-top: 10px;
+    grid-template-columns: 1fr;
+    border-radius: 18px;
+  }
+
+  .studioV25Scope [class*="runtimeChoices"] {
+    grid-template-columns: 1fr;
+  }
+
+  .studioV25Scope [class*="runtimeChoices"] button {
+    min-height: 62px;
+  }
+
+  .studioV25Scope [class*="reviewToolbar"] {
+    position: static;
+  }
+
+  .studioV25Scope [class*="studioSection"] > [class*="sectionHead"] {
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .studioV25Scope [class*="diffRow"] {
+    border-radius: 15px;
+  }
+
+  .studioV25Scope [class*="acceptedPreview"] {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .studioV25Scope [class*="previewActions"] {
+    grid-template-columns: 1fr;
+  }
+
+  .studioV25Scope [class*="previewActions"] button:first-child {
+    grid-column: auto;
+  }
+
+  .studioV25Scope [class*="copyButton"] {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(.studioV25Scope) nav[aria-label="Averis workspace modules"] a {
+    transition: none;
+  }
+}

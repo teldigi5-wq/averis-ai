@@ -14,6 +14,23 @@ class Settings(BaseSettings):
     ollama_embedding_model: str = "nomic-embed-text"
     ollama_timeout_seconds: float = 8.0
 
+    # Optional server-side OpenAI-compatible cloud runtime. It is intentionally
+    # disabled by default and never falls back to another provider/model.
+    ai_cloud_enabled: bool = False
+    ai_api_base_url: str = "https://api.groq.com/openai/v1"
+    ai_api_key: str | None = None
+    ai_api_model: str = "openai/gpt-oss-20b"
+    ai_cloud_timeout_seconds: float = 30.0
+
+    @property
+    def cloud_ai_configured(self) -> bool:
+        return bool(
+            self.ai_cloud_enabled
+            and self.ai_api_base_url.strip()
+            and (self.ai_api_key or "").strip()
+            and self.ai_api_model.strip()
+        )
+
     # Semantic evidence is displayed as a candidate signal even when these are
     # unset. It may influence review bands only after a labeled benchmark has
     # produced and documented both thresholds plus a calibration identifier.
@@ -52,24 +69,32 @@ class Settings(BaseSettings):
 
     @property
     def cors_allowed_origins(self) -> list[str]:
-        """Return normalized browser origins allowed to call the API.
+        """Return explicit, normalized browser origins allowed to call the API.
 
-        WEB_ORIGIN is deployment-controlled and may contain one origin or a
-        comma-separated list. This keeps the API portable across a primary
-        production host and a temporary migration/preview host without using a
-        wildcard CORS policy. The canonical Averis Vercel domain remains
-        allowed in beta/production while the zero-cost hosting migration is in
-        progress.
+        WEB_ORIGIN may contain one origin or a comma-separated list. Production
+        and beta deployments fail closed: wildcard origins and non-HTTPS origins
+        are rejected instead of silently widening the CORS boundary. There is no
+        implicit legacy-host fallback; every public frontend must be named by the
+        deployment configuration.
         """
-        candidates = self.web_origin.split(",")
-        if self.app_env.lower() in {"beta", "production"}:
-            candidates.append("https://averis-web.vercel.app")
-
+        production_like = self.app_env.lower() in {"beta", "production"}
         normalized: list[str] = []
-        for origin in candidates:
+
+        for origin in self.web_origin.split(","):
             value = origin.strip().rstrip("/")
-            if value and value not in normalized:
+            if not value:
+                continue
+            if production_like:
+                if value == "*":
+                    raise ValueError("Wildcard WEB_ORIGIN is not allowed in beta/production.")
+                if not value.startswith("https://"):
+                    raise ValueError("WEB_ORIGIN must use HTTPS in beta/production.")
+            if value not in normalized:
                 normalized.append(value)
+
+        if production_like and not normalized:
+            raise ValueError("WEB_ORIGIN must explicitly name at least one HTTPS origin.")
+
         return normalized
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
