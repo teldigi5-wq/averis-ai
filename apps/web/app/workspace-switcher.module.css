@@ -75,10 +75,11 @@
   padding: 7px 4px 6px;
   border: 1px solid transparent;
   border-radius: 12px;
-  color: #7f99aa;
+  color: #8ea5b4;
   text-decoration: none;
-  font-size: 7px;
+  font-size: 8.5px;
   font-weight: 790;
+  line-height: 1.1;
   letter-spacing: -.005em;
   text-align: center;
   transition: color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
@@ -126,7 +127,7 @@
 }
 
 .label {
-  max-width: 46px;
+  max-width: 50px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -155,13 +156,17 @@
     bottom: max(8px, env(safe-area-inset-bottom));
     width: calc(100vw - 18px);
     max-width: 560px;
-    min-height: 64px;
+    min-height: 60px;
     height: auto;
     flex-direction: row;
     justify-content: center;
     gap: 2px;
-    padding: 6px;
+    padding: 5px 6px;
     border-radius: 15px;
+    background: #071722;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .30), inset 0 1px rgba(255,255,255,.025);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     transform: translateX(-50%);
   }
 
@@ -175,10 +180,10 @@
     flex: 1;
     width: auto;
     min-width: 0;
-    min-height: 50px;
+    min-height: 48px;
     gap: 4px;
-    padding: 7px 5px;
-    font-size: 8px;
+    padding: 6px 3px;
+    font-size: 9px;
   }
 
   .switcher a::after {
@@ -196,28 +201,28 @@
   }
 
   .icon {
-    width: 16px;
-    height: 16px;
-    flex-basis: 16px;
+    width: 17px;
+    height: 17px;
+    flex-basis: 17px;
   }
 
   .label {
-    max-width: 76px;
+    max-width: 62px;
   }
 }
 
 @media (max-width: 430px) {
   .switcher {
-    width: calc(100vw - 12px);
+    width: calc(100vw - 16px);
   }
 
   .switcher a {
-    font-size: 7px;
+    font-size: 8.5px;
     padding-inline: 2px;
   }
 
   .label {
-    max-width: 60px;
+    max-width: 48px;
   }
 }
 

@@ -21,6 +21,7 @@ import "./workspace-depth-v17.css";
 import "./review-center-v18.css";
 import "./review-center-v18-fixes.css";
 import "./revision-studio-v19-fixes.css";
+import "./ui-comfort-v41.css";
 
 import AuthExperience from "./AuthExperience";
 import CinematicIntroGate from "./CinematicIntroGate";
