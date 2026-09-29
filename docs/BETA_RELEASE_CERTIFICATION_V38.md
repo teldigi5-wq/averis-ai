@@ -13,21 +13,49 @@ This document defines the final beta release boundary for the zero-cost student 
 
 No release step in v38 enables a paid inference fallback.
 
-## What the v38 workflow certifies
+## Final three-gate certification model
 
-`Beta Release Certification` runs against one exact commit and proves:
+The beta candidate is considered **code-certified** only when all three independent checks are green on the same exact PR head SHA.
+
+### 1. CI
+
+Normal CI proves the code/build baseline:
+
+- tracked-secret hygiene;
+- API tests;
+- API container build/smoke;
+- web TypeScript;
+- production web build.
+
+### 2. Web Product Quality
+
+Web Product Quality proves the interactive product UI in QA mode:
+
+- full signed-out browser-quality suite;
+- Student Dashboard v36 desktop/mobile workflow;
+- First-run Onboarding v37 desktop/mobile workflow;
+- accessibility, page overflow, images and keyboard focus.
+
+This gate intentionally runs without the production Supabase browser configuration so interactive Studio/Dashboard QA can exercise the product surfaces without creating real user accounts.
+
+### 3. Beta Release Certification
+
+`Beta Release Certification` checks out the **actual PR head SHA**, not GitHub's synthetic PR merge commit, then proves the production deployment/security contract:
 
 1. tracked-secret hygiene passes;
-2. the release certificate invariants pass;
+2. the deterministic release-certificate invariants pass;
 3. release-critical API/security tests pass;
 4. the API container starts with beta-safe explicit CORS;
 5. `/health` and `/readiness` satisfy their code-level contracts;
 6. SaaS mode fails closed when Supabase configuration is absent;
-7. the GitHub Pages build uses the canonical Azure API;
+7. the GitHub Pages build uses the canonical Azure API and real public Supabase configuration;
 8. all beta-critical static routes exist;
 9. the exported browser bundle contains no high-confidence privileged secret material;
-10. the existing full browser-quality suite, Student Dashboard v36 suite, and Onboarding v37 suite pass on desktop and 390px mobile;
-11. release evidence is uploaded for the exact commit SHA.
+10. a production-configured signed-out browser cannot expose browser-local dashboard assignment content;
+11. a production-configured signed-out Revision Studio does not expose its editor before authentication;
+12. release evidence is uploaded for the exact candidate SHA.
+
+The production signed-out test deliberately does **not** bypass Supabase authentication. Interactive Studio/Dashboard behavior is certified by the independent Web Product Quality gate on the same SHA.
 
 The resulting certificate intentionally records:
 
