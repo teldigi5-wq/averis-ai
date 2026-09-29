@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Fail CI when tracked files contain high-confidence privileged secret material.
 
-This is intentionally conservative. Public browser-safe identifiers such as
-Supabase `sb_publishable_...` keys are not secrets and are not rejected.
+Public browser-safe identifiers such as Supabase `sb_publishable_...` keys are
+not secrets and are intentionally allowed.
 """
 
 from __future__ import annotations
@@ -33,8 +33,8 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("Stripe live secret", re.compile(r"\bsk_live_[A-Za-z0-9]{20,}\b")),
 )
 
-SERVICE_ROLE_ASSIGNMENT = re.compile(
-    r"(?im)\bSUPABASE_SERVICE_ROLE_KEY\s*=\s*['\"]?([^\s'\"#]+)"
+SERVER_SECRET_ASSIGNMENT = re.compile(
+    r"(?im)\b(SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|LEMON_SQUEEZY_API_KEY|LEMON_SQUEEZY_WEBHOOK_SECRET)\s*=\s*['\"]?([^\s'\"#]+)"
 )
 PLACEHOLDER_MARKERS = ("<", "${", "your_", "example", "placeholder", "changeme", "replace_me")
 
@@ -48,9 +48,8 @@ def tracked_files() -> list[Path]:
     )
     paths: list[Path] = []
     for raw in result.stdout.split(b"\0"):
-        if not raw:
-            continue
-        paths.append(ROOT / raw.decode("utf-8", errors="strict"))
+        if raw:
+            paths.append(ROOT / raw.decode("utf-8", errors="strict"))
     return paths
 
 
@@ -80,10 +79,10 @@ def main() -> int:
             if pattern.search(text):
                 findings.append(f"{label}: {relative}")
 
-        for match in SERVICE_ROLE_ASSIGNMENT.finditer(text):
-            value = match.group(1).strip()
+        for match in SERVER_SECRET_ASSIGNMENT.finditer(text):
+            name, value = match.group(1), match.group(2).strip()
             if value and not looks_like_placeholder(value):
-                findings.append(f"non-placeholder SUPABASE_SERVICE_ROLE_KEY assignment: {relative}")
+                findings.append(f"non-placeholder {name} assignment: {relative}")
 
     if findings:
         print("Tracked secret hygiene check FAILED:", file=sys.stderr)
