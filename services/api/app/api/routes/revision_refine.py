@@ -15,6 +15,7 @@ from app.schemas.revision_refine import (
     RevisionRefineResponse,
 )
 from app.services.auth import AuthContext, require_user
+from app.services.billing import billing_configured, get_billing_snapshot
 from app.services.rate_limit import AI_CLOUD_REVISION, AI_REVISION, enforce_rate_limit
 from app.services.revision_guardrails import build_revision_boundary
 from app.services.revision_metrics import analyze_writing_style, overlap_review_band
@@ -52,11 +53,7 @@ def _dois(text: str) -> list[str]:
 
 
 def _source_evidence(text: str, source_text: str, source_name: str) -> RefinementSourceEvidence:
-    report = compare_texts(
-        document_text=text,
-        source_text=source_text,
-        source_name=source_name,
-    )
+    report = compare_texts(document_text=text, source_text=source_text, source_name=source_name)
     return RefinementSourceEvidence(
         source_name=report.source_name,
         similarity_percent=report.similarity_percent,
@@ -73,13 +70,11 @@ def _preservation(original: str, suggestion: str) -> RefinementPreservationRepor
     numbers_after = _numbers(suggestion)
     dois_before = _dois(original)
     dois_after = _dois(suggestion)
-
     missing_citations = [value for value in citations_before if value not in citations_after]
     missing_numbers = [value for value in numbers_before if value not in numbers_after]
     missing_dois = [value for value in dois_before if value.casefold() not in {item.casefold() for item in dois_after}]
     original_length = max(1, len(original))
     length_change_percent = round(((len(suggestion) - len(original)) / original_length) * 100, 2)
-
     return RefinementPreservationReport(
         citations_before=citations_before,
         citations_after=citations_after,
@@ -124,17 +119,26 @@ async def refine_revision(
     payload: RevisionRefineRequest,
     auth: AuthContext = Depends(require_user),
 ) -> RevisionRefineResponse:
-    """Create a bounded writing-refinement proposal after re-checking safety.
+    """Create a bounded writing-refinement proposal after re-checking safety."""
+    settings = get_settings()
 
-    This endpoint is intentionally not an AI-detector humanizer. It can improve
-    clarity, structure and academic tone, but explicit detector-evasion goals are
-    blocked and every suggestion is checked for citation/number/DOI preservation.
-    Cloud inference is explicitly selected, server-side only, and never falls back
-    to another model or provider.
-    """
+    # During the free beta (billing disabled), the existing Cloud AI behavior is
+    # unchanged. Once billing is explicitly activated, paid Cloud AI entitlement
+    # is verified server-side and cannot be enabled by editing browser state.
+    if payload.runtime == "cloud" and billing_configured():
+        billing = await get_billing_snapshot(auth)
+        if not billing.cloud_allowed:
+            return RevisionRefineResponse(
+                generation_eligible=True,
+                runtime_available=False,
+                runtime="cloud",
+                boundary="subscription_required",
+                blocked_reason="Cloud AI requires an active Student Plus or Student Pro subscription. Private Browser AI and local tools remain available.",
+                original_text=payload.text,
+            )
+
     rate_policy = AI_CLOUD_REVISION if payload.runtime == "cloud" else AI_REVISION
     await enforce_rate_limit(auth, rate_policy)
-    settings = get_settings()
 
     writing = analyze_writing_style(payload.text)
     source_report = None
@@ -184,7 +188,6 @@ async def refine_revision(
                 original_text=payload.text,
                 source_evidence_before=source_before,
             )
-
         try:
             provider = CloudAIProvider(
                 settings.ai_api_base_url,
@@ -195,11 +198,7 @@ async def refine_revision(
             suggestion = await provider.refine_writing(_refinement_prompt(payload))
         except (CloudAIProviderError, ValueError) as exc:
             code = exc.code if isinstance(exc, CloudAIProviderError) else "cloud_configuration_error"
-            reason = (
-                exc.message
-                if isinstance(exc, CloudAIProviderError)
-                else "Cloud AI configuration is invalid. No fallback model was used."
-            )
+            reason = exc.message if isinstance(exc, CloudAIProviderError) else "Cloud AI configuration is invalid. No fallback model was used."
             return RevisionRefineResponse(
                 generation_eligible=True,
                 runtime_available=False,
@@ -223,7 +222,6 @@ async def refine_revision(
                 original_text=payload.text,
                 source_evidence_before=source_before,
             )
-
         provider = OllamaProvider(
             settings.ollama_base_url,
             settings.ollama_model,
