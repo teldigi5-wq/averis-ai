@@ -107,8 +107,19 @@ button:disabled {
   background: rgba(255, 255, 255, .018);
 }
 
+@media (max-width: 980px) {
+  /* The persistent mobile dock stays available without trapping focused controls underneath it. */
+  html[data-averis-workspace-open="true"] {
+    scroll-padding-bottom: 92px;
+  }
+
+  html[data-averis-workspace-open="true"] main :is(button, a, input, textarea, select, [tabindex]) {
+    scroll-margin-bottom: 92px;
+  }
+}
+
 @media (max-width: 760px) {
-  /* Keep all four Workspace tools visible instead of requiring hidden horizontal scrolling. */
+  /* Keep all three Workspace tools visible instead of requiring hidden horizontal scrolling. */
   html[data-averis-workspace-open="true"] .toolNav {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
