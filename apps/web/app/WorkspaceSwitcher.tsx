@@ -103,20 +103,19 @@ export default function WorkspaceSwitcher() {
   if (!ready || !workspaceOpen) return null;
 
   return (
-    <>
-      <nav className={styles.switcher} aria-label="Averis workspace modules" data-active-module={studio ? "studio" : leaf || "workspace"}>
-        <span className={styles.railBrand} aria-hidden="true" />
-        <span className={styles.railDivider} aria-hidden="true" />
-        <Link className={dashboard ? styles.active : ""} href="/dashboard" aria-current={dashboard ? "page" : undefined} title="Student Dashboard"><WorkspaceIcon name="dashboard" /><span className={styles.label}>Home</span></Link>
-        <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined} title="Review Center" onClick={reopenReviewCenter}><WorkspaceIcon name="workspace" /><span className={styles.label}>Workspace</span></Link>
-        <Link className={multiSource ? styles.active : ""} href="/multi-source" aria-current={multiSource ? "page" : undefined} title="Sources"><WorkspaceIcon name="sources" /><span className={styles.label}>Sources</span></Link>
-        <Link className={revision ? styles.active : ""} href="/revision" aria-current={revision ? "page" : undefined} title="Evidence AI"><WorkspaceIcon name="revision" /><span className={styles.label}>Evidence AI</span></Link>
-        <Link className={refine ? styles.active : ""} href={studio ? "/studio" : "/refine"} aria-current={refine ? "page" : undefined} title={studio ? "Revision Studio" : "Refine writing"}><WorkspaceIcon name="refine" /><span className={styles.label}>{studio ? "Studio" : "Refine"}</span></Link>
-        <Link className={privateAi ? styles.active : ""} href="/private-ai" aria-current={privateAi ? "page" : undefined} title="Private AI"><WorkspaceIcon name="privateAi" /><span className={styles.label}>Private AI</span></Link>
-        <Link className={pricing ? styles.active : ""} href="/pricing" aria-current={pricing ? "page" : undefined} title="Student pricing"><WorkspaceIcon name="pricing" /><span className={styles.label}>Pricing</span></Link>
-        <Link className={privacy ? styles.active : ""} href="/privacy" aria-current={privacy ? "page" : undefined} title="Privacy"><WorkspaceIcon name="privacy" /><span className={styles.label}>Privacy</span></Link>
-      </nav>
-      <button className="averisGuideButtonV37" type="button" onClick={openProductGuide} aria-label="Open Averis product guide" title="Product guide">?</button>
-    </>
+    <nav className={styles.switcher} aria-label="Averis workspace modules" data-active-module={studio ? "studio" : leaf || "workspace"}>
+      <span className={styles.railBrand} aria-hidden="true" />
+      <span className={styles.railDivider} aria-hidden="true" />
+      <Link className={dashboard ? styles.active : ""} href="/dashboard" aria-current={dashboard ? "page" : undefined} title="Student Dashboard"><WorkspaceIcon name="dashboard" /><span className={styles.label}>Home</span></Link>
+      <Link className={main ? styles.active : ""} href="/" aria-current={main ? "page" : undefined} title="Review Center" onClick={reopenReviewCenter}><WorkspaceIcon name="workspace" /><span className={styles.label}>Workspace</span></Link>
+      <Link className={multiSource ? styles.active : ""} href="/multi-source" aria-current={multiSource ? "page" : undefined} title="Sources"><WorkspaceIcon name="sources" /><span className={styles.label}>Sources</span></Link>
+      <Link className={revision ? styles.active : ""} href="/revision" aria-current={revision ? "page" : undefined} title="Evidence AI"><WorkspaceIcon name="revision" /><span className={styles.label}>Evidence AI</span></Link>
+      <Link className={refine ? styles.active : ""} href={studio ? "/studio" : "/refine"} aria-current={refine ? "page" : undefined} title={studio ? "Revision Studio" : "Refine writing"}><WorkspaceIcon name="refine" /><span className={styles.label}>{studio ? "Studio" : "Refine"}</span></Link>
+      <Link className={privateAi ? styles.active : ""} href="/private-ai" aria-current={privateAi ? "page" : undefined} title="Private AI"><WorkspaceIcon name="privateAi" /><span className={styles.label}>Private AI</span></Link>
+      <Link className={pricing ? styles.active : ""} href="/pricing" aria-current={pricing ? "page" : undefined} title="Student pricing"><WorkspaceIcon name="pricing" /><span className={styles.label}>Pricing</span></Link>
+      <Link className={privacy ? styles.active : ""} href="/privacy" aria-current={privacy ? "page" : undefined} title="Privacy"><WorkspaceIcon name="privacy" /><span className={styles.label}>Privacy</span></Link>
+      <span className={styles.railSpacer} aria-hidden="true" />
+      <button className={styles.guideButton} type="button" onClick={openProductGuide} aria-label="Open Averis product guide" title="Product guide">?</button>
+    </nav>
   );
 }
