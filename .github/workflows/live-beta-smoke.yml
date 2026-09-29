@@ -1,0 +1,53 @@
+name: Live Beta Smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/live-beta-smoke.yml"
+      - "scripts/release/live_beta_smoke.py"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/live-beta-smoke.yml"
+      - "scripts/release/live_beta_smoke.py"
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-beta-smoke-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  live-beta-smoke:
+    name: live-beta-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile smoke probe
+        run: python -m py_compile scripts/release/live_beta_smoke.py
+
+      - name: Verify live beta release contract
+        run: python scripts/release/live_beta_smoke.py --output live-beta-smoke.json
+
+      - name: Upload live smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-beta-smoke-${{ github.run_id }}
+          path: live-beta-smoke.json
+          if-no-files-found: warn
+          retention-days: 14
