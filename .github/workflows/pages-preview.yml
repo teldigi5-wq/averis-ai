@@ -61,6 +61,7 @@ jobs:
             refine/index.html \
             studio/index.html \
             private-ai/index.html \
+            pricing/index.html \
             privacy/index.html
           do
             test -f "out/$route" || { echo "Missing static route: out/$route"; exit 1; }
