@@ -36,7 +36,8 @@ export default function PasswordRecoveryPage() {
   const passwordsMatch = Boolean(password) && password === confirmPassword;
 
   useEffect(() => {
-    if (!supabaseConfigured || !supabase) return;
+    const client = supabase;
+    if (!supabaseConfigured || !client) return;
 
     const recoveryIntent = new URLSearchParams(window.location.search).get("flow") === "recovery";
     if (!recoveryIntent) return;
@@ -46,7 +47,7 @@ export default function PasswordRecoveryPage() {
     setError("");
 
     const promoteIfSessionExists = async () => {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await client.auth.getSession();
       if (!active) return false;
       if (data.session?.user) {
         setStage("reset");
@@ -57,7 +58,7 @@ export default function PasswordRecoveryPage() {
 
     void promoteIfSessionExists();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: subscription } = client.auth.onAuthStateChange((event, session) => {
       if (!active || !session?.user) return;
       if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || event === "INITIAL_SESSION") {
         setStage("reset");
@@ -81,7 +82,8 @@ export default function PasswordRecoveryPage() {
 
   async function requestRecovery(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!supabaseConfigured || !supabase) {
+    const client = supabase;
+    if (!supabaseConfigured || !client) {
       setError("Password recovery is unavailable because authentication is not configured in this build.");
       return;
     }
@@ -95,7 +97,7 @@ export default function PasswordRecoveryPage() {
       redirectUrl.search = "?flow=recovery";
       redirectUrl.hash = "";
 
-      const { error: recoveryError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error: recoveryError } = await client.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: redirectUrl.toString(),
       });
 
@@ -112,7 +114,8 @@ export default function PasswordRecoveryPage() {
 
   async function updatePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!supabaseConfigured || !supabase) return;
+    const client = supabase;
+    if (!supabaseConfigured || !client) return;
 
     if (!allChecksPass(checks)) {
       setError("Use at least 12 characters with lowercase, uppercase, a number, and a symbol.");
@@ -128,10 +131,10 @@ export default function PasswordRecoveryPage() {
     setMessage("");
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password });
+      const { error: updateError } = await client.auth.updateUser({ password });
       if (updateError) throw updateError;
 
-      const { error: signOutError } = await supabase.auth.signOut({ scope: "global" });
+      const { error: signOutError } = await client.auth.signOut({ scope: "global" });
       setStage("success");
       setPassword("");
       setConfirmPassword("");
