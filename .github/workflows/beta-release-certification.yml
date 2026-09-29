@@ -1,0 +1,230 @@
+name: Beta Release Certification
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: beta-release-certification-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-candidate:
+    name: release-candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AVERIS_API_URL: "https://averis-api-beta-db36dd7d.azurewebsites.net"
+      AVERIS_WEB_ORIGIN: "https://teldigi5-wq.github.io"
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify tracked-secret hygiene
+        run: python scripts/security/check_tracked_secrets.py
+
+      - name: Create static release certificate
+        run: python scripts/release/certify_beta_release.py --output artifacts/beta-release/certification.json
+
+      - name: Install API dependencies
+        working-directory: services/api
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip check
+
+      - name: Run release-critical API tests
+        working-directory: services/api
+        run: |
+          pytest -q \
+            tests/test_cors_config.py \
+            tests/test_cloud_ai_provider.py \
+            tests/test_revision_refine.py \
+            tests/test_document_parser_security.py \
+            tests/test_document_route_security.py
+
+      - name: Build API release container
+        working-directory: services/api
+        run: docker build --tag averis-api-release-v38 .
+
+      - name: Smoke API with beta-safe configuration
+        run: |
+          set -euo pipefail
+          docker run --rm -d --name averis-api-release-v38 \
+            -p 8000:8080 \
+            -e PORT=8080 \
+            -e APP_ENV=beta \
+            -e WEB_ORIGIN="$AVERIS_WEB_ORIGIN" \
+            -e SAAS_MODE=false \
+            -e AI_CLOUD_ENABLED=false \
+            averis-api-release-v38
+          trap 'docker rm -f averis-api-release-v38 >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/health > /tmp/averis-health.json; then
+              break
+            fi
+            sleep 1
+          done
+          jq -e '.status == "ok" and .service == "averis-api"' /tmp/averis-health.json >/dev/null
+          curl --fail --silent http://127.0.0.1:8000/readiness > /tmp/averis-readiness.json
+          jq -e '.status == "ready" and .saas_mode == false and .original_upload_retained == false' /tmp/averis-readiness.json >/dev/null
+
+      - name: Assert SaaS readiness fails closed without Supabase
+        run: |
+          set -euo pipefail
+          docker run --rm -d --name averis-api-release-failclosed \
+            -p 8001:8080 \
+            -e PORT=8080 \
+            -e APP_ENV=beta \
+            -e WEB_ORIGIN="$AVERIS_WEB_ORIGIN" \
+            -e SAAS_MODE=true \
+            -e AI_CLOUD_ENABLED=false \
+            averis-api-release-v38
+          trap 'docker rm -f averis-api-release-failclosed >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            code="$(curl --silent --output /tmp/averis-readiness-failclosed.json --write-out '%{http_code}' http://127.0.0.1:8001/readiness || true)"
+            if [ "$code" = "503" ]; then
+              jq -e '.detail | contains("Supabase is not configured")' /tmp/averis-readiness-failclosed.json >/dev/null
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Expected /readiness to fail closed with HTTP 503 when SaaS mode lacks Supabase configuration."
+          cat /tmp/averis-readiness-failclosed.json || true
+          exit 1
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck release web
+        working-directory: apps/web
+        run: npm run typecheck
+
+      - name: Build canonical GitHub Pages release
+        working-directory: apps/web
+        env:
+          GITHUB_PAGES: "true"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          NEXT_PUBLIC_API_URL: "https://averis-api-beta-db36dd7d.azurewebsites.net"
+          NEXT_PUBLIC_SUPABASE_URL: "https://lydepiaatemwpremgekt.supabase.co"
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_hrvA30mwTq5Yhjfq4SXaoA_TYcCUE0j"
+          NEXT_PUBLIC_CINEMATIC_QA: "true"
+        run: npm run build
+
+      - name: Verify beta-critical static routes
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          for route in \
+            index.html \
+            dashboard/index.html \
+            multi-source/index.html \
+            revision/index.html \
+            refine/index.html \
+            studio/index.html \
+            private-ai/index.html \
+            privacy/index.html
+          do
+            test -f "out/$route" || { echo "Missing static route: out/$route"; exit 1; }
+          done
+
+      - name: Scan exported browser bundle for privileged secret material
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          if grep -R -I -E --line-number \
+            'gsk_[A-Za-z0-9]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|sk_live_[A-Za-z0-9]{20,}' \
+            out; then
+            echo "Privileged secret-like material detected in public static export."
+            exit 1
+          fi
+          echo "Public static export secret scan passed."
+
+      - name: Install browser certification tools
+        working-directory: apps/web
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@latest axe-core@latest
+          npx playwright install --with-deps chromium
+
+      - name: Mount exact static release at production base path
+        run: |
+          rm -rf /tmp/averis-release-site
+          mkdir -p /tmp/averis-release-site/averis-ai
+          cp -a apps/web/out/. /tmp/averis-release-site/averis-ai/
+          python3 -m http.server 4173 --directory /tmp/averis-release-site > /tmp/averis-release-web.log 2>&1 &
+          echo $! > /tmp/averis-release-web.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4173/averis-ai/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/averis-release-web.log || true
+          exit 1
+
+      - name: Run exact-release browser certification
+        working-directory: apps/web
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: |
+          node scripts/browser-quality-smoke.mjs
+          node scripts/dashboard-quality-smoke-v36.mjs
+          node scripts/onboarding-quality-smoke-v37.mjs
+
+      - name: Stop release preview server
+        if: always()
+        run: |
+          if [ -f /tmp/averis-release-web.pid ]; then
+            kill "$(cat /tmp/averis-release-web.pid)" 2>/dev/null || true
+          fi
+          docker rm -f averis-api-release-v38 >/dev/null 2>&1 || true
+          docker rm -f averis-api-release-failclosed >/dev/null 2>&1 || true
+
+      - name: Write exact-head release evidence
+        if: success()
+        run: |
+          mkdir -p artifacts/beta-release
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          path = Path("artifacts/beta-release/workflow-evidence.json")
+          path.write_text(json.dumps({
+              "schema_version": "averis.beta-release-workflow-evidence/v38",
+              "commit_sha": os.environ.get("GITHUB_SHA"),
+              "workflow_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "code_certified": True,
+              "live_deployment_verified": False,
+              "api_container_smoke": "passed",
+              "saas_fail_closed_smoke": "passed",
+              "github_pages_build": "passed",
+              "public_bundle_secret_scan": "passed",
+              "browser_quality": "passed",
+              "note": "Live deployment verification remains pending explicit merge/deploy approval."
+          }, indent=2) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload v38 release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-release-v38-${{ github.sha }}
+          path: |
+            artifacts/beta-release/
+            artifacts/web-quality/
+          if-no-files-found: error
+          retention-days: 30
