@@ -28,6 +28,7 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("GitHub fine-grained token", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{30,}\b")),
     ("Groq API key", re.compile(r"\bgsk_[A-Za-z0-9]{30,}\b")),
     ("Supabase secret key", re.compile(r"\bsb_secret_[A-Za-z0-9_-]{20,}\b")),
+    ("Creem API key", re.compile(r"\bcreem_(?:test_)?[A-Za-z0-9]{20,}\b")),
     ("AWS access key", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
     ("Slack token", re.compile(r"\bxox[baprs]-[A-Za-z0-9-]{20,}\b")),
     ("Stripe live secret", re.compile(r"\bsk_live_[A-Za-z0-9]{20,}\b")),
@@ -37,10 +38,10 @@ SECRET_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
 # after an intentionally blank `.env.example` value and could misread the next
 # variable name as the secret value.
 SERVER_SECRET_ASSIGNMENT = re.compile(
-    r"(?im)\b(SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|LEMON_SQUEEZY_API_KEY|LEMON_SQUEEZY_WEBHOOK_SECRET)[ \t]*=[ \t]*['\"]?([^\s'\"#]+)"
+    r"(?im)\b(SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|CREEM_API_KEY|CREEM_WEBHOOK_SECRET)[ \t]*=[ \t]*['\"]?([^\s'\"#]+)"
 )
 # `\\n` is included because release-certificate source code intentionally checks
-# for strings such as `LEMON_SQUEEZY_API_KEY=\\n` to prove the example value is empty.
+# for strings such as `CREEM_API_KEY=\\n` to prove the example value is empty.
 PLACEHOLDER_MARKERS = ("<", "${", "your_", "example", "placeholder", "changeme", "replace_me", "\\n")
 
 
