@@ -34,16 +34,24 @@ for (const profile of profiles) {
       const rect = element.getBoundingClientRect();
       return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0 && rect.width > 0 && rect.height > 0;
     };
+
     const segmentButtons = [...document.querySelectorAll('[aria-label="Billing currency display"] button, [aria-label="Billing cadence"] button')];
     const cardActions = [...document.querySelectorAll('section[aria-label="Student subscription plans"] article > button, section[aria-label="Student subscription plans"] article > a')];
     const microcopy = document.querySelector('main p[class*="microcopy"]');
+    const signInHint = document.querySelector('section[aria-label="Sign in for subscriptions"]');
+    const paidButtons = [...document.querySelectorAll('section[aria-label="Student subscription plans"] article > button')];
+    const signedOutPaidButtons = paidButtons.filter((button) => button.textContent?.includes("Sign in to choose") && !button.disabled);
+    const legacyActivatingButtons = paidButtons.filter((button) => button.textContent?.includes("Subscriptions activating soon"));
+
     return {
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
       cards: document.querySelectorAll('section[aria-label="Student subscription plans"] article').length,
       securityItems: document.querySelectorAll('section[aria-label="Subscription protections"] > div').length,
       brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
-      disabledPaidButtons: [...document.querySelectorAll("button")].filter((button) => button.textContent?.includes("Subscriptions activating soon") && button.disabled).length,
+      signedOutPaidButtons: signedOutPaidButtons.length,
+      legacyActivatingButtons: legacyActivatingButtons.length,
+      signInHintVisible: Boolean(signInHint && isVisible(signInHint)),
       controlsVisible: [...segmentButtons, ...cardActions].every(isVisible),
       touchTargetsOk: [...segmentButtons, ...cardActions].every((element) => element.getBoundingClientRect().height >= 40),
       microcopyFontSize: microcopy ? Number.parseFloat(getComputedStyle(microcopy).fontSize) : 0,
@@ -64,13 +72,16 @@ for (const profile of profiles) {
     && serious.length === 0
     && hasLkr
     && hasUsd
-    && measurements.disabledPaidButtons === 2
+    && measurements.signedOutPaidButtons === 2
+    && measurements.legacyActivatingButtons === 0
+    && measurements.signInHintVisible
     && measurements.controlsVisible
     && measurements.touchTargetsOk
     && measurements.microcopyFontSize >= 13;
+
   if (!ok) failed = true;
 
-  await page.screenshot({ path: path.join(artifactDir, `pricing-v40-${profile.name}.png`), fullPage: true });
+  await page.screenshot({ path: path.join(artifactDir, `pricing-v44-${profile.name}.png`), fullPage: true });
   results.push({
     profile: profile.name,
     ok,
@@ -81,7 +92,9 @@ for (const profile of profiles) {
     serious_or_critical_a11y: serious.map((item) => item.id),
     lkr_toggle_ok: hasLkr,
     usd_toggle_ok: hasUsd,
-    paid_checkout_fail_closed: measurements.disabledPaidButtons === 2,
+    signed_out_checkout_actions: measurements.signedOutPaidButtons,
+    legacy_activating_actions: measurements.legacyActivatingButtons,
+    sign_in_hint_visible: measurements.signInHintVisible,
     controls_visible: measurements.controlsVisible,
     touch_targets_ok: measurements.touchTargetsOk,
     microcopy_font_px: measurements.microcopyFontSize,
@@ -90,9 +103,9 @@ for (const profile of profiles) {
 }
 
 await browser.close();
-await fs.writeFile(path.join(artifactDir, "pricing-v40-report.json"), `${JSON.stringify({ results }, null, 2)}\n`);
+await fs.writeFile(path.join(artifactDir, "pricing-v44-report.json"), `${JSON.stringify({ results }, null, 2)}\n`);
 if (failed) {
   console.error(JSON.stringify(results, null, 2));
   process.exit(1);
 }
-console.log("Pricing v40 desktop/mobile visibility quality smoke passed.");
+console.log("Pricing v44 desktop/mobile auth-ready quality smoke passed.");

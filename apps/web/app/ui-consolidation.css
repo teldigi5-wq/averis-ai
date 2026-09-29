@@ -1,5 +1,7 @@
-/* Averis v41 — calm, readable product polish.
-   Presentation only: no billing, evidence, auth, runtime, or entitlement behavior changes. */
+/* Averis UI consolidation — calm, readable final presentation layer.
+   This replaces the versioned v41 final override and also removes cross-route
+   residue from older global workspace layers. No auth, billing, evidence, or
+   entitlement behavior lives here. */
 
 :root {
   --muted: #a7bac7;
@@ -18,6 +20,25 @@ body {
 body::before {
   opacity: .028;
   background-size: 56px 56px;
+}
+
+/* Legacy brand-ui reserved footer space globally. Keep that space only when
+   the authenticated workspace shell is actually present. */
+html:not([data-averis-workspace-open="true"]) body {
+  padding-bottom: 0 !important;
+}
+
+/* Standalone pages must never inherit horizontal overflow from workspace-era
+   fixed decorations. */
+html[data-averis-route="pricing"] body,
+html[data-averis-route="privacy"] body,
+html[data-averis-route="dashboard"] body,
+html[data-averis-route="private-ai"] body,
+html[data-averis-route="multi-source"] body,
+html[data-averis-route="revision"] body,
+html[data-averis-route="refine"] body,
+html[data-averis-route="studio"] body {
+  overflow-x: clip;
 }
 
 /* Keep secondary information readable without turning every surface into a highlight. */
@@ -119,7 +140,7 @@ button:disabled {
 }
 
 @media (max-width: 760px) {
-  /* Keep all three Workspace tools visible instead of requiring hidden horizontal scrolling. */
+  /* Keep all Workspace tools visible instead of requiring hidden horizontal scrolling. */
   html[data-averis-workspace-open="true"] .toolNav {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;

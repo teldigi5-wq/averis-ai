@@ -21,13 +21,11 @@ import "./workspace-depth-v17.css";
 import "./review-center-v18.css";
 import "./review-center-v18-fixes.css";
 import "./revision-studio-v19-fixes.css";
-import "./ui-comfort-v41.css";
+import "./ui-consolidation.css";
 
 import AuthExperience from "./AuthExperience";
-import CinematicIntroGate from "./CinematicIntroGate";
-import IntroLayerIsolation from "./IntroLayerIsolation";
 import OnboardingExperienceV37 from "./OnboardingExperienceV37";
-import ReviewCenterV18 from "./ReviewCenterV18";
+import UiRuntimeCoordinator from "./UiRuntimeCoordinator";
 import WorkspaceSwitcher from "./WorkspaceSwitcher";
 
 const githubPages = process.env.GITHUB_PAGES === "true";
@@ -55,9 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       suppressHydrationWarning
     >
       <body>
-        <CinematicIntroGate />
-        <IntroLayerIsolation />
-        <ReviewCenterV18 />
+        <UiRuntimeCoordinator />
         {children}
         <AuthExperience />
         <WorkspaceSwitcher />
