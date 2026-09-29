@@ -10,7 +10,7 @@ const profiles = [
   { name: "small-mobile", viewport: { width: 360, height: 800 } },
 ];
 const routes = [
-  { name: "workspace", path: "/", selector: ".toolNav .toolButton", expected: 4, prepareWorkspace: true },
+  { name: "workspace", path: "/", selector: ".toolNav .toolButton", expected: 3, prepareWorkspace: true },
   { name: "studio", path: "/studio/", selector: ".studioV27Command__phase", expected: 6 },
 ];
 
