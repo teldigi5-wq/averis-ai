@@ -54,6 +54,47 @@ class CloudAIProvider(AIProvider):
             "Content-Type": "application/json",
         }
 
+    @property
+    def _groq_gpt_oss(self) -> bool:
+        parsed = urlparse(self.base_url)
+        return parsed.hostname == "api.groq.com" and self.model.casefold().startswith("openai/gpt-oss-")
+
+    def _completion_body(self, prompt: str) -> dict[str, object]:
+        body: dict[str, object] = {
+            "model": self.model,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are Averis Writing Refinement. Follow the supplied academic-integrity "
+                        "rules exactly and return only the requested revision proposal."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.2,
+            "stream": False,
+        }
+
+        if self._groq_gpt_oss:
+            # GPT-OSS is a reasoning model. With a small legacy max_tokens budget,
+            # reasoning can consume the completion allowance before a user-visible
+            # final answer is emitted. Keep reasoning low, exclude traces from the
+            # response, and give the final proposal a completion-native budget.
+            body.update(
+                {
+                    "reasoning_effort": "low",
+                    "include_reasoning": False,
+                    "max_completion_tokens": 4096,
+                }
+            )
+        else:
+            # Preserve compatibility with other OpenAI-compatible endpoints that
+            # may not understand Groq's GPT-OSS reasoning controls.
+            body["max_tokens"] = 1800
+
+        return body
+
     async def health(self) -> dict[str, object]:
         try:
             async with httpx.AsyncClient(timeout=min(self.timeout_seconds, 4.0)) as client:
@@ -73,22 +114,7 @@ class CloudAIProvider(AIProvider):
             }
 
     async def refine_writing(self, prompt: str) -> str:
-        body = {
-            "model": self.model,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are Averis Writing Refinement. Follow the supplied academic-integrity "
-                        "rules exactly and return only the requested revision proposal."
-                    ),
-                },
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.2,
-            "max_tokens": 1800,
-            "stream": False,
-        }
+        body = self._completion_body(prompt)
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
@@ -135,8 +161,10 @@ class CloudAIProvider(AIProvider):
             ) from exc
 
         if not isinstance(value, str) or not value.strip():
+            # Never substitute a provider reasoning trace for the requested final
+            # answer. Reasoning stays private and is not treated as student output.
             raise CloudAIProviderError(
                 "cloud_invalid_response",
-                "The configured Cloud AI provider returned an empty response.",
+                "The configured Cloud AI provider returned no final response. No fallback model was used.",
             )
         return value.strip()[:20_000]

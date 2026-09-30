@@ -8,15 +8,9 @@ on:
     paths:
       - ".github/workflows/web-product-quality.yml"
       - "apps/web/**"
+  # main protection requires signed-out-browser-quality. Run it for every PR so
+  # backend-only fixes cannot be left permanently unmergeable by a skipped gate.
   pull_request:
-    paths:
-      - ".github/workflows/web-product-quality.yml"
-      - ".github/workflows/beta-release-certification.yml"
-      - "scripts/release/**"
-      - "services/api/app/core/config.py"
-      - "services/api/tests/test_cors_config.py"
-      - ".env.example"
-      - "apps/web/**"
   workflow_dispatch:
 
 permissions:
