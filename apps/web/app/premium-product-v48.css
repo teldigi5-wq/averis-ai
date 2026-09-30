@@ -127,6 +127,12 @@ html[data-averis-route]:not([data-averis-route="home"]) main::after {
   filter: brightness(1.035) !important;
 }
 
+/* Keep the six primary workflows visually balanced on desktop. The previous
+   five-column layout left Private AI stranded on a mostly empty second row. */
+.reviewToolGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
 .reviewToolGrid > * {
   transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease !important;
 }
@@ -136,6 +142,28 @@ html[data-averis-route]:not([data-averis-route="home"]) main::after {
   border-color: rgba(123, 208, 202, .28) !important;
   background: linear-gradient(180deg, #10242f, #0c1b26) !important;
   box-shadow: 0 20px 44px rgba(0, 0, 0, .19) !important;
+}
+
+/* CSS modules on pricing intentionally inherit global button defaults. Lock
+   the signed-out upgrade strip into a deliberate two-column desktop layout so
+   a generic width:100% button rule cannot squeeze the explanatory copy. */
+section[aria-label="Sign in for subscriptions"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+section[aria-label="Sign in for subscriptions"] > div {
+  min-width: 0;
+}
+
+section[aria-label="Sign in for subscriptions"] > button {
+  width: auto !important;
+  min-width: 148px !important;
+  max-width: 220px !important;
+  justify-self: end !important;
+  margin: 0 !important;
 }
 
 /* Current-plan value surface: premium without fake metrics or invented claims. */
@@ -267,6 +295,10 @@ html[data-averis-route="dashboard"] main {
   .reviewValuePanel {
     grid-template-columns: 1fr;
   }
+
+  .reviewToolGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
 @media (max-width: 700px) {
@@ -284,12 +316,25 @@ html[data-averis-route="dashboard"] main {
     border-radius: 16px;
   }
 
-  .reviewValueGrid {
-    grid-template-columns: 1fr;
+  .reviewValueGrid,
+  .reviewToolGrid {
+    grid-template-columns: 1fr !important;
   }
 
   .reviewValueGrid article {
     padding: 15px;
+  }
+
+  section[aria-label="Sign in for subscriptions"] {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  section[aria-label="Sign in for subscriptions"] > button {
+    width: 100% !important;
+    max-width: none !important;
+    justify-self: stretch !important;
   }
 }
 
