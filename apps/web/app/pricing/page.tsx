@@ -347,7 +347,12 @@ export default function PricingPage() {
           </div>
           <p>Free keeps the local/private study workflow useful. Paid plans add much more server capacity plus the paid workbench and optional Cloud AI path.</p>
         </div>
-        <div className={premiumStyles.comparisonScroller}>
+        <div
+          className={premiumStyles.comparisonScroller}
+          role="region"
+          aria-label="Scrollable plan capability comparison"
+          tabIndex={0}
+        >
           <table>
             <thead>
               <tr>
