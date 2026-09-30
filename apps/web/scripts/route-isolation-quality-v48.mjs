@@ -131,6 +131,60 @@ for (const target of targets) {
   });
 }
 
+// Cloud AI must be discoverable from the persistent workspace navigation and
+// must land in Revision Studio with the cloud runtime selected explicitly.
+const cloudHome = await page.goto(`${baseUrl}/?review-center=1`, { waitUntil: "networkidle" });
+if (!cloudHome || cloudHome.status() !== 200) throw new Error("Review Center did not return HTTP 200 for Cloud AI navigation certification");
+await page.locator(".reviewCenterV18").waitFor({ state: "visible" });
+const cloudEntry = page.locator('[data-cloud-ai-entry="true"]');
+await cloudEntry.waitFor({ state: "visible" });
+await cloudEntry.click();
+await page.waitForURL((url) => url.pathname.endsWith("/studio/") && url.searchParams.get("runtime") === "cloud", { timeout: 10000 });
+await page.locator('[data-studio-runtime="cloud"]').waitFor({ state: "visible", timeout: 10000 });
+await page.waitForTimeout(120);
+
+const cloudMeasurement = await page.evaluate(() => {
+  const cloudOption = document.querySelector('[data-runtime-option="cloud"]');
+  const cloudEntry = document.querySelector('[data-cloud-ai-entry="true"]');
+  const heading = document.querySelector("main h1") || document.querySelector("h1");
+  const headingRect = heading?.getBoundingClientRect() ?? null;
+  return {
+    queryRuntime: new URLSearchParams(window.location.search).get("runtime"),
+    shellRuntime: document.querySelector('[data-studio-runtime="cloud"]')?.getAttribute("data-studio-runtime") ?? null,
+    cloudPressed: cloudOption?.getAttribute("aria-pressed") === "true",
+    navCurrent: cloudEntry?.getAttribute("aria-current") === "page",
+    scrollY: window.scrollY,
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+    headingTop: headingRect?.top ?? null,
+    headingVisible: Boolean(headingRect && headingRect.bottom > 0 && headingRect.top < window.innerHeight),
+  };
+});
+
+const cloudOk = (
+  cloudMeasurement.queryRuntime === "cloud"
+  && cloudMeasurement.shellRuntime === "cloud"
+  && cloudMeasurement.cloudPressed
+  && cloudMeasurement.navCurrent
+  && cloudMeasurement.scrollY <= 2
+  && cloudMeasurement.headingVisible
+  && cloudMeasurement.headingTop !== null
+  && cloudMeasurement.headingTop >= -1
+  && cloudMeasurement.scrollWidth <= cloudMeasurement.clientWidth + 1
+);
+if (!cloudOk) failed = true;
+
+await page.screenshot({
+  path: path.join(artifactDir, "route-isolation-v48-cloud-ai-direct.png"),
+  fullPage: false,
+});
+
+results.push({
+  route: "/studio/?runtime=cloud",
+  ok: cloudOk,
+  cloud_ai_direct_entry: cloudMeasurement,
+});
+
 await browser.close();
 await fs.writeFile(path.join(artifactDir, "route-isolation-v48-report.json"), `${JSON.stringify({ results }, null, 2)}\n`);
 
@@ -139,4 +193,4 @@ if (failed) {
   process.exit(1);
 }
 
-console.log("Averis v48 route scroll/isolation certification passed.");
+console.log("Averis v48 route scroll/isolation + Cloud AI discoverability certification passed.");
