@@ -29,7 +29,7 @@ for (const target of targets) {
   const beforeScroll = await page.evaluate(() => window.scrollY);
   if (beforeScroll < 300) throw new Error(`Could not create a meaningful pre-navigation scroll offset for ${target.name}`);
 
-  const launcher = page.getByText(target.launchText, { exact: true });
+  const launcher = page.getByText(target.launchText, { exact: false }).last();
   await launcher.scrollIntoViewIfNeeded();
   await launcher.click();
   await page.waitForURL((url) => url.pathname.endsWith(target.href), { timeout: 10000 });
