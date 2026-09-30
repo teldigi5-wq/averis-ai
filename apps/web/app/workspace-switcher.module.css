@@ -11,14 +11,12 @@
   justify-content: flex-start;
   gap: 6px;
   padding: 12px 8px 10px;
-  border: 1px solid rgba(103, 180, 223, .15);
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(37, 205, 238, .08), transparent 25%),
-    linear-gradient(180deg, rgba(7, 24, 40, .98), rgba(3, 13, 23, .99));
-  box-shadow: 0 26px 68px rgba(0, 0, 0, .28), inset 0 1px rgba(255,255,255,.03);
-  backdrop-filter: blur(20px) saturate(125%);
-  -webkit-backdrop-filter: blur(20px) saturate(125%);
+  border: 1px solid rgba(145, 181, 202, .16);
+  border-radius: 16px;
+  background: rgba(7, 20, 30, .975);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .25), inset 0 1px rgba(255, 255, 255, .025);
+  backdrop-filter: blur(12px) saturate(108%);
+  -webkit-backdrop-filter: blur(12px) saturate(108%);
 }
 
 .switcher::before {
@@ -27,27 +25,27 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,.016), transparent 20%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .012), transparent 24%);
   pointer-events: none;
 }
 
 .railBrand {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   display: block;
-  flex: 0 0 44px;
+  flex: 0 0 42px;
   margin: 0 0 6px;
   background: var(--averis-brand-symbol) center / contain no-repeat;
-  filter: drop-shadow(0 10px 24px rgba(29, 172, 255, .18));
+  filter: drop-shadow(0 7px 16px rgba(83, 181, 182, .10));
 }
 
 .railDivider {
-  width: 36px;
+  width: 34px;
   height: 1px;
   flex: 0 0 1px;
   display: block;
   margin: 1px 0 4px;
-  background: linear-gradient(90deg, transparent, rgba(104, 170, 212, .22), transparent);
+  background: linear-gradient(90deg, transparent, rgba(151, 183, 204, .20), transparent);
 }
 
 .switcher a {
@@ -62,43 +60,42 @@
   gap: 4px;
   padding: 7px 4px 6px;
   border: 1px solid transparent;
-  border-radius: 12px;
-  color: #8ea5b4;
+  border-radius: 10px;
+  color: #8fa5b2;
   text-decoration: none;
   font-size: 8.5px;
   font-weight: 790;
   line-height: 1.1;
   letter-spacing: -.005em;
   text-align: center;
-  transition: color .16s ease, background-color .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+  transition: color .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 
 .switcher a::after {
   content: "";
   position: absolute;
   left: -2px;
-  top: 11px;
-  bottom: 11px;
+  top: 12px;
+  bottom: 12px;
   width: 2px;
   border-radius: 999px;
-  background: linear-gradient(#28e4ef, #2682ff);
+  background: #83d7d0;
   opacity: 0;
   transform: scaleY(.55);
   transition: opacity .16s ease, transform .16s ease;
 }
 
 .switcher a:hover {
-  color: #e0eef6;
-  border-color: rgba(92, 163, 206, .09);
+  color: #dfebef;
+  border-color: rgba(148, 180, 198, .11);
   background: rgba(255, 255, 255, .025);
-  transform: translateX(1px);
 }
 
 .switcher a.active {
-  color: #e2fcff;
-  border-color: rgba(52, 205, 235, .16);
-  background: linear-gradient(145deg, rgba(31, 120, 245, .18), rgba(31, 219, 234, .065));
-  box-shadow: inset 0 1px rgba(255,255,255,.028), 0 10px 24px rgba(0,0,0,.12);
+  color: #eef8f8;
+  border-color: rgba(117, 207, 199, .20);
+  background: rgba(103, 189, 181, .085);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
 }
 
 .switcher a.active::after {
@@ -110,8 +107,8 @@
   width: 18px;
   height: 18px;
   flex: 0 0 18px;
-  color: #67cee2;
-  transition: color .16s ease, transform .16s ease;
+  color: #73bac3;
+  transition: color .16s ease;
 }
 
 .label {
@@ -123,13 +120,12 @@
 
 .switcher a:hover .icon,
 .switcher a.active .icon {
-  color: #9ff4f6;
-  transform: translateY(-1px);
+  color: #a8e5df;
 }
 
 .switcher a:focus-visible,
 .guideButton:focus-visible {
-  outline: 2px solid rgba(109, 232, 237, .82);
+  outline: 2px solid rgba(132, 220, 211, .82);
   outline-offset: 2px;
 }
 
@@ -146,11 +142,11 @@
   place-items: center;
   margin: 0;
   padding: 0;
-  border: 1px solid rgba(88, 184, 201, .16);
-  border-radius: 11px;
-  color: #80dce4;
-  background: rgba(8, 37, 51, .78);
-  box-shadow: inset 0 1px rgba(255,255,255,.025);
+  border: 1px solid rgba(145, 181, 202, .15);
+  border-radius: 10px;
+  color: #8ccfc9;
+  background: rgba(255, 255, 255, .018);
+  box-shadow: inset 0 1px rgba(255, 255, 255, .02);
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
@@ -158,9 +154,9 @@
 }
 
 .guideButton:hover {
-  color: #c8fbfd;
-  border-color: rgba(83, 219, 228, .30);
-  background: rgba(10, 51, 67, .86);
+  color: #d8f3f0;
+  border-color: rgba(125, 210, 202, .26);
+  background: rgba(112, 195, 187, .07);
   transform: none;
 }
 
@@ -216,9 +212,9 @@
     justify-content: center;
     gap: 2px;
     padding: 5px 6px;
-    border-radius: 15px;
-    background: #071722;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, .30), inset 0 1px rgba(255,255,255,.025);
+    border-radius: 14px;
+    background: rgba(7, 20, 30, .985);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .30), inset 0 1px rgba(255, 255, 255, .02);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     transform: translateX(-50%);
@@ -269,7 +265,7 @@
     min-width: 38px;
     min-height: 48px;
     flex: 0 0 38px;
-    border-radius: 10px;
+    border-radius: 9px;
     font-size: 12px;
   }
 }
