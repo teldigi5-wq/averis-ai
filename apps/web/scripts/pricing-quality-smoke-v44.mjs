@@ -39,9 +39,15 @@ for (const profile of profiles) {
     const cardActions = [...document.querySelectorAll('section[aria-label="Student subscription plans"] article > button, section[aria-label="Student subscription plans"] article > a')];
     const microcopy = document.querySelector('main p[class*="microcopy"]');
     const signInHint = document.querySelector('section[aria-label="Sign in for subscriptions"]');
+    const signInHintButton = signInHint?.querySelector("button") ?? null;
+    const signInHintCopy = signInHint?.querySelector("div") ?? null;
     const paidButtons = [...document.querySelectorAll('section[aria-label="Student subscription plans"] article > button')];
     const signedOutPaidButtons = paidButtons.filter((button) => button.textContent?.includes("Sign in to choose") && !button.disabled);
     const legacyActivatingButtons = paidButtons.filter((button) => button.textContent?.includes("Subscriptions activating soon"));
+
+    const hintRect = signInHint?.getBoundingClientRect() ?? null;
+    const hintButtonRect = signInHintButton?.getBoundingClientRect() ?? null;
+    const hintCopyRect = signInHintCopy?.getBoundingClientRect() ?? null;
 
     return {
       scrollWidth: document.documentElement.scrollWidth,
@@ -52,6 +58,9 @@ for (const profile of profiles) {
       signedOutPaidButtons: signedOutPaidButtons.length,
       legacyActivatingButtons: legacyActivatingButtons.length,
       signInHintVisible: Boolean(signInHint && isVisible(signInHint)),
+      signInHintWidth: hintRect?.width ?? 0,
+      signInHintButtonWidth: hintButtonRect?.width ?? 0,
+      signInHintCopyWidth: hintCopyRect?.width ?? 0,
       controlsVisible: [...segmentButtons, ...cardActions].every(isVisible),
       touchTargetsOk: [...segmentButtons, ...cardActions].every((element) => element.getBoundingClientRect().height >= 40),
       microcopyFontSize: microcopy ? Number.parseFloat(getComputedStyle(microcopy).fontSize) : 0,
@@ -65,6 +74,10 @@ for (const profile of profiles) {
   const hasUsd = usdText.includes("$4.99") && usdText.includes("$8.99");
 
   const overflow = measurements.scrollWidth > measurements.clientWidth + 1;
+  const signInHintLayoutOk = profile.name === "desktop"
+    ? measurements.signInHintButtonWidth <= 240 && measurements.signInHintCopyWidth >= 300
+    : measurements.signInHintButtonWidth >= measurements.signInHintWidth - 48;
+
   const ok = !overflow
     && measurements.cards === 3
     && measurements.securityItems === 4
@@ -75,6 +88,7 @@ for (const profile of profiles) {
     && measurements.signedOutPaidButtons === 2
     && measurements.legacyActivatingButtons === 0
     && measurements.signInHintVisible
+    && signInHintLayoutOk
     && measurements.controlsVisible
     && measurements.touchTargetsOk
     && measurements.microcopyFontSize >= 13;
@@ -95,6 +109,10 @@ for (const profile of profiles) {
     signed_out_checkout_actions: measurements.signedOutPaidButtons,
     legacy_activating_actions: measurements.legacyActivatingButtons,
     sign_in_hint_visible: measurements.signInHintVisible,
+    sign_in_hint_layout_ok: signInHintLayoutOk,
+    sign_in_hint_width: Math.round(measurements.signInHintWidth),
+    sign_in_hint_button_width: Math.round(measurements.signInHintButtonWidth),
+    sign_in_hint_copy_width: Math.round(measurements.signInHintCopyWidth),
     controls_visible: measurements.controlsVisible,
     touch_targets_ok: measurements.touchTargetsOk,
     microcopy_font_px: measurements.microcopyFontSize,
