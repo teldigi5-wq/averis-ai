@@ -34,11 +34,59 @@ for (const target of targets) {
   await launcher.click();
   await page.waitForURL((url) => url.pathname.endsWith(target.href), { timeout: 10000 });
   await page.waitForLoadState("networkidle");
-  await page.waitForTimeout(80);
+  await page.waitForTimeout(120);
 
   const measurement = await page.evaluate(() => {
     const heading = document.querySelector("main h1") || document.querySelector("h1");
     const headingRect = heading?.getBoundingClientRect() ?? null;
+    const isStudio = window.location.pathname.endsWith("/studio/");
+
+    const asRect = (element) => {
+      if (!(element instanceof HTMLElement)) return null;
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left, width: rect.width, height: rect.height };
+    };
+    const intersects = (left, right) => Boolean(
+      left && right
+      && left.left < right.right
+      && left.right > right.left
+      && left.top < right.bottom
+      && left.bottom > right.top
+    );
+
+    let studio = null;
+    if (isStudio) {
+      const command = document.querySelector(".studioV27Command");
+      const workspace = document.querySelector(".studioV35WorkspaceLauncher");
+      const dock = document.querySelector(".studioV30UtilityDock");
+      const buttons = [...document.querySelectorAll(".studioV30UtilityDock > button")];
+      const commandRect = asRect(command);
+      const workspaceRect = asRect(workspace);
+      const dockRect = asRect(dock);
+      const buttonRects = buttons.map(asRect).filter(Boolean);
+      const fixedButtons = buttons.filter((button) => getComputedStyle(button).position === "fixed").length;
+      const chromeOverlaps = buttonRects.filter((rect) => intersects(rect, commandRect) || intersects(rect, workspaceRect)).length;
+      const dockBeforeHero = Boolean(dockRect && headingRect && dockRect.bottom <= headingRect.top + 1);
+      const orderedChrome = Boolean(
+        commandRect && workspaceRect && dockRect
+        && commandRect.bottom <= workspaceRect.top + 2
+        && workspaceRect.bottom <= dockRect.top + 2
+      );
+
+      studio = {
+        toolButtons: buttons.length,
+        fixedButtons,
+        chromeOverlaps,
+        dockBeforeHero,
+        orderedChrome,
+        commandBottom: commandRect?.bottom ?? null,
+        workspaceTop: workspaceRect?.top ?? null,
+        workspaceBottom: workspaceRect?.bottom ?? null,
+        dockTop: dockRect?.top ?? null,
+        dockBottom: dockRect?.bottom ?? null,
+      };
+    }
+
     return {
       scrollY: window.scrollY,
       scrollWidth: document.documentElement.scrollWidth,
@@ -46,13 +94,23 @@ for (const target of targets) {
       headingTop: headingRect?.top ?? null,
       headingBottom: headingRect?.bottom ?? null,
       headingVisible: Boolean(headingRect && headingRect.bottom > 0 && headingRect.top < window.innerHeight),
+      studio,
     };
   });
 
   const overflow = measurement.scrollWidth > measurement.clientWidth + 1;
   const reset = measurement.scrollY <= 2;
   const heroVisible = measurement.headingVisible && measurement.headingTop !== null && measurement.headingTop >= -1;
-  const ok = reset && heroVisible && !overflow;
+  const studioOk = !measurement.studio || (
+    measurement.studio.toolButtons === 6
+    && measurement.studio.fixedButtons === 0
+    && measurement.studio.chromeOverlaps === 0
+    && measurement.studio.dockBeforeHero
+    && measurement.studio.orderedChrome
+    && measurement.headingTop !== null
+    && measurement.headingTop <= 650
+  );
+  const ok = reset && heroVisible && !overflow && studioOk;
   if (!ok) failed = true;
 
   await page.screenshot({
@@ -69,6 +127,7 @@ for (const target of targets) {
     heading_bottom: measurement.headingBottom,
     heading_visible: measurement.headingVisible,
     horizontal_overflow: overflow,
+    studio_overlap_certification: measurement.studio,
   });
 }
 
