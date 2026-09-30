@@ -44,16 +44,23 @@ for (const profile of profiles) {
     const paidButtons = [...document.querySelectorAll('section[aria-label="Student subscription plans"] article > button')];
     const signedOutPaidButtons = paidButtons.filter((button) => button.textContent?.includes("Sign in to choose") && !button.disabled);
     const legacyActivatingButtons = paidButtons.filter((button) => button.textContent?.includes("Subscriptions activating soon"));
+    const comparison = document.querySelector('section[aria-label="Plan feature comparison"]');
+    const comparisonScroller = comparison?.querySelector('div[class*="comparisonScroller"]') ?? null;
 
     const hintRect = signInHint?.getBoundingClientRect() ?? null;
     const hintButtonRect = signInHintButton?.getBoundingClientRect() ?? null;
     const hintCopyRect = signInHintCopy?.getBoundingClientRect() ?? null;
+    const comparisonRect = comparison?.getBoundingClientRect() ?? null;
 
     return {
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
       cards: document.querySelectorAll('section[aria-label="Student subscription plans"] article').length,
       securityItems: document.querySelectorAll('section[aria-label="Subscription protections"] > div').length,
+      comparisonRows: comparison?.querySelectorAll("tbody tr").length ?? 0,
+      comparisonVisible: Boolean(comparison && isVisible(comparison)),
+      comparisonContained: Boolean(comparisonRect && comparisonRect.left >= -1 && comparisonRect.right <= document.documentElement.clientWidth + 1),
+      comparisonScrollable: Boolean(comparisonScroller && comparisonScroller.scrollWidth >= comparisonScroller.clientWidth),
       brokenImages: [...document.images].filter((image) => image.complete && image.naturalWidth === 0).length,
       signedOutPaidButtons: signedOutPaidButtons.length,
       legacyActivatingButtons: legacyActivatingButtons.length,
@@ -69,6 +76,9 @@ for (const profile of profiles) {
 
   const lkrText = await page.locator("main").innerText();
   const hasLkr = lkrText.includes("Rs. 1,490") && lkrText.includes("Rs. 2,690");
+  const comparisonCopyOk = lkrText.includes("Compare what you actually get.")
+    && lkrText.includes("Source & Citation AI Workbench")
+    && lkrText.includes("Optional Cloud AI revision");
   await page.getByRole("button", { name: "USD" }).click();
   const usdText = await page.locator("main").innerText();
   const hasUsd = usdText.includes("$4.99") && usdText.includes("$8.99");
@@ -81,6 +91,11 @@ for (const profile of profiles) {
   const ok = !overflow
     && measurements.cards === 3
     && measurements.securityItems === 4
+    && measurements.comparisonRows === 8
+    && measurements.comparisonVisible
+    && measurements.comparisonContained
+    && measurements.comparisonScrollable
+    && comparisonCopyOk
     && measurements.brokenImages === 0
     && serious.length === 0
     && hasLkr
@@ -102,6 +117,11 @@ for (const profile of profiles) {
     overflow,
     cards: measurements.cards,
     security_items: measurements.securityItems,
+    comparison_rows: measurements.comparisonRows,
+    comparison_visible: measurements.comparisonVisible,
+    comparison_contained: measurements.comparisonContained,
+    comparison_scrollable: measurements.comparisonScrollable,
+    comparison_copy_ok: comparisonCopyOk,
     broken_images: measurements.brokenImages,
     serious_or_critical_a11y: serious.map((item) => item.id),
     lkr_toggle_ok: hasLkr,
