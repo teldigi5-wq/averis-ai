@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { supabase, supabaseConfigured } from "../../lib/supabase";
 import styles from "./pricing.module.css";
+import premiumStyles from "./pricing-premium-v48.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -32,6 +33,7 @@ const plans = [
     monthly: { USD: 0, LKR: 0 },
     yearly: { USD: 0, LKR: 0 },
     credits: 5,
+    value: "No payment required",
     features: [
       "5 server scans each month",
       "Private Browser AI and Local Ollama support",
@@ -47,6 +49,7 @@ const plans = [
     monthly: { USD: 4.99, LKR: 1490 },
     yearly: { USD: 49, LKR: 14900 },
     credits: 50,
+    value: "10× Free scan capacity",
     featured: true,
     features: [
       "50 server scans each billing month",
@@ -63,6 +66,7 @@ const plans = [
     monthly: { USD: 8.99, LKR: 2690 },
     yearly: { USD: 89, LKR: 26900 },
     credits: 200,
+    value: "40× Free scan capacity",
     features: [
       "200 server scans each billing month",
       "Optional Cloud AI revision when the provider quota is available",
@@ -72,6 +76,17 @@ const plans = [
     ],
   },
 ];
+
+const comparisonRows = [
+  ["Server scan credits / month", "5", "50", "200"],
+  ["Private Browser AI + Local Ollama", "Included", "Included", "Included"],
+  ["Assignment planning + progress", "Included", "Included", "Included"],
+  ["Reference, document + rubric checks", "Included", "Included", "Included"],
+  ["Local Assignment Workspace", "Included", "Included", "Included"],
+  ["Source & Citation AI Workbench", "—", "Included", "Included"],
+  ["Optional Cloud AI revision", "—", "Included*", "Included*"],
+  ["Secure subscription portal", "—", "Included", "Included"],
+] as const;
 
 function money(currency: Currency, value: number) {
   if (currency === "LKR") return value === 0 ? "Rs. 0" : `Rs. ${value.toLocaleString("en-LK")}`;
@@ -277,6 +292,20 @@ export default function PricingPage() {
 
       {message && <div className={styles.notice} role="status" aria-live="polite">{message}</div>}
 
+      <section className={premiumStyles.valueBand} aria-label="What Averis plans include">
+        <div className={premiumStyles.valueIntro}>
+          <span>MORE INCLUDED, FEWER ADD-ONS</span>
+          <h2>One academic review workspace.</h2>
+          <p>Choose capacity for your workload. The core Averis workflow stays connected instead of charging separately for every review tool.</p>
+        </div>
+        <div className={premiumStyles.valueGrid}>
+          <article><strong>Integrity workspace</strong><span>Similarity evidence, exclusions and reviewable passage context.</span></article>
+          <article><strong>Private + local AI</strong><span>Browser AI and local Ollama workflows remain part of the product.</span></article>
+          <article><strong>Source & citation tools</strong><span>Paid plans include the Source & Citation AI workbench.</span></article>
+          <article><strong>Optional Cloud AI</strong><span>Paid plans can use bounded Cloud AI revision when provider quota is available.</span></article>
+        </div>
+      </section>
+
       <section className={styles.grid} aria-label="Student subscription plans">
         {plans.map((plan) => {
           const amount = plan[cadence][currency];
@@ -293,6 +322,7 @@ export default function PricingPage() {
                 <strong>{money(currency, amount)}</strong>
                 {amount > 0 && <span>/{cadence === "monthly" ? "month" : "year"}</span>}
               </div>
+              <div className={premiumStyles.capacityBadge}>{plan.value}</div>
               <div className={styles.creditLine}>{plan.credits} server scan credits / month</div>
               <ul>{plan.features.map((feature) => <li key={feature}>{feature}</li>)}</ul>
               {plan.id === "free" ? (
@@ -307,6 +337,44 @@ export default function PricingPage() {
             </article>
           );
         })}
+      </section>
+
+      <section className={premiumStyles.comparison} aria-label="Plan feature comparison">
+        <div className={premiumStyles.comparisonHead}>
+          <div>
+            <span>VALUE, LINE BY LINE</span>
+            <h2>Compare what you actually get.</h2>
+          </div>
+          <p>Free keeps the local/private study workflow useful. Paid plans add much more server capacity plus the paid workbench and optional Cloud AI path.</p>
+        </div>
+        <div
+          className={premiumStyles.comparisonScroller}
+          role="region"
+          aria-label="Scrollable plan capability comparison"
+          tabIndex={0}
+        >
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col">Free</th>
+                <th scope="col">Student Plus</th>
+                <th scope="col">Student Pro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonRows.map(([label, free, student, pro]) => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  <td>{free}</td>
+                  <td data-highlight="true">{student}</td>
+                  <td>{pro}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className={premiumStyles.comparisonNote}>* Optional Cloud AI is available only when the configured provider quota is available. Averis never silently falls back to it.</p>
       </section>
 
       <section className={styles.securityStrip} aria-label="Subscription protections">

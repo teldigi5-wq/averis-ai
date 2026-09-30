@@ -1,0 +1,370 @@
+/* Averis Studio v48 final presentation override.
+   Purpose: remove legacy floating-launcher overlap, compress stacked chrome, and
+   keep all Studio tools visible without covering the active workflow.
+   No runtime, evidence, persistence, billing, or acceptance logic changes. */
+
+.studioV25Scope {
+  --v48-studio-line: rgba(132, 194, 211, .15);
+  --v48-studio-line-strong: rgba(118, 211, 204, .26);
+  --v48-studio-surface: rgba(7, 23, 34, .92);
+  --v48-studio-surface-soft: rgba(8, 27, 39, .76);
+}
+
+/* The old v29-v34 launchers were independently fixed to the right edge. As
+   more tools were added they stacked over Command Center and the workspace
+   launcher. v48 turns them into one owned, in-flow tool shelf. */
+.studioV30UtilityDock {
+  width: min(1500px, calc(100% - 40px));
+  margin: 8px auto 0;
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+  position: relative;
+  z-index: 22;
+}
+
+.studioV30UtilityDock .studioV29PlannerLauncher,
+.studioV30UtilityDock .studioV30ReferenceLauncher,
+.studioV30UtilityDock .studioV31ReadinessLauncher,
+.studioV30UtilityDock .studioV32QualityLauncher,
+.studioV30UtilityDock .studioV33RubricLauncher,
+.studioV30UtilityDock .studioV34StructureLauncher {
+  position: static !important;
+  inset: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  margin: 0 !important;
+  display: grid !important;
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 9px !important;
+  border: 1px solid var(--v48-studio-line) !important;
+  border-radius: 12px !important;
+  color: #dbe9ee !important;
+  background: linear-gradient(180deg, rgba(10, 29, 41, .95), rgba(7, 21, 31, .98)) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .022), 0 10px 26px rgba(0, 0, 0, .10) !important;
+  text-align: left !important;
+  transform: none !important;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease !important;
+}
+
+.studioV30UtilityDock .studioV29PlannerLauncher:hover,
+.studioV30UtilityDock .studioV30ReferenceLauncher:hover,
+.studioV30UtilityDock .studioV31ReadinessLauncher:hover,
+.studioV30UtilityDock .studioV32QualityLauncher:hover,
+.studioV30UtilityDock .studioV33RubricLauncher:hover,
+.studioV30UtilityDock .studioV34StructureLauncher:hover {
+  transform: translateY(-1px) !important;
+  border-color: var(--v48-studio-line-strong) !important;
+  background: linear-gradient(180deg, rgba(12, 34, 46, .98), rgba(8, 24, 34, .98)) !important;
+}
+
+.studioV30UtilityDock .studioV29PlannerLauncher > span,
+.studioV30UtilityDock .studioV30ReferenceLauncher > span,
+.studioV30UtilityDock .studioV31ReadinessLauncher > span,
+.studioV30UtilityDock .studioV32QualityLauncher > span,
+.studioV30UtilityDock .studioV33RubricLauncher > span,
+.studioV30UtilityDock .studioV34StructureLauncher > span {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 9px !important;
+  font-size: 14px !important;
+}
+
+.studioV30UtilityDock .studioV29PlannerLauncher > div,
+.studioV30UtilityDock .studioV30ReferenceLauncher > div,
+.studioV30UtilityDock .studioV31ReadinessLauncher > div,
+.studioV30UtilityDock .studioV32QualityLauncher > div,
+.studioV30UtilityDock .studioV33RubricLauncher > div,
+.studioV30UtilityDock .studioV34StructureLauncher > div {
+  min-width: 0 !important;
+}
+
+.studioV30UtilityDock .studioV29PlannerLauncher strong,
+.studioV30UtilityDock .studioV30ReferenceLauncher strong,
+.studioV30UtilityDock .studioV31ReadinessLauncher strong,
+.studioV30UtilityDock .studioV32QualityLauncher strong,
+.studioV30UtilityDock .studioV33RubricLauncher strong,
+.studioV30UtilityDock .studioV34StructureLauncher strong {
+  display: block !important;
+  overflow: hidden !important;
+  color: #e5eff2 !important;
+  font-size: 9.5px !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.studioV30UtilityDock .studioV29PlannerLauncher small,
+.studioV30UtilityDock .studioV30ReferenceLauncher small,
+.studioV30UtilityDock .studioV31ReadinessLauncher small,
+.studioV30UtilityDock .studioV32QualityLauncher small,
+.studioV30UtilityDock .studioV33RubricLauncher small,
+.studioV30UtilityDock .studioV34StructureLauncher small {
+  display: block !important;
+  margin-top: 3px !important;
+  overflow: hidden !important;
+  color: #748d99 !important;
+  font-size: 7.2px !important;
+  line-height: 1.25 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Workspace launcher becomes a compact in-flow context strip instead of a
+   narrow offset card left behind by the former 220px Studio side chrome. */
+.studioV35WorkspaceLauncher {
+  width: min(1500px, calc(100% - 40px)) !important;
+  max-width: none !important;
+  min-height: 54px !important;
+  margin: 8px auto 0 !important;
+  padding: 8px 11px !important;
+  border-radius: 13px !important;
+  grid-template-columns: 34px minmax(0, 1fr) auto !important;
+  border-color: rgba(111, 205, 200, .18) !important;
+  background:
+    linear-gradient(90deg, rgba(83, 181, 174, .055), transparent 28%),
+    linear-gradient(180deg, rgba(8, 30, 40, .94), rgba(6, 23, 32, .97)) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .022), 0 12px 30px rgba(0, 0, 0, .10) !important;
+}
+
+.studioV35WorkspaceLauncher > span {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
+  font-size: 14px !important;
+}
+
+.studioV35WorkspaceLauncher strong {
+  font-size: 10.5px !important;
+}
+
+.studioV35WorkspaceLauncher p,
+.studioV35WorkspaceLauncher small,
+.studioV35WorkspaceLauncher > b {
+  font-size: 7.4px !important;
+}
+
+/* Command Center remains useful while scrolling, but v48 reduces the amount of
+   viewport it owns and removes the old dashboard-within-dashboard feel. */
+.studioV27Command {
+  margin-top: 8px !important;
+  border-radius: 15px !important;
+  border-color: rgba(129, 193, 211, .15) !important;
+  background: rgba(7, 23, 34, .96) !important;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .18), inset 0 1px rgba(255, 255, 255, .022) !important;
+  backdrop-filter: blur(12px) saturate(108%) !important;
+}
+
+.studioV27Command__top {
+  grid-template-columns: minmax(155px, .56fr) minmax(150px, .62fr) minmax(250px, 1fr) auto !important;
+  gap: 10px !important;
+  padding: 8px 10px 6px !important;
+}
+
+.studioV27Command__pulse {
+  width: 29px !important;
+  height: 29px !important;
+  border-radius: 9px !important;
+}
+
+.studioV27Command__pulse::before {
+  inset: 10px !important;
+}
+
+.studioV27Command__pulse::after {
+  inset: 6px !important;
+}
+
+.studioV27Command__identity strong {
+  font-size: 11.5px !important;
+}
+
+.studioV27Command__telemetry span {
+  padding: 5px 7px !important;
+  border-radius: 8px !important;
+}
+
+.studioV27Command__actions button {
+  min-height: 31px !important;
+  padding-inline: 9px !important;
+  border-radius: 8px !important;
+  font-size: 8.5px !important;
+}
+
+.studioV27Command__actions .studioV27Command__primary {
+  min-width: 116px !important;
+}
+
+.studioV27Command__phases {
+  gap: 5px !important;
+  padding: 0 10px 7px !important;
+}
+
+.studioV27Command__phase {
+  min-height: 38px !important;
+  grid-template-columns: 22px minmax(0, 1fr) auto !important;
+  gap: 6px !important;
+  padding: 5px 7px !important;
+  border-radius: 9px !important;
+}
+
+.studioV27Command__phase > span {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 7px !important;
+}
+
+.studioV27Command__phase strong {
+  font-size: 9px !important;
+}
+
+.studioV27Command__phase small {
+  display: none !important;
+}
+
+/* Compact runtime chrome so the actual revision workflow arrives much sooner
+   in the first desktop viewport. */
+.studioV25Scope [class*="runtimeBar"] {
+  margin-top: 16px !important;
+  gap: 8px !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .17), inset 0 1px rgba(255, 255, 255, .022) !important;
+}
+
+.studioV25Scope [class*="runtimeTitle"] {
+  padding: 10px 11px !important;
+}
+
+.studioV25Scope [class*="runtimeChoices"] {
+  gap: 6px !important;
+}
+
+.studioV25Scope [class*="runtimeChoices"] button {
+  min-height: 60px !important;
+  padding: 9px 10px !important;
+  border-radius: 10px !important;
+}
+
+.studioV25Scope [class*="runtimeStatus"] {
+  padding: 9px 11px !important;
+  border-radius: 10px !important;
+}
+
+.studioV25Scope [class*="runtimeBoundary"] {
+  margin-bottom: 0 !important;
+  padding-block: 5px !important;
+}
+
+.studioV25Scope main {
+  padding-top: 20px !important;
+}
+
+.studioV25Scope [class*="hero"] {
+  padding-top: 10px !important;
+  padding-bottom: 28px !important;
+}
+
+@media (max-width: 1240px) and (min-width: 981px) {
+  .studioV30UtilityDock {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .studioV27Command__telemetry {
+    display: none !important;
+  }
+
+  .studioV27Command__top {
+    grid-template-columns: minmax(155px, .7fr) minmax(170px, .8fr) auto !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .studioV30UtilityDock {
+    width: calc(100% - 24px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 7px;
+  }
+
+  .studioV35WorkspaceLauncher {
+    width: calc(100% - 24px) !important;
+    margin: 7px auto 0 !important;
+  }
+
+  .studioV25Scope main {
+    padding-top: 14px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .studioV30UtilityDock {
+    width: calc(100% - 20px);
+    gap: 5px;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher,
+  .studioV30UtilityDock .studioV30ReferenceLauncher,
+  .studioV30UtilityDock .studioV31ReadinessLauncher,
+  .studioV30UtilityDock .studioV32QualityLauncher,
+  .studioV30UtilityDock .studioV33RubricLauncher,
+  .studioV30UtilityDock .studioV34StructureLauncher {
+    min-height: 48px !important;
+    grid-template-columns: 27px minmax(0, 1fr) !important;
+    gap: 6px !important;
+    padding: 6px 7px !important;
+    border-radius: 10px !important;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher > span,
+  .studioV30UtilityDock .studioV30ReferenceLauncher > span,
+  .studioV30UtilityDock .studioV31ReadinessLauncher > span,
+  .studioV30UtilityDock .studioV32QualityLauncher > span,
+  .studioV30UtilityDock .studioV33RubricLauncher > span,
+  .studioV30UtilityDock .studioV34StructureLauncher > span {
+    width: 27px !important;
+    height: 27px !important;
+    min-width: 27px !important;
+    font-size: 12px !important;
+  }
+
+  .studioV30UtilityDock .studioV29PlannerLauncher small,
+  .studioV30UtilityDock .studioV30ReferenceLauncher small,
+  .studioV30UtilityDock .studioV31ReadinessLauncher small,
+  .studioV30UtilityDock .studioV32QualityLauncher small,
+  .studioV30UtilityDock .studioV33RubricLauncher small,
+  .studioV30UtilityDock .studioV34StructureLauncher small {
+    display: none !important;
+  }
+
+  .studioV35WorkspaceLauncher {
+    width: calc(100% - 20px) !important;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+  }
+
+  .studioV35WorkspaceLauncher > b {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studioV30UtilityDock .studioV29PlannerLauncher,
+  .studioV30UtilityDock .studioV30ReferenceLauncher,
+  .studioV30UtilityDock .studioV31ReadinessLauncher,
+  .studioV30UtilityDock .studioV32QualityLauncher,
+  .studioV30UtilityDock .studioV33RubricLauncher,
+  .studioV30UtilityDock .studioV34StructureLauncher {
+    transition: none !important;
+  }
+}

@@ -30,6 +30,7 @@ import "./rubric-claim-coverage-v33.css";
 import "./academic-structure-coach-v34.css";
 import "./assignment-workspace-v35.css";
 import "./assignment-workspace-launcher-v35.css";
+import "./studio-premium-v48.css";
 
 export default function StudioLayout({ children }: { children: ReactNode }) {
   return (

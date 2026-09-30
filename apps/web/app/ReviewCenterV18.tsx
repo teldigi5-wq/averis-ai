@@ -41,6 +41,13 @@ function similarityTone(value: number | null) {
   return "low";
 }
 
+function planLabel(value: string | undefined) {
+  if (value === "student") return "Student Plus";
+  if (value === "pro") return "Student Pro";
+  if (value === "free") return "Free";
+  return value ? value.replace(/_/g, " ") : "Averis";
+}
+
 export default function ReviewCenterV18() {
   const pathname = usePathname();
   const [ready, setReady] = useState(!supabaseConfigured);
@@ -163,6 +170,8 @@ export default function ReviewCenterV18() {
   if (!onRoot || !ready || !visible || !user) return null;
 
   const name = profile?.display_name?.trim() || user.email?.split("@")[0] || "Reviewer";
+  const currentPlan = planLabel(profile?.plan);
+  const paidPlan = profile?.plan === "student" || profile?.plan === "pro";
 
   return (
     <section className="reviewCenterV18" aria-label="Averis Review Center">
@@ -212,6 +221,40 @@ export default function ReviewCenterV18() {
             <strong>{profile?.plan?.toUpperCase() ?? "BETA"}</strong>
             <small>Evidence-first review boundary</small>
           </article>
+        </section>
+
+        <section className="reviewValuePanel" aria-label="Current plan value">
+          <div className="reviewValueLead">
+            <span className="reviewPlanChip">{currentPlan}</span>
+            <p className="reviewEyebrow">YOUR PLAN VALUE</p>
+            <h2>One workspace for the full review loop.</h2>
+            <p>
+              Averis keeps integrity review, source evidence, citation checks, revision tools and private AI in one academic workflow instead of splitting them across disconnected add-ons.
+            </p>
+            <Link href="/pricing/">View plan details <span>→</span></Link>
+          </div>
+          <div className="reviewValueGrid">
+            <article>
+              <span>MONTHLY CAPACITY</span>
+              <strong>{allowance == null ? "—" : `${allowance} scans`}</strong>
+              <small>Server review capacity shown from your real account profile.</small>
+            </article>
+            <article>
+              <span>INTEGRATED WORKFLOWS</span>
+              <strong>6 review tools</strong>
+              <small>Integrity, sources, evidence AI, refine, studio and private AI.</small>
+            </article>
+            <article>
+              <span>PRIVATE AI OPTIONS</span>
+              <strong>Browser + local</strong>
+              <small>Keep supported writing workflows on-device or on your own local runtime.</small>
+            </article>
+            <article>
+              <span>{paidPlan ? "PAID TOOLSET" : "CORE TOOLSET"}</span>
+              <strong>{paidPlan ? "Source + citation" : "Evidence-first"}</strong>
+              <small>{paidPlan ? "Your paid plan includes the Source & Citation AI workbench." : "Core review and local/private workflows remain available without a paid plan."}</small>
+            </article>
+          </div>
         </section>
 
         <section className="reviewGrid">

@@ -92,6 +92,10 @@ jobs:
         env:
           AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
         run: node scripts/pricing-quality-smoke-v44.mjs
+      - name: Run Premium UI v48 route scroll/isolation certification
+        env:
+          AVERIS_BASE_URL: http://127.0.0.1:4173/averis-ai
+        run: node scripts/route-isolation-quality-v48.mjs
       - name: Show preview server log on failure
         if: failure()
         run: cat /tmp/averis-web.log || true

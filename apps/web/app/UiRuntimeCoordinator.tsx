@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 import CinematicIntroGate from "./CinematicIntroGate";
@@ -18,6 +18,31 @@ export default function UiRuntimeCoordinator() {
   const pathname = usePathname();
   const route = routeKey(pathname);
   const home = route === "home";
+  const previousPathname = useRef(pathname);
+
+  useEffect(() => {
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    return () => {
+      window.history.scrollRestoration = previous;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (previousPathname.current === pathname) return;
+    previousPathname.current = pathname;
+
+    // Next.js preserves scroll in a few client-navigation paths. Averis has
+    // full-height route heroes, so carrying the previous route's scroll offset
+    // makes the next screen look visually clipped or layered underneath older
+    // chrome. Reset both immediately and on the next paint without moving focus.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [pathname]);
 
   useEffect(() => {
     const html = document.documentElement;

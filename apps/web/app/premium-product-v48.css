@@ -1,0 +1,350 @@
+/* Averis v48 premium product layer.
+   Final visual-only layer: route isolation, calmer hierarchy, and clearer plan
+   value. It intentionally contains no auth, billing, evidence, or entitlement
+   logic. */
+
+:root {
+  --av48-surface: #0b1823;
+  --av48-surface-raised: #0e1d28;
+  --av48-surface-soft: #101f2a;
+  --av48-border: rgba(151, 183, 204, .16);
+  --av48-border-strong: rgba(117, 209, 200, .28);
+  --av48-text: #edf5f8;
+  --av48-muted: #9eb2be;
+  --av48-accent: #91ddd2;
+  --av48-shadow: 0 18px 52px rgba(0, 0, 0, .20);
+}
+
+html[data-averis-route] {
+  background: #071019;
+  scroll-behavior: auto;
+}
+
+html[data-averis-route] body {
+  min-height: 100dvh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every route owns its own stacking context. This stops old fixed/background
+   layers from visually blending with a newly navigated screen. */
+html[data-averis-route]:not([data-averis-route="home"]) main {
+  position: relative;
+  isolation: isolate;
+  z-index: 1;
+}
+
+html[data-averis-route]:not([data-averis-route="home"]) main::before,
+html[data-averis-route]:not([data-averis-route="home"]) main::after {
+  pointer-events: none;
+}
+
+/* Home / Review Center */
+.reviewCenterV18 {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 78% -10%, rgba(73, 135, 170, .07), transparent 32%),
+    linear-gradient(180deg, #08141e 0%, #07121b 100%);
+}
+
+.reviewCommandBar {
+  border-bottom-color: rgba(149, 181, 199, .13) !important;
+  background: rgba(7, 17, 25, .94) !important;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .16) !important;
+  backdrop-filter: blur(14px) saturate(1.05) !important;
+}
+
+.reviewCenterShell {
+  width: min(1500px, calc(100% - 44px)) !important;
+}
+
+.reviewHero {
+  padding-top: 42px !important;
+  padding-bottom: 26px !important;
+}
+
+.reviewHero h1 {
+  max-width: 760px;
+  color: #f3f8fa !important;
+  letter-spacing: -.04em !important;
+}
+
+.reviewHero > div > p:last-child {
+  max-width: 760px;
+  color: #a8bbc6 !important;
+  line-height: 1.65 !important;
+}
+
+.reviewMetrics {
+  gap: 12px !important;
+}
+
+.reviewMetrics article,
+.reviewPanel,
+.reviewToolGrid > *,
+.reviewHistoryPanel {
+  border-color: var(--av48-border) !important;
+  background: linear-gradient(180deg, rgba(14, 29, 40, .98), rgba(10, 23, 33, .98)) !important;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .13) !important;
+}
+
+.reviewMetrics article {
+  position: relative;
+  overflow: hidden;
+}
+
+.reviewMetrics article::after {
+  content: "";
+  position: absolute;
+  inset: auto 18px 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(126, 218, 208, .26), transparent);
+  opacity: .58;
+}
+
+.reviewMetrics strong {
+  color: #f2f7f9 !important;
+  letter-spacing: -.035em !important;
+}
+
+.reviewPrimary,
+.reviewCommandActions button,
+.reviewInlineActions button:not(.quiet),
+.reviewEmptyState button,
+.reviewHistoryPanel button {
+  border-color: rgba(129, 222, 211, .32) !important;
+  background: #93ded3 !important;
+  color: #061617 !important;
+  box-shadow: 0 8px 22px rgba(77, 172, 164, .08) !important;
+}
+
+.reviewPrimary:hover,
+.reviewCommandActions button:hover,
+.reviewInlineActions button:not(.quiet):hover,
+.reviewEmptyState button:hover,
+.reviewHistoryPanel button:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.035) !important;
+}
+
+/* Keep the six primary workflows visually balanced on desktop. The previous
+   five-column layout left Private AI stranded on a mostly empty second row. */
+.reviewToolGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.reviewToolGrid > * {
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease !important;
+}
+
+.reviewToolGrid > *:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(123, 208, 202, .28) !important;
+  background: linear-gradient(180deg, #10242f, #0c1b26) !important;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, .19) !important;
+}
+
+/* CSS modules on pricing intentionally inherit global button defaults. Lock
+   the signed-out upgrade strip into a deliberate two-column desktop layout so
+   a generic width:100% button rule cannot squeeze the explanatory copy. */
+section[aria-label="Sign in for subscriptions"] {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+section[aria-label="Sign in for subscriptions"] > div {
+  min-width: 0;
+}
+
+section[aria-label="Sign in for subscriptions"] > button {
+  width: auto !important;
+  min-width: 148px !important;
+  max-width: 220px !important;
+  justify-self: end !important;
+  margin: 0 !important;
+}
+
+/* Current-plan value surface: premium without fake metrics or invented claims. */
+.reviewValuePanel {
+  display: grid;
+  grid-template-columns: minmax(280px, .82fr) minmax(0, 1.55fr);
+  gap: 20px;
+  margin: 16px 0 20px;
+  padding: 22px;
+  border: 1px solid rgba(121, 206, 200, .22);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(112, 203, 195, .055), transparent 32%),
+    linear-gradient(180deg, #0d1d28, #0a1822);
+  box-shadow: var(--av48-shadow);
+}
+
+.reviewValueLead {
+  min-width: 0;
+  padding: 5px 6px 5px 2px;
+}
+
+.reviewPlanChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 29px;
+  margin-bottom: 17px;
+  padding: 6px 10px;
+  border: 1px solid rgba(126, 215, 207, .23);
+  border-radius: 999px;
+  color: #c7eee9;
+  background: rgba(106, 194, 186, .08);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.reviewValueLead h2 {
+  max-width: 520px;
+  margin: 7px 0 10px;
+  color: #edf6f8;
+  font-size: clamp(24px, 2.3vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+.reviewValueLead > p:not(.reviewEyebrow) {
+  max-width: 560px;
+  margin: 0;
+  color: #a2b7c3;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.reviewValueLead > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  color: #bfe7e2;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.reviewValueLead > a:hover {
+  color: #e5faf7;
+}
+
+.reviewValueGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.reviewValueGrid article {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid rgba(149, 181, 199, .13);
+  border-radius: 14px;
+  background: rgba(7, 19, 28, .58);
+}
+
+.reviewValueGrid span,
+.reviewValueGrid strong,
+.reviewValueGrid small {
+  display: block;
+}
+
+.reviewValueGrid span {
+  color: #87a3b3;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .11em;
+}
+
+.reviewValueGrid strong {
+  margin: 7px 0 5px;
+  color: #e9f3f6;
+  font-size: 17px;
+  letter-spacing: -.02em;
+}
+
+.reviewValueGrid small {
+  color: #92a9b7;
+  font-size: 11px;
+  line-height: 1.52;
+}
+
+/* Give standalone product routes consistent breathing room after client-side
+   navigation, even before the scroll-reset paint has completed. */
+html[data-averis-route="multi-source"] main,
+html[data-averis-route="revision"] main,
+html[data-averis-route="refine"] main,
+html[data-averis-route="private-ai"] main,
+html[data-averis-route="studio"] main,
+html[data-averis-route="pricing"] main,
+html[data-averis-route="privacy"] main,
+html[data-averis-route="dashboard"] main {
+  min-height: 100dvh;
+}
+
+@media (max-width: 980px) {
+  .reviewCenterShell {
+    width: min(100% - 28px, 1500px) !important;
+  }
+
+  .reviewValuePanel {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewToolGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .reviewCenterShell {
+    width: min(100% - 22px, 1500px) !important;
+  }
+
+  .reviewHero {
+    padding-top: 30px !important;
+  }
+
+  .reviewValuePanel {
+    margin-top: 12px;
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .reviewValueGrid,
+  .reviewToolGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reviewValueGrid article {
+    padding: 15px;
+  }
+
+  section[aria-label="Sign in for subscriptions"] {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  section[aria-label="Sign in for subscriptions"] > button {
+    width: 100% !important;
+    max-width: none !important;
+    justify-self: stretch !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reviewToolGrid > *,
+  .reviewPrimary,
+  .reviewCommandActions button,
+  .reviewInlineActions button,
+  .reviewEmptyState button,
+  .reviewHistoryPanel button {
+    transition: none !important;
+  }
+}

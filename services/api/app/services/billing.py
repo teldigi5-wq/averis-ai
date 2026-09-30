@@ -116,8 +116,9 @@ def _admin_headers() -> dict[str, str]:
     secret = (settings.supabase_secret_key or "").strip()
     if not secret:
         raise RuntimeError("SUPABASE_SECRET_KEY is required for billing webhook persistence")
+    # Supabase sb_secret_* keys are opaque API keys, not JWTs. Sending them as
+    # Authorization: Bearer can trigger JWT parsing and fail with Invalid JWT.
     return {
-        "Authorization": f"Bearer {secret}",
         "apikey": secret,
         "Content-Type": "application/json",
         "Accept": "application/json",
