@@ -64,6 +64,12 @@ function jsonResponse(body: object, status = 200) {
   });
 }
 
+function requestedRuntime(): Runtime | null {
+  if (typeof window === "undefined") return null;
+  const value = new URLSearchParams(window.location.search).get("runtime");
+  return value === "ollama" || value === "browser" || value === "cloud" ? value : null;
+}
+
 export default function StudioAiRuntimeBridge({ children }: { children: ReactNode }) {
   const [runtime, setRuntime] = useState<Runtime>("ollama");
   const runtimeRef = useRef<Runtime>("ollama");
@@ -73,6 +79,25 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
     label: "Private model not loaded",
     percent: null,
   });
+
+  function chooseRuntime(next: Runtime, updateUrl = true) {
+    runtimeRef.current = next;
+    setRuntime(next);
+
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      if (next === "ollama") url.searchParams.delete("runtime");
+      else url.searchParams.set("runtime", next);
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+
+    window.dispatchEvent(new CustomEvent("averis:runtime-change", { detail: { runtime: next } }));
+  }
+
+  useEffect(() => {
+    const initial = requestedRuntime();
+    if (initial) chooseRuntime(initial, false);
+  }, []);
 
   useEffect(() => {
     runtimeRef.current = runtime;
@@ -190,8 +215,9 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
           <button
             type="button"
             className={runtime === "ollama" ? styles.active : ""}
-            onClick={() => setRuntime("ollama")}
+            onClick={() => chooseRuntime("ollama")}
             aria-pressed={runtime === "ollama"}
+            data-runtime-option="ollama"
           >
             <b>Local Ollama</b>
             <small>Existing backend-connected local runtime</small>
@@ -199,9 +225,10 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
           <button
             type="button"
             className={runtime === "browser" ? styles.active : ""}
-            onClick={() => browserReady && setRuntime("browser")}
+            onClick={() => browserReady && chooseRuntime("browser")}
             aria-pressed={runtime === "browser"}
             disabled={capability !== null && !browserReady}
+            data-runtime-option="browser"
           >
             <b>Private Browser AI</b>
             <small>{browserReady ? "WebGPU · on-device generation" : capability?.reason ?? "Checking WebGPU…"}</small>
@@ -209,11 +236,12 @@ export default function StudioAiRuntimeBridge({ children }: { children: ReactNod
           <button
             type="button"
             className={runtime === "cloud" ? styles.active : ""}
-            onClick={() => setRuntime("cloud")}
+            onClick={() => chooseRuntime("cloud")}
             aria-pressed={runtime === "cloud"}
+            data-runtime-option="cloud"
           >
             <b>Cloud AI</b>
-            <small>Server-side provider · explicit opt-in deployment</small>
+            <small>Server-side provider · paid account + provider availability required</small>
           </button>
         </div>
 
