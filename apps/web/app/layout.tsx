@@ -22,6 +22,7 @@ import "./review-center-v18.css";
 import "./review-center-v18-fixes.css";
 import "./revision-studio-v19-fixes.css";
 import "./ui-consolidation.css";
+import "./premium-product-v48.css";
 
 import AuthExperience from "./AuthExperience";
 import OnboardingExperienceV37 from "./OnboardingExperienceV37";
