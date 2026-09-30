@@ -103,6 +103,21 @@
   transform: scaleY(1);
 }
 
+.cloudLink {
+  border-color: rgba(129, 211, 220, .12) !important;
+  background: rgba(99, 185, 194, .035);
+}
+
+.cloudLink .icon {
+  color: #91d8df;
+}
+
+.cloudLink:hover,
+.cloudLink.active {
+  border-color: rgba(129, 222, 214, .26) !important;
+  background: rgba(103, 195, 187, .085) !important;
+}
+
 .icon {
   width: 18px;
   height: 18px;
@@ -165,9 +180,9 @@
   display: none;
 }
 
-@media (min-width: 981px) and (max-height: 720px) {
+@media (min-width: 981px) and (max-height: 790px) {
   .switcher {
-    gap: 4px;
+    gap: 3px;
     padding-block: 8px;
     overflow-y: auto;
     scrollbar-width: none;
@@ -178,24 +193,24 @@
   }
 
   .railBrand {
-    width: 38px;
-    height: 38px;
-    flex-basis: 38px;
-    margin-bottom: 2px;
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    margin-bottom: 1px;
   }
 
   .railDivider {
-    margin-block: 0 2px;
+    margin-block: 0 1px;
   }
 
   .switcher a {
-    min-height: 47px;
-    padding-block: 5px;
+    min-height: 44px;
+    padding-block: 4px;
   }
 
   .guideButton {
-    min-height: 38px;
-    flex-basis: 38px;
+    min-height: 36px;
+    flex-basis: 36px;
   }
 }
 
@@ -232,8 +247,8 @@
     min-width: 0;
     min-height: 48px;
     gap: 4px;
-    padding: 6px 2px;
-    font-size: 8.5px;
+    padding: 6px 1px;
+    font-size: 8px;
   }
 
   .switcher a::after {
@@ -257,20 +272,20 @@
   }
 
   .label {
-    max-width: 54px;
+    max-width: 49px;
   }
 
   .guideButton {
-    width: 38px;
-    min-width: 38px;
+    width: 36px;
+    min-width: 36px;
     min-height: 48px;
-    flex: 0 0 38px;
+    flex: 0 0 36px;
     border-radius: 9px;
     font-size: 12px;
   }
 }
 
-@media (max-width: 430px) {
+@media (max-width: 520px) {
   .switcher {
     width: calc(100vw - 14px);
     gap: 1px;
@@ -278,29 +293,41 @@
   }
 
   .switcher a {
-    font-size: 8px;
-    padding-inline: 1px;
+    min-height: 46px;
+    font-size: 7.5px;
+    padding-inline: 0;
   }
 
-  .label {
-    max-width: 43px;
+  .switcher a:not(.cloudLink) .label {
+    display: none;
+  }
+
+  .cloudLink {
+    min-width: 48px !important;
+    flex: 1.28 1 48px !important;
+  }
+
+  .cloudLink .label {
+    display: block;
+    max-width: 46px;
+    font-size: 7.5px;
   }
 
   .guideButton {
-    width: 34px;
-    min-width: 34px;
-    flex-basis: 34px;
+    width: 32px;
+    min-width: 32px;
+    flex-basis: 32px;
   }
 }
 
 @media (max-width: 390px) {
-  .label {
-    display: none;
-  }
-
   .switcher a,
   .guideButton {
     min-height: 44px;
+  }
+
+  .cloudLink {
+    min-width: 46px !important;
   }
 }
 
