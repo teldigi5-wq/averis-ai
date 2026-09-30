@@ -77,6 +77,17 @@ const plans = [
   },
 ];
 
+const comparisonRows = [
+  ["Server scan credits / month", "5", "50", "200"],
+  ["Private Browser AI + Local Ollama", "Included", "Included", "Included"],
+  ["Assignment planning + progress", "Included", "Included", "Included"],
+  ["Reference, document + rubric checks", "Included", "Included", "Included"],
+  ["Local Assignment Workspace", "Included", "Included", "Included"],
+  ["Source & Citation AI Workbench", "—", "Included", "Included"],
+  ["Optional Cloud AI revision", "—", "Included*", "Included*"],
+  ["Secure subscription portal", "—", "Included", "Included"],
+] as const;
+
 function money(currency: Currency, value: number) {
   if (currency === "LKR") return value === 0 ? "Rs. 0" : `Rs. ${value.toLocaleString("en-LK")}`;
   return value === 0 ? "$0" : `$${value.toFixed(value % 1 ? 2 : 0)}`;
@@ -326,6 +337,39 @@ export default function PricingPage() {
             </article>
           );
         })}
+      </section>
+
+      <section className={premiumStyles.comparison} aria-label="Plan feature comparison">
+        <div className={premiumStyles.comparisonHead}>
+          <div>
+            <span>VALUE, LINE BY LINE</span>
+            <h2>Compare what you actually get.</h2>
+          </div>
+          <p>Free keeps the local/private study workflow useful. Paid plans add much more server capacity plus the paid workbench and optional Cloud AI path.</p>
+        </div>
+        <div className={premiumStyles.comparisonScroller}>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Capability</th>
+                <th scope="col">Free</th>
+                <th scope="col">Student Plus</th>
+                <th scope="col">Student Pro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonRows.map(([label, free, student, pro]) => (
+                <tr key={label}>
+                  <th scope="row">{label}</th>
+                  <td>{free}</td>
+                  <td data-highlight="true">{student}</td>
+                  <td>{pro}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className={premiumStyles.comparisonNote}>* Optional Cloud AI is available only when the configured provider quota is available. Averis never silently falls back to it.</p>
       </section>
 
       <section className={styles.securityStrip} aria-label="Subscription protections">
