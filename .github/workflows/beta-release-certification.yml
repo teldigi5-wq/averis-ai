@@ -240,7 +240,7 @@ jobs:
 
       - name: Upload v38 release evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: beta-release-v38-${{ env.AVERIS_CANDIDATE_SHA }}
           path: |
