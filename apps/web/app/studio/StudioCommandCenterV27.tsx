@@ -318,7 +318,7 @@ export default function StudioCommandCenterV27() {
                 data-state={state}
                 data-active={active ? "true" : "false"}
                 onClick={() => scrollToPhase(phase.id)}
-                aria-label={`${phase.number} ${phase.label}${state === "done" ? ", complete" : state === "hold" ? ", needs review" : ""}`}
+                aria-label={`${phase.number} ${phase.label} ${phase.short}${state === "done" ? ", complete" : state === "hold" ? ", needs review" : ""}`}
               >
                 <span>{phase.number}</span>
                 <div><strong>{phase.label}</strong><small>{phase.short}</small></div>
