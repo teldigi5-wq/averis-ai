@@ -138,7 +138,7 @@ jobs:
         run: cat /tmp/ollama.log 2>/dev/null || true
       - name: Upload ${{ matrix.model }} evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-bakeoff-${{ matrix.slug }}-${{ github.sha }}
           path: artifacts/bakeoff/${{ matrix.slug }}/
@@ -193,7 +193,7 @@ jobs:
                   )
               handle.write("\n**Promotion remains disabled.** PAWS is model-selection evidence here, not a fresh academic-domain final holdout.\n")
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ai-bakeoff-comparison-${{ github.sha }}
           path: artifacts/ai-bakeoff-comparison.json

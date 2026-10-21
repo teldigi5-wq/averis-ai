@@ -138,7 +138,7 @@ jobs:
         run: cat /tmp/ollama.log 2>/dev/null || true
       - name: Upload AI certification evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ai-certification-${{ github.sha }}
           path: artifacts/
