@@ -545,3 +545,28 @@
     animation-duration: .01ms !important;
   }
 }
+
+
+/* Prevent narrow Studio action bars from clipping the next-action button. */
+@media (max-width: 760px) {
+  .studioV27Command .studioV27Command__top {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .studioV27Command .studioV27Command__actions {
+    min-width: 0;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .studioV27Command .studioV27Command__actions .studioV27Command__primary {
+    flex: 1 1 100%;
+    min-width: 0 !important;
+    width: 100%;
+    max-width: 100% !important;
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+}
