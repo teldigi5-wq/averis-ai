@@ -55,7 +55,7 @@ export default function StudioWorkspaceLauncherV35() {
   }, []);
 
   if (!visible) return null;
-  return <button type="button" className="studioV35WorkspaceLauncher" onClick={() => window.dispatchEvent(new Event("averis:workspace-open"))} aria-label={`Open Assignment Workspace: ${label}`}>
+  return <button type="button" className="studioV35WorkspaceLauncher" onClick={() => window.dispatchEvent(new Event("averis:workspace-open"))} aria-keyshortcuts="Alt+Shift+W">
     <span aria-hidden="true">▣</span>
     <div><small>ASSIGNMENT WORKSPACE · ALT + SHIFT + W</small><strong>{label}</strong><p>{meta}</p></div>
     <b>Open workspace</b>
