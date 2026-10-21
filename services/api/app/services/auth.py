@@ -30,6 +30,12 @@ async def require_user(
     settings = get_settings()
 
     if not settings.saas_mode:
+        # The anonymous local development identity must never reach public beta/prod.
+        if settings.app_env.lower() != "development":
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Averis authentication is not configured for this environment.",
+            )
         return AuthContext(
             user_id="local-development",
             email=None,
