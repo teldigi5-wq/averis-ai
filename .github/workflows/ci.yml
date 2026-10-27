@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.16"
       - run: python scripts/security/check_tracked_secrets.py
       - run: bash scripts/vercel/test_ignored_build.sh
 
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.16"
       - run: python -m pip install --upgrade pip
       - run: pip install -r requirements.txt
       - run: pip check
@@ -50,7 +50,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API container
-        run: docker build --tag averis-api-ci .
+        run: docker build --pull --tag averis-api-ci .
+      - name: Verify patched CPython TLS runtime in built container
+        run: |
+          docker run --rm --entrypoint python averis-api-ci -c 'import ssl,sys; assert (3,12,16) <= sys.version_info[:3] < (3,13,0), sys.version; print(sys.version); print(ssl.OPENSSL_VERSION)'
+      - name: Verify stdlib and httpx reject both compromised eMudhra TLS chains
+        run: |
+          docker run --rm --interactive --entrypoint python averis-api-ci - < scripts/verify_emudhra_tls.py
       - name: Smoke test API container
         run: |
           docker run --rm -d --name averis-api-ci -p 8000:8080 -e PORT=8080 averis-api-ci

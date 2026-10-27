@@ -1,4 +1,9 @@
-FROM python:3.12-slim
+# CPython 3.12.16 includes the ssl certificate denylist for CVE-2026-115557.
+# Keep to the official patch-specific tag; verify the interpreter before pip performs HTTPS.
+# OCI digest resolved in exact-head GitHub Actions Docker build #40439602021; verify platform manifests before promotion.
+FROM docker.io/library/python:3.12.16-slim@sha256:f3aa44c1f89302501f8b812a3abe4ca997177f227e295d9a76ac0d683b493800
+
+RUN python -c 'import ssl, sys; assert (3, 12, 16) <= sys.version_info[:3] < (3, 13, 0), f"unpatched Python runtime: {sys.version}"; print(f"Python TLS security floor OK: {sys.version.split()[0]} ({ssl.OPENSSL_VERSION})")'
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
