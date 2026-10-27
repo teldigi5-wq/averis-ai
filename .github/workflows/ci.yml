@@ -50,7 +50,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build API container
-        run: docker build --tag averis-api-ci .
+        run: docker build --pull --tag averis-api-ci .
+      - name: Verify patched CPython TLS runtime in built container
+        run: |
+          docker run --rm --entrypoint python averis-api-ci -c 'import ssl,sys; assert (3,12,16) <= sys.version_info[:3] < (3,13,0), sys.version; print(sys.version); print(ssl.OPENSSL_VERSION)'
       - name: Smoke test API container
         run: |
           docker run --rm -d --name averis-api-ci -p 8000:8080 -e PORT=8080 averis-api-ci
