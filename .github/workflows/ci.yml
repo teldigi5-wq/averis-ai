@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.16"
       - run: python scripts/security/check_tracked_secrets.py
       - run: bash scripts/vercel/test_ignored_build.sh
 
@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.16"
       - run: python -m pip install --upgrade pip
       - run: pip install -r requirements.txt
       - run: pip check

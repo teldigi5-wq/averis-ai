@@ -3,7 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import ai, billing, documents, health, references, revision_preflight, revision_refine, similarity, sources
 from app.core.config import get_settings
+from app.core.runtime_security import require_patched_python_tls
 from app.services.observability import emit_request_log, start_request_observation
+
+# Fail closed before serving requests if the managed host falls behind security releases.
+require_patched_python_tls()
 
 settings = get_settings()
 
