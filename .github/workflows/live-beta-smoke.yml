@@ -40,7 +40,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.16"
 
       - name: Compile smoke probe
         run: python -m py_compile scripts/release/live_beta_smoke.py
