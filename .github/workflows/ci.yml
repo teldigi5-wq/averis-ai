@@ -54,6 +54,9 @@ jobs:
       - name: Verify patched CPython TLS runtime in built container
         run: |
           docker run --rm --entrypoint python averis-api-ci -c 'import ssl,sys; assert (3,12,16) <= sys.version_info[:3] < (3,13,0), sys.version; print(sys.version); print(ssl.OPENSSL_VERSION)'
+      - name: Verify stdlib and httpx reject both compromised eMudhra TLS chains
+        run: |
+          docker run --rm --interactive --entrypoint python averis-api-ci - < scripts/verify_emudhra_tls.py
       - name: Smoke test API container
         run: |
           docker run --rm -d --name averis-api-ci -p 8000:8080 -e PORT=8080 averis-api-ci
