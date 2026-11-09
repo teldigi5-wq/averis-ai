@@ -156,3 +156,10 @@ See [`docs/ROADMAP.md`](docs/ROADMAP.md).
 ## License
 
 MIT
+
+
+---
+
+## AI recovery and active milestones — 9 November 2026
+
+Read [the GitHub-verified point-in-time project handoff](docs/AI_HANDOFF_2026-11-09.md) before any AI/developer resumes. It records main SHA `882a61311470`, open review constraints and next distinct work. These documentation changes do not certify production or merge existing security PRs.
