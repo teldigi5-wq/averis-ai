@@ -29,3 +29,9 @@ Primary: https://github.com/teldigi5-wq
 Education/test mirror: https://github.com/IT26101524
 Canonical Aetheris: https://github.com/teldigi5-wq/aetheris-platform
 Canonical Runtime: https://github.com/teldigi5-wq/aetheris-ai-runtime
+
+## 9 November continuation plan index
+- [Roadmap and non-repeating phases](AI_ROADMAP_2026-11-09.md)
+- [Milestones, proof and NO_GO ledger](AI_MILESTONES_2026-11-09.md)
+
+Review-only documentation on PR #109; original product plan and existing implementation branches unchanged.
