@@ -103,3 +103,13 @@
 - [ ] provider encryption/secret-rotation runbook
 - [ ] revenue-stage metrics/alerting/SLO dashboards
 - [ ] paid deployment profiles after revenue
+
+## 9 November 2026 — AI continuation reference
+
+Existing checked M1/M2 milestones are not reopened; the AI handoff ledger is a new continuation index, not a new project milestone or evidence of production release.
+
+- [Dated recovery handoff](AI_CONTINUATION_2026-11-09.md)
+- [Next distinct milestones and recovery phases](AI_ROADMAP_2026-11-09.md)
+- [Exact-SHA milestone evidence tracker](AI_MILESTONES_2026-11-09.md)
+
+These links exist on documentation-only draft PR #109, not necessarily on protected `main`. Preserve all previously verified stages, unmerged feature branches and existing security/release acceptance criteria.
